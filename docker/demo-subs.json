@@ -1,0 +1,31 @@
+[
+  {
+    "id": 1001,
+    "owner": "0202b6f8db8e7fd2dec80e83571a4b9d7ec5f5d56c8c2b8c5e95d75ce8b3a1d4c8f9",
+    "predicate": {
+      "and": [
+        { "field": "amount", "op": "gte", "value": "100000000000000" }
+      ]
+    },
+    "webhook_url": "http://demo-webhook:8787/",
+    "balance": "10000000000",
+    "deliveries": 0,
+    "active": true,
+    "created_at": 1751155200
+  },
+  {
+    "id": 1002,
+    "owner": "0202b6f8db8e7fd2dec80e83571a4b9d7ec5f5d56c8c2b8c5e95d75ce8b3a1d4c8f9",
+    "predicate": {
+      "and": [
+        { "field": "amount", "op": "gte", "value": "10000000000" },
+        { "field": "amount", "op": "ends_with", "value": "000000000" }
+      ]
+    },
+    "webhook_url": "http://caddy/h/demo",
+    "balance": "10000000000",
+    "deliveries": 0,
+    "active": true,
+    "created_at": 1751155200
+  }
+]

@@ -1,0 +1,128 @@
+# Sluice, single-command self-host.
+#
+#   git clone https://github.com/UnityNodes/Sluice && cd Sluice
+#   cp .env.sample .env.testnet                 # paste your secret-key path + CSPR.cloud token
+#   docker compose up --build                    # ~10 min first build (cargo install casper-client)
+#
+# Then visit http://localhost:8080  →  landing, /app, /feed, /h/.
+# The matcher writes its snapshot + badge to a shared volume so Caddy serves
+# them under /api/snapshot.json + /api/badge.svg with no extra wiring.
+
+services:
+  matcher:
+    build:
+      context: .
+      dockerfile: matcher/Dockerfile
+      args:
+        # Set to "false" to skip the ~10-minute cargo install step and run the
+        # matcher in WS-only mode (no on-chain record_delivery).
+        INSTALL_CASPER_CLIENT: "true"
+    environment:
+      SLUICE_CONTRACT_HASH:        ${SLUICE_CONTRACT_HASH:-f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971}
+      SLUICE_CSPR_CLOUD_TOKEN:     ${SLUICE_CSPR_CLOUD_TOKEN:?required, sign up at cspr.cloud}
+      SLUICE_STREAMING_WS_URL:     ${SLUICE_STREAMING_WS_URL:-wss://streaming.testnet.cspr.cloud/transfers}
+      SLUICE_NODE_RPC_URL:         ${SLUICE_NODE_RPC_URL:-https://node.testnet.casper.network/rpc}
+      SLUICE_CHAIN_NAME:           ${SLUICE_CHAIN_NAME:-casper-test}
+      SLUICE_MATCHER_KEY_PATH:     /keys/matcher/secret_key.pem
+      SLUICE_SNAPSHOT_PATH:        /var/snapshot/snapshot.json
+      SLUICE_WEBHOOK_SECRET:       ${SLUICE_WEBHOOK_SECRET:-}
+      SLUICE_API_PORT:             "7799"
+      SLUICE_POLL_SUBS_MS:         "30000"
+    volumes:
+      - ./keys:/keys:ro
+      - snapshot:/var/snapshot
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-X", "POST", "-H", "content-type: application/json", "http://127.0.0.1:7799/health", "-d", "{}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    depends_on:
+      - matcher
+      - mcp-http
+    ports:
+      - "${SLUICE_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./web:/srv/web:ro
+      - snapshot:/srv/snapshot:ro
+    restart: unless-stopped
+
+  # Hosted MCP, Streamable HTTP transport on :7800.  Caddy fronts it under
+  # /mcp, so MCP clients can connect by URL with no `npm install`:
+  #   claude mcp add sluice http://localhost:8080/mcp
+  mcp-http:
+    build:
+      context: ./mcp
+      dockerfile: Dockerfile
+    environment:
+      SLUICE_API_URL: http://caddy/api
+      SLUICE_MCP_PUBLIC_URL: ${SLUICE_MCP_PUBLIC_URL:-http://localhost:8080/mcp}
+      PORT: "7800"
+    expose:
+      - "7800"
+    restart: unless-stopped
+
+  # Optional: a local webhook receiver to see the matcher's POSTs without
+  # using webhook.site or running examples/discord-bridge separately.
+  demo-webhook:
+    image: node:20-alpine
+    working_dir: /app
+    command: sh -c "npm install --silent && node server.js"
+    environment:
+      SLUICE_WEBHOOK_SECRET: ${SLUICE_WEBHOOK_SECRET:-}
+      PORT: "8787"
+    volumes:
+      - ./demo-webhook:/app:ro
+    ports:
+      - "8787:8787"
+    profiles: ["with-demo-webhook"]
+    restart: unless-stopped
+
+  # Optional: a full Prometheus + Grafana monitoring stack pre-wired to scrape
+  # the matcher's /api/metrics and auto-import the Sluice dashboard.
+  #
+  #   docker compose --profile monitoring up -d
+  #
+  # Then open http://localhost:3001 (admin/admin), the "Sluice" dashboard is
+  # already provisioned; no manual import.
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    depends_on:
+      - caddy
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "${SLUICE_PROMETHEUS_PORT:-9090}:9090"
+    profiles: ["monitoring"]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER:     ${SLUICE_GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${SLUICE_GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP:     "false"
+      GF_AUTH_ANONYMOUS_ENABLED:  ${SLUICE_GRAFANA_ANON:-false}
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_ANALYTICS_REPORTING_ENABLED:    "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES:    "false"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${SLUICE_GRAFANA_PORT:-3001}:3000"
+    profiles: ["monitoring"]
+    restart: unless-stopped
+
+volumes:
+  snapshot:
+  prometheus-data:
+  grafana-data:

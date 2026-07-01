@@ -1,0 +1,37 @@
+# Sluice, demo override.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.demo.yml \
+#     --profile demo --profile monitoring up -d
+#
+# Or use the helper:  ./scripts/demo.sh
+#
+# What this adds on top of the base compose file:
+# - matcher reads ./docker/demo-subs.json as a pre-seeded subscription list
+#   so the dashboard + activity feed light up immediately, without you having
+#   to fund a Casper wallet and sign on-chain `create_subscription` deploys.
+# - INSTALL_CASPER_CLIENT=false skips the ~10-minute cargo build step , 
+#   record_delivery on-chain is disabled but webhooks still fire end-to-end.
+# - The demo subs point at the in-network `demo-webhook` container and at
+#   the hosted receiver `/h/demo` (visit http://localhost:8080/h/demo to
+#   watch live POSTs land in your browser).
+#
+# When you're done:  docker compose --profile demo --profile monitoring down
+
+services:
+  matcher:
+    build:
+      args:
+        INSTALL_CASPER_CLIENT: "false"
+    environment:
+      SLUICE_INJECT_SUBS_FILE: /seed/demo-subs.json
+    volumes:
+      - ./docker/demo-subs.json:/seed/demo-subs.json:ro
+
+  demo-webhook:
+    profiles: ["demo"]
+
+  prometheus:
+    profiles: ["demo", "monitoring"]
+
+  grafana:
+    profiles: ["demo", "monitoring"]

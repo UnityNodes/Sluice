@@ -1,0 +1,51 @@
+# Rust / Cargo
+/target
+/contract/target
+/contract/wasm
+/contract/Cargo.lock
+**/*.rs.bk
+
+# Node
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.npm
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keys, secrets, env (NEVER commit)
+keys/
+.node-keys/
+.env
+.env.*
+!.env.sample
+*.pem
+*.secret
+cspr-cloud.token
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Build artifacts / scratch
+*.wasm
+!**/wasm/*.wasm
+scratchpad/
+.deployed/
+deployments/*.json
+!deployments/.gitkeep
+
+# Designer hand-off zips
+*.zip
+
+# npm pack output
+*.tgz
+.playwright-mcp/
+examples/**/node_modules/

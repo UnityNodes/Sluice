@@ -1,0 +1,121 @@
+# Sluice, local self-hosted Caddy config (used by docker-compose).
+#
+# Serves the static landing + dashboard + feed + hosted-receiver pages
+# from /srv/web and reverse-proxies /api/tx/* and /api/hooks/* to the
+# matcher service.
+
+:80 {
+	encode gzip zstd
+
+	# Snapshot + badge are static files the matcher writes into the shared volume.
+	@snapshot path /api/snapshot.json /api/badge.svg
+	handle @snapshot {
+		header Cache-Control "no-store"
+		root * /srv/snapshot
+		file_server
+	}
+
+	handle_path /api/tx/* {
+		rewrite * /tx{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/hooks/* {
+		rewrite * /hooks{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/predicate/* {
+		rewrite * /predicate{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/sub/* {
+		rewrite * /sub{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/health {
+		rewrite * /health
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/metrics {
+		rewrite * /metrics
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /og/* {
+		rewrite * /og{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/chain/* {
+		rewrite * /chain{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/stream {
+		rewrite * /stream
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/badges/* {
+		rewrite * /badges{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /embed/* {
+		rewrite * /embed{uri}
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/openapi.yaml {
+		rewrite * /openapi.yaml
+		reverse_proxy matcher:7799
+	}
+
+	handle_path /api/sandbox/* {
+		rewrite * /sandbox{uri}
+		reverse_proxy matcher:7799
+	}
+
+	# Hosted MCP, Streamable HTTP. SSE-style streaming, so disable buffering.
+	handle /mcp {
+		reverse_proxy mcp-http:7800 {
+			flush_interval -1
+			transport http {
+				read_timeout 0
+				write_timeout 0
+			}
+		}
+	}
+	handle /mcp/* {
+		reverse_proxy mcp-http:7800 {
+			flush_interval -1
+			transport http {
+				read_timeout 0
+				write_timeout 0
+			}
+		}
+	}
+
+	handle /h/* {
+		root * /srv/web
+		try_files {path} /h/index.html
+		file_server
+	}
+
+	handle {
+		root * /srv/web
+		try_files {path} {path}/index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
