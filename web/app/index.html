@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice · Subscriptions Dashboard</title>
+<meta name="description" content="Live testnet dashboard for Sluice. Casper event subscriptions. Read-only view of the contract's live state. Mutations via CLI or MCP (any client).">
+<meta property="og:title" content="Sluice · Subscriptions Dashboard">
+<meta property="og:description" content="Live testnet dashboard for Sluice. Casper event subscriptions on the Casper AI Toolkit.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+  body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
+  @keyframes pulse-acc { 0%,100% { box-shadow: 0 0 0 0 rgba(188,252,7,.55); } 50% { box-shadow: 0 0 0 6px rgba(188,252,7,0); } }
+  @keyframes pulse-green { 0%,100% { box-shadow: 0 0 0 0 rgba(62,220,100,.5); } 50% { box-shadow: 0 0 0 6px rgba(62,220,100,0); } }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  ::selection { background: #bcfc07; color: #000; }
+  #filter-pills > [data-filter] { padding:6px 11px; cursor:pointer; font:500 11.5px 'JetBrains Mono'; letter-spacing:.06em; text-transform:uppercase; background:#fff; color:#000; border:none; border-left:1px solid #000; }
+  #filter-pills > [data-filter]:first-child { border-left:none }
+  #filter-pills > [data-filter].active { background:#000; color:#fff }
+  button { font-family: inherit }
+  /* App tabs */
+  .app-tabs { display:flex; gap:0; border:1px solid #000; background:#fff; margin-bottom:24px; }
+  .app-tab { background:#fff; color:#000; border:none; border-right:1px solid #000; padding:14px 22px; font:500 14px 'Casper Sans',Inter; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .app-tab:last-child { border-right:none }
+  .app-tab[aria-selected="true"] { background:#000; color:#fff; }
+  .app-tab .badge { font:500 10px 'JetBrains Mono'; background:#bcfc07; color:#000; padding:2px 6px; letter-spacing:.06em; }
+  .app-tab[aria-selected="true"] .badge { background:#bcfc07; color:#000 }
+  .tab-pane { display:none }
+  .tab-pane.active { display:block }
+  /* Builder rows (moved from landing) */
+  .pb-row { display:grid; grid-template-columns:1fr 110px 1fr 32px; gap:8px; align-items:center }
+  .pb-row select, .pb-row input { border:1px solid #000; background:#fff; padding:7px 10px; font:500 12.5px 'JetBrains Mono'; color:#000 }
+  .pb-row .pb-rm { background:#fff; color:#000; border:1px solid #000; width:32px; height:32px; cursor:pointer; font:500 14px 'JetBrains Mono' }
+  /* ───── MOBILE PASS (≤ 880px) ───── */
+  @media (max-width: 880px) {
+    nav > div { padding-left: 14px !important; padding-right: 14px !important; gap: 10px !important; flex-wrap: wrap; height: auto !important; min-height: 60px; padding-top: 10px !important; padding-bottom: 10px !important; }
+    nav [style*="display:flex;align-items:center;gap:0;font:400 14px"] { order: 99; flex-basis: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0 !important; }
+    nav [style*="display:flex;align-items:center;gap:0;font:400 14px"] a { padding: 6px 12px !important; font-size: 13px !important; white-space: nowrap; }
+    nav [style*="width:1px;height:22px"] { display: none !important; }
+    /* main padding */
+    body > div > div[style*="max-width:1440px"] { padding: 20px 14px 40px !important; }
+    h1[style*="font:500 44px"] { font-size: 30px !important; }
+    /* tabs scroll horizontally */
+    .app-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .app-tab { padding: 12px 16px !important; font-size: 13px !important; white-space: nowrap; }
+    /* stats strip 4 → 2x2 */
+    [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: repeat(2,1fr) !important; }
+    [style*="grid-template-columns:repeat(4,1fr)"] [style*="font:500 40px"] { font-size: 26px !important; }
+    [style*="grid-template-columns:repeat(4,1fr)"] > div { padding: 18px 16px !important; }
+    /* main grid table + side-rail → stack (minmax(0) so children with width:100% don't blow up the track) */
+    [style*="grid-template-columns:1fr 340px"] { grid-template-columns: minmax(0,1fr) !important; gap: 18px !important; }
+    /* build tab: stack builder + json */
+    [style*="grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)"],
+    [style*="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"] { grid-template-columns: minmax(0,1fr) !important; gap: 18px !important; }
+    /* table header grid is too wide on mobile, let card overflow gracefully */
+    [style*="grid-template-columns:84px 1.8fr 1.3fr 100px 90px 110px"] { display: none !important; }
+    /* predicate builder rows collapse to 2 cols */
+    .pb-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .pb-row .pb-rm { grid-column: span 2; justify-self: end; }
+    /* big action buttons row wraps cleanly */
+    [style*="display:flex;align-items:center;gap:12px"] { gap: 8px !important; }
+    /* hide "Top-up" + "+ New" inline labels on tight screens, keep buttons visible */
+    #topup-btn, #new-sub-btn { padding: 10px 14px !important; font-size: 13px !important; }
+    /* sandbox big H2 */
+    h2[style*="font:500 32px"] { font-size: 24px !important; }
+    /* search/filter row, kill the 240px min-width that pushes the card past the viewport */
+    [style*="min-width:240px"] { min-width: 0 !important; flex: 1 1 100% !important; order: 99; }
+    #filter-pills { flex-wrap: wrap; }
+    #filter-pills > [data-filter] { padding: 5px 9px !important; font-size: 10.5px !important; }
+    /* topup / new-sub buttons row, let them wrap nicely */
+    [style*="display:flex;gap:10px"] { gap: 8px !important; flex-wrap: wrap; }
+    /* CSV button keeps width but doesn't stretch */
+    #csv-btn { padding: 6px 10px !important; font-size: 11px !important; }
+  }
+  @media (max-width: 480px) {
+    [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns:repeat(4,1fr)"] > div { border-right: none !important; border-bottom: 1px solid #000 !important; }
+    [style*="grid-template-columns:repeat(4,1fr)"] > div:last-child { border-bottom: none !important; }
+    nav [style*="background:#bcfc07;padding:5px 9px"] { font-size: 10px !important; padding: 4px 7px !important; }
+    #wallet-btn { font-size: 11px !important; padding: 6px 10px !important; }
+  }
+
+  [data-reveal] { opacity:0; transform:translateY(20px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+  [data-reveal].revealed { opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity:1; transform:none; transition:none } }
+  </style>
+</head>
+<body>
+
+<!-- Reusable line-art icon library, same set as landing. Referenced via <svg><use href="#icon-X"/></svg>. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="icon-recipient" viewBox="0 0 24 24"><path d="M12 21c-4-4-7-7.5-7-11a7 7 0 1 1 14 0c0 3.5-3 7-7 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 10l4 4 4-4M12 5v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-sender" viewBox="0 0 24 24"><path d="M12 21c-4-4-7-7.5-7-11a7 7 0 1 1 14 0c0 3.5-3 7-7 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 9l4-4 4 4M12 14V5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-amount" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 6v4c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 10v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4M4 14v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="icon-block" viewBox="0 0 24 24"><rect x="3" y="8" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="8" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 12h2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="icon-time" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="icon-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" fill="currentColor"/></symbol>
+    <symbol id="icon-beaker" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 8a2 2 0 0 0 1.7 3h10.6A2 2 0 0 0 19 17l-5-8V3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 15h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14m-5-5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+<style>
+  /* .pi = predicate icon, inline in text runs (subs table, humanize, activity descriptions). */
+  .pi { display:inline-block; width:14px; height:14px; vertical-align:-3px; margin-right:5px; color:#000; }
+  /* .fi = field icon for builder dropdown option prefix (small square) */
+  .fi { display:inline-block; width:14px; height:14px; vertical-align:-2px; }
+</style>
+
+<div style="background:#f4f4f4;min-height:100vh">
+
+  <!-- ============ NAV ============ -->
+  <nav style="background:#fff;border-bottom:1px solid #000">
+    <div style="max-width:1440px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:28px;height:60px">
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#000">
+        <span style="display:inline-flex;width:22px;height:22px;background:#000;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:5px solid #bcfc07;border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:2px"></span></span>
+        <span style="font:500 18px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+      </a>
+      <div style="width:1px;height:22px;background:#ccc"></div>
+      <div style="display:flex;align-items:center;gap:0;font:400 14px 'Casper Sans',Inter;color:#000">
+        <a href="/app" style="text-decoration:none;color:#fff;padding:8px 14px;background:#000;font-weight:500">Subscriptions</a>
+        <a href="/feed/" style="text-decoration:none;color:#000;padding:8px 14px">Live feed</a>
+        <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971" target="_blank" rel="noopener" style="text-decoration:none;color:#000;padding:8px 14px">Contract ↗</a>
+        <a href="https://github.com/UnityNodes/Sluice" target="_blank" rel="noopener" style="text-decoration:none;color:#000;padding:8px 14px">GitHub ↗</a>
+        <a href="/" style="text-decoration:none;color:#000;padding:8px 14px">← Landing</a>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:6px;font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:5px 9px;letter-spacing:.06em">
+        <span style="width:6px;height:6px;background:#000;border-radius:50%"></span>TESTNET
+      </div>
+      <button id="wallet-btn" title="Connect Casper Wallet, read-only filter to your subscriptions" style="display:flex;align-items:center;gap:8px;border:1px solid #000;background:#bcfc07;padding:6px 12px;font:500 12.5px 'JetBrains Mono';color:#000;cursor:pointer">Connect wallet</button>
+    </div>
+  </nav>
+
+  <div style="max-width:1440px;margin:0 auto;padding:32px 28px 60px">
+
+    <!-- ============ HEADER ============ -->
+    <div style="margin:12px 0 40px">
+      <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;color:#666;text-transform:uppercase">
+            01 &nbsp;·&nbsp;Workspace · live testnet
+          </div>
+          <h1 style="margin:14px 0 0;font:500 clamp(38px,4vw,56px)/1 'Casper Sans',Inter;letter-spacing:-.03em;color:#000">Your subscriptions.</h1>
+          <div style="margin-top:12px;font:400 14px 'Casper Sans',Inter;color:#666">
+            <span id="status-active">…</span> active ·
+            <span id="status-sync">connecting to matcher…</span> ·
+            contract <a id="contract-link" href="#" target="_blank" rel="noopener" style="color:#000;text-decoration:none;font:500 12.5px 'JetBrains Mono';border-bottom:1px solid #ccc">…</a>
+            &nbsp;·&nbsp; <span style="font:500 12px 'JetBrains Mono';color:#999">press <kbd style="background:#000;color:#bcfc07;padding:1px 6px;border-radius:2px">?</kbd> for shortcuts</span>
+          </div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="display:flex;gap:10px">
+          <button id="topup-btn" title="Add more CSPR to an existing subscription to keep deliveries going" style="background:#fff;color:#000;border:1px solid #000;padding:11px 18px;font:500 14px 'Casper Sans',Inter;cursor:pointer;display:flex;align-items:center;gap:8px">
+            <span style="font:500 14px 'JetBrains Mono'">↥</span> Add funds
+          </button>
+          <button id="new-sub-btn" style="background:#bcfc07;color:#000;border:1px solid #000;padding:11px 20px;font:500 14px 'Casper Sans',Inter;cursor:pointer;display:flex;align-items:center;gap:8px">
+            + New subscription
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ TABS ============ -->
+    <div class="app-tabs" role="tablist" aria-label="Workspace sections">
+      <button class="app-tab" id="tab-btn-subs"     role="tab" aria-selected="true"  aria-controls="tab-subs"     data-tab="subs">Subscriptions <span class="badge" id="tab-badge-subs">0</span></button>
+      <button class="app-tab" id="tab-btn-build"    role="tab" aria-selected="false" aria-controls="tab-build"    data-tab="build"><svg width="15" height="15" style="vertical-align:-3px;color:currentColor;margin-right:8px"><use href="#icon-sparkle"/></svg>Build</button>
+      <button class="app-tab" id="tab-btn-sandbox"  role="tab" aria-selected="false" aria-controls="tab-sandbox"  data-tab="sandbox"><svg width="15" height="15" style="vertical-align:-3px;color:currentColor;margin-right:8px"><use href="#icon-beaker"/></svg>Sandbox</button>
+      <button class="app-tab" id="tab-btn-activity" role="tab" aria-selected="false" aria-controls="tab-activity" data-tab="activity">Activity <span class="badge" id="tab-badge-activity">0</span></button>
+    </div>
+
+    <!-- ============ THREE PATHS (agent-first onboarding) ============ -->
+    <div id="onboard-strip" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid #000;background:#fff;margin-bottom:24px">
+      <div style="padding:18px 20px;border-right:1px solid #000">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#666;text-transform:uppercase">FOR DEVELOPERS</div>
+        <div style="margin-top:8px;font:500 15px 'Casper Sans',Inter;color:#000">Subscribe from the CLI</div>
+        <div style="margin-top:6px;font:400 12.5px/1.5 'Casper Sans',Inter;color:#666">One signed deploy. <code style="font:500 11.5px 'JetBrains Mono';background:#f4f4f4;padding:1px 5px">sluice subscribe</code></div>
+      </div>
+      <div style="padding:18px 20px;border-right:1px solid #000;background:#fafafa">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#666;text-transform:uppercase;display:flex;align-items:center;gap:6px"><svg width="12" height="12"><use href="#icon-sparkle"/></svg> FOR AI AGENTS</div>
+        <div style="margin-top:8px;font:500 15px 'Casper Sans',Inter;color:#000">Let your agent subscribe</div>
+        <div style="margin-top:6px;font:400 12.5px/1.5 'Casper Sans',Inter;color:#666">One hosted MCP URL. Any MCP client signs and submits.</div>
+      </div>
+      <div style="padding:18px 20px">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#666;text-transform:uppercase">FOR OPERATORS</div>
+        <div style="margin-top:8px;font:500 15px 'Casper Sans',Inter;color:#000">Watch it live</div>
+        <div style="margin-top:6px;font:400 12.5px/1.5 'Casper Sans',Inter;color:#666">This dashboard + <code style="font:500 11.5px 'JetBrains Mono';background:#f4f4f4;padding:1px 5px">/api/stream</code> WebSocket. Connect wallet to filter to yours.</div>
+      </div>
+    </div>
+
+    <!-- ============ TAB: SUBSCRIPTIONS (default) ============ -->
+    <div id="tab-subs" class="tab-pane active" data-reveal role="tabpanel" aria-labelledby="tab-btn-subs">
+
+    <!-- ============ STATS ============ -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#fff;border:1px solid #000;margin-bottom:24px">
+      <div style="padding:24px 26px;border-right:1px solid #000">
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">ACTIVE SUBS</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px">
+          <span id="stat-active-count" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
+          <span style="font:400 12px 'JetBrains Mono';color:#666">/ <span id="stat-active-total">…</span> TOTAL</span>
+        </div>
+      </div>
+
+      <div style="padding:24px 26px;border-right:1px solid #000">
+        <div title="Total CSPR you've prepaid into the escrow contract, covers webhook delivery fees" style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">FUNDS LOCKED · CSPR</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:8px">
+          <span id="stat-escrow" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
+          <span style="font:500 14px 'JetBrains Mono';color:#666">CSPR</span>
+        </div>
+        <div style="margin-top:18px;font:400 13px 'Casper Sans',Inter;color:#666"><span id="stat-coverage">…</span></div>
+      </div>
+
+      <div style="padding:24px 26px;border-right:1px solid #000">
+        <div title="Total events sent to your webhook successfully, each one logged on-chain" style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">EVENTS DELIVERED</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px">
+          <span id="stat-deliveries" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
+          <span id="stat-deliveries-trend" style="font:500 12px 'JetBrains Mono';color:#3edc64"></span>
+        </div>
+        <div style="margin-top:14px;font:400 12px 'JetBrains Mono';color:#666">each delivery written to the blockchain</div>
+      </div>
+
+      <div style="padding:24px 26px;background:#bcfc07">
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">WEBHOOK HEALTH</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px">
+          <span id="stat-health" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
+        </div>
+        <div id="stat-health-detail" style="margin-top:18px;font:400 12px 'JetBrains Mono';color:#000">v0.2 metric</div>
+      </div>
+    </div>
+
+    <!-- ============ MAIN GRID ============ -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+
+      <!-- LEFT, table -->
+      <div style="background:#fff;border:1px solid #000">
+        <div style="padding:16px 22px;border-bottom:1px solid #000;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="font:500 16px 'Casper Sans',Inter;color:#000">Subscriptions</div>
+          <div id="subs-count" style="font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:2px 8px;letter-spacing:.06em">…</div>
+          <div id="filter-pills" style="display:inline-flex;border:1px solid #000;margin-left:6px">
+            <button data-filter="all" class="active">All</button>
+            <button data-filter="mine" id="filter-mine" style="opacity:.4" title="Connect wallet to enable">Mine</button>
+            
+            <button data-filter="active">Active</button>
+            <button data-filter="low">Low</button>
+            <button data-filter="depleted">Depleted</button>
+          </div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:8px;border:1px solid #000;padding:6px 12px;background:#f4f4f4;font:400 12.5px 'Casper Sans',Inter;color:#666;min-width:240px">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#000" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l3 3"/></svg>
+            <input id="search-input" placeholder="search by address, amount, or webhook URL…" style="border:none;background:transparent;outline:none;flex:1;color:#000;font:inherit">
+          </div>
+          <button id="csv-btn" style="background:#fff;border:1px solid #000;color:#000;padding:6px 12px;font:500 12px 'JetBrains Mono';cursor:pointer;letter-spacing:.06em">⇣ CSV</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:84px 1.8fr 1.3fr 100px 90px 110px;gap:14px;padding:10px 22px;background:#fafafa;border-bottom:1px solid #000;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
+          <div>ID</div><div>Watching for</div><div>Sends to</div><div style="text-align:right">Funds left</div><div style="text-align:right">Sent</div><div></div>
+        </div>
+
+        <div id="subs-tbody"></div>
+
+        <div style="padding:14px 22px;background:#fafafa;border-top:1px solid #000;display:flex;align-items:center;font:500 11.5px 'JetBrains Mono';color:#666;letter-spacing:.04em;flex-wrap:wrap;gap:10px">
+          <span id="subs-total-footer">…</span>
+          <span style="flex:1"></span>
+          <span>Powered by CSPR.cloud Streaming + node.testnet.casper.network</span>
+        </div>
+      </div>
+
+      <!-- RIGHT, live rail -->
+      <div style="display:flex;flex-direction:column;gap:24px">
+
+        <div style="background:#000;color:#fff;border:1px solid #000;overflow:hidden">
+          <div style="padding:14px 16px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px">
+            <span style="width:7px;height:7px;background:#bcfc07;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
+            <div style="font:500 13px 'Casper Sans',Inter;color:#fff">Live activity</div>
+            <div style="flex:1"></div>
+            <div style="font:500 10.5px 'JetBrains Mono';color:#666;letter-spacing:.06em">RECENT 6</div>
+          </div>
+          <div id="activity-list" style="font:400 11.5px/1.45 'JetBrains Mono'"></div>
+          <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971?tab=events" target="_blank" rel="noopener" style="display:block;padding:13px 16px;border-top:1px solid #1a1a1a;font:500 11.5px 'JetBrains Mono';color:#bcfc07;text-align:center;text-decoration:none;letter-spacing:.08em">FULL HISTORY ON CSPR.LIVE ↗</a>
+        </div>
+
+        <div style="background:#bcfc07;border:1px solid #000;padding:18px 18px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="display:inline-flex;width:18px;height:18px;background:#000;align-items:center;justify-content:center;color:#bcfc07;font:500 11px 'JetBrains Mono'">▸</span>
+            <div style="font:500 14px 'Casper Sans',Inter;color:#000">Drive Sluice from any MCP client</div>
+          </div>
+          <div style="margin-top:10px;font:400 13px/1.5 'Casper Sans',Inter;color:#000;opacity:.75">One hosted URL, no install. Claude, Cursor, Windsurf, VS Code, or any MCP client. Then ask it to subscribe, list, or cancel. Same on-chain effect as this UI.</div>
+          <button id="copy-mcp" style="margin-top:12px;width:100%;background:#000;color:#fff;border:none;padding:10px 12px;font:500 11.5px 'JetBrains Mono';display:flex;align-items:center;gap:10px;cursor:pointer">
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left">https://sluice.unitynodes.com/mcp</span>
+            <span style="color:#bcfc07;font-size:12px">⧉</span>
+          </button>
+        </div>
+
+        <div style="background:#fff;border:1px solid #000;padding:18px 20px">
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">V0.1 NOTES</div>
+          <ul style="margin:14px 0 0;padding-left:18px;font:400 13px/1.55 'Casper Sans',Inter;color:#333">
+            <li>Snapshot is event-sourced from the testnet contract; updates every 30 s.</li>
+            <li>Create / cancel / top-up go through the connected wallet to the chain, no off-chain account.</li>
+            <li>History before this matcher started isn't visible (stream is live-only). See cspr.live for full history.</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top:24px;background:#fff;border:1px solid #000;padding:26px 28px">
+      <div style="display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;color:#000;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#000"></span>DELIVERIES · ALL TIME
+          </div>
+          <div style="margin-top:12px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+            <span id="tp-total" style="font:500 36px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
+            <span style="font:500 14px 'JetBrains Mono';color:#666;letter-spacing:.04em">RECORDED ON-CHAIN</span>
+            <span id="tp-peak" style="font:500 12.5px 'JetBrains Mono';color:#666"></span>
+          </div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="font:400 13px Casper Sans,Inter;color:#666;max-width:380px">Throughput chart ships with v0.2 timeseries. Today's metric is the total record_delivery count emitted by the contract.</div>
+      </div>
+    </div>
+
+    </div><!-- /#tab-subs -->
+
+    <!-- ============ TAB: BUILD ============ -->
+    <div id="tab-build" class="tab-pane" data-reveal role="tabpanel" aria-labelledby="tab-btn-build">
+      <div style="display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start">
+
+        <!-- LEFT: builder + AI -->
+        <div style="background:#fff;border:1px solid #000">
+          <!-- AI strip -->
+          <div style="padding:14px 22px;border-bottom:1px solid #000;background:#fafafa;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em;display:inline-flex;align-items:center;gap:7px"><svg width="13" height="13"><use href="#icon-sparkle"/></svg> DESCRIBE IN PLAIN ENGLISH</span>
+            <input id="pb-ai-input" placeholder='e.g. "whales over 100k CSPR to dc7252…787c9c"' style="flex:1;min-width:240px;border:1px solid #000;background:#fff;padding:7px 12px;font:500 13px 'JetBrains Mono';color:#000">
+            <button id="pb-ai-go" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:7px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">Build →</button>
+            <span id="pb-ai-status" style="font:500 11px 'JetBrains Mono';color:#666;flex-basis:100%;min-height:14px"></span>
+          </div>
+          <div style="padding:16px 22px;border-bottom:1px solid #000;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div style="font:500 14px 'Casper Sans',Inter;color:#000">Rules</div>
+            <div title="All rules must match for an event to trigger your webhook. Add OR-groups via the AI input." style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">all must match · 12 comparison types</div>
+            <div style="flex:1"></div>
+            <button id="pb-add" type="button" style="background:#bcfc07;color:#000;border:1px solid #000;padding:6px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">+ Add condition</button>
+          </div>
+          <div id="pb-diff" style="padding:10px 22px 0;display:none"></div>
+          <div id="pb-rows" style="padding:14px 22px;display:flex;flex-direction:column;gap:8px"></div>
+          <div style="padding:16px 22px;border-top:1px solid #000;display:flex;align-items:center;gap:12px;background:#fafafa;flex-wrap:wrap">
+            <div title="Will your rules catch this sample event? Updates live." style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">SAMPLE EVENT TEST:</div>
+            <div id="pb-verdict" style="font:500 12px 'JetBrains Mono';letter-spacing:.08em;padding:4px 10px;background:#666;color:#fff">UNKNOWN</div>
+            <div style="flex:1"></div>
+            <button id="pb-dryrun" type="button" title="Run against recent on-chain events" style="background:#bcfc07;color:#000;border:1px solid #000;padding:7px 12px;font:500 12px 'Casper Sans',Inter;cursor:pointer">⚡ Dry-run</button>
+            <button id="pb-share" type="button" title="Copy share link" style="background:#fff;color:#000;border:1px solid #000;padding:7px 12px;font:500 12px 'Casper Sans',Inter;cursor:pointer">⛓ Share</button>
+            <button id="pb-copy" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:7px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">⧉ Copy CLI</button>
+            <button id="pb-apply" type="button" title="Open the create-subscription modal pre-filled" style="background:#bcfc07;color:#000;border:1px solid #000;padding:7px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">→ Use in new sub</button>
+          </div>
+          <div id="pb-dryrun-result" style="display:none;border-top:1px solid #000;padding:14px 22px;font:500 12px 'JetBrains Mono';color:#000;background:#fff"></div>
+        </div>
+
+        <!-- RIGHT: JSON + reference -->
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <div style="background:#000;color:#fff;border:1px solid #000;overflow:hidden">
+            <div style="padding:12px 16px;border-bottom:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">PREDICATE JSON</div>
+            <pre id="pb-json" style="margin:0;padding:14px 16px;font:400 12px/1.55 'JetBrains Mono';color:#fff;white-space:pre-wrap;word-break:break-all;background:#000;min-height:80px"></pre>
+          </div>
+          <div style="background:#fafafa;color:#000;border:1px solid #000;overflow:hidden">
+            <div style="padding:12px 16px;border-bottom:1px solid #ddd;font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.08em">SAMPLE EVENT (real testnet transfer)</div>
+            <pre id="pb-reference" style="margin:0;padding:14px 16px;font:400 11.5px/1.5 'JetBrains Mono';color:#000;white-space:pre-wrap;word-break:break-all"></pre>
+          </div>
+          <div style="background:#fff;border:1px solid #000;padding:16px 20px">
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">RECIPES</div>
+            <div id="pb-recipes" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ TAB: SANDBOX ============ -->
+    <div id="tab-sandbox" class="tab-pane" data-reveal role="tabpanel" aria-labelledby="tab-btn-sandbox">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start">
+
+        <div style="background:#fff;border:1px solid #000;padding:24px 28px">
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;color:#000;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#000"></span>FIRE SLUICE-SHAPED WEBHOOKS · NO CSPR
+          </div>
+          <h2 style="margin:14px 0 0;font:500 32px/1.05 'Casper Sans',Inter;letter-spacing:-.02em">Test your receiver in seconds.</h2>
+          <p style="margin:14px 0 0;font:400 14.5px/1.6 'Casper Sans',Inter;color:#666">Fire up to 10 real webhook POSTs at any URL. Sluice-shaped events (HMAC-signed when the matcher has a secret), no subscription needed, no on-chain effect. Use this to develop and harden your webhook handler before paying for a real subscription.</p>
+
+          <div style="margin-top:24px;display:flex;flex-direction:column;gap:14px">
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.06em">WEBHOOK URL</span>
+              <input id="sb-webhook" placeholder="https://webhook.site/your-uuid  or  /api/hooks/my-slug" style="border:1px solid #000;background:#fff;padding:10px 12px;font:500 13px 'JetBrains Mono';color:#000">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.06em">RECIPE (filters which buffer events to send)</span>
+              <select id="sb-recipe" style="border:1px solid #000;background:#fff;padding:10px 12px;font:500 13px 'JetBrains Mono';color:#000">
+                <option value="any">any recent transfer (no filter)</option>
+                <option value="whale-100k">Whales over 100k CSPR</option>
+                <option value="whale-1m">Big whales over 1M CSPR</option>
+                <option value="micro">Micro-transfers (sub-10 CSPR)</option>
+                <option value="round">Round CSPR amounts (whole numbers)</option>
+              </select>
+            </label>
+            <label style="display:flex;align-items:center;gap:14px">
+              <span style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.06em;min-width:62px">COUNT</span>
+              <input id="sb-count" type="range" min="1" max="10" value="3" step="1" style="flex:1">
+              <span id="sb-count-num" style="font:500 22px 'Casper Sans',Inter;min-width:32px;text-align:right">3</span>
+            </label>
+            <button id="sb-fire" type="button" style="background:#bcfc07;color:#000;border:1px solid #000;padding:14px 20px;font:500 15px 'Casper Sans',Inter;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px">▶ Fire <span id="sb-fire-n">3</span> webhooks</button>
+            <div style="font:500 10.5px 'JetBrains Mono';color:#666;letter-spacing:.06em">SUB ID ON THE PAYLOAD WILL BE 0 (RESERVED SANDBOX LANE) · HMAC HEADER WHEN MATCHER HAS A SECRET</div>
+          </div>
+        </div>
+
+        <div style="background:#000;color:#fff;border:1px solid #000">
+          <div style="padding:14px 18px;border-bottom:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">DISPATCH RESULTS</div>
+          <div id="sb-results" style="padding:18px 22px;font:500 12px 'JetBrains Mono';color:#999;min-height:280px">Configure a webhook URL and click ▶ Fire. Results show up here as the matcher POSTs.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ TAB: ACTIVITY ============ -->
+    <div id="tab-activity" class="tab-pane" data-reveal role="tabpanel" aria-labelledby="tab-btn-activity">
+      <div style="background:#fff;border:1px solid #000">
+        <div style="padding:16px 22px;border-bottom:1px solid #000;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <div style="font:500 16px 'Casper Sans',Inter;color:#000">Recent deliveries</div>
+          <span id="activity-count" style="font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:2px 8px;letter-spacing:.06em">0</span>
+          <div style="flex:1"></div>
+          <a href="/feed/" style="font:500 12px 'JetBrains Mono';color:#000;text-decoration:none;border-bottom:1px solid #000;padding-bottom:1px">FULL-SCREEN FEED ↗</a>
+          <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971?tab=events" target="_blank" rel="noopener" style="font:500 12px 'JetBrains Mono';color:#000;text-decoration:none;border-bottom:1px solid #000;padding-bottom:1px">FULL HISTORY ON CSPR.LIVE ↗</a>
+        </div>
+        <div id="activity-list-full" style="font:400 12.5px/1.55 'JetBrains Mono';min-height:280px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/app/app.js?v=19"></script>
+
+</body>
+</html>

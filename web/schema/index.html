@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sluice, Predicate JSON Schemas</title>
+<meta name="description" content="Public JSON Schemas for Sluice predicate definitions, drop the URL into VS Code, JetBrains, or any editor that supports schemas for inline autocomplete and validation.">
+<style>
+  body { margin: 0; background: #f4f4f4; font-family: system-ui, -apple-system, sans-serif; color: #000; padding: 48px 28px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -.02em; }
+  p { line-height: 1.55; color: #333; }
+  code { background: #fff; border: 1px solid #ccc; padding: 2px 6px; font: 13px/1.4 'JetBrains Mono', monospace; }
+  pre { background: #000; color: #bcfc07; padding: 16px 20px; overflow-x: auto; font: 12.5px/1.55 'JetBrains Mono', monospace; }
+  ul { padding-left: 22px; line-height: 1.7; }
+  a { color: #0a5; }
+  .schemas { background: #fff; border: 1px solid #000; padding: 18px 22px; margin-top: 24px; }
+  .schemas h3 { margin-top: 0; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Sluice, Predicate JSON Schemas</h1>
+  <p>Drop these URLs into VS Code's <code>json.schemas</code> setting, JetBrains' <em>JSON Schema Mappings</em>, or reference them inline with a <code>$schema</code> key to get inline autocomplete, validation, and hover docs while writing predicates.</p>
+
+  <div class="schemas">
+    <h3>predicate-v1.json</h3>
+    <p>The current stable predicate format, AND-of-conditions with 12 operators. <a href="/schema/predicate-v1.json">View JSON</a></p>
+    <pre>{
+  "$schema": "https://sluice.unitynodes.com/schema/predicate-v1.json",
+  "and": [
+    { "field": "amount", "op": "gte", "value": "5000000000000" }
+  ]
+}</pre>
+  </div>
+
+  <h3 style="margin-top:32px">VS Code (workspace settings.json)</h3>
+<pre>{
+  "json.schemas": [{
+    "fileMatch": ["**/predicate*.json", "**/sluice*.json"],
+    "url": "https://sluice.unitynodes.com/schema/predicate-v1.json"
+  }]
+}</pre>
+
+  <h3 style="margin-top:32px">JetBrains IDEs</h3>
+  <p>Preferences → Languages & Frameworks → Schemas and DTDs → <em>JSON Schema Mappings</em> → + → paste the URL above and target <code>predicate*.json</code>.</p>
+
+  <h3 style="margin-top:32px">Validate from CLI</h3>
+<pre># with ajv-cli
+npx ajv-cli@5 validate \
+  -s https://sluice.unitynodes.com/schema/predicate-v1.json \
+  -d ./my-predicate.json</pre>
+
+  <p style="margin-top:32px"><a href="/">← back to Sluice</a></p>
+</div>
+</body>
+</html>

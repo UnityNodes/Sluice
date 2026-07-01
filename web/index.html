@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice · Casper events, the moment they land</title>
+<meta name="description" content="Sluice pushes every matching Casper event to your webhook, your AI agent (MCP), or your dashboard (WebSocket) in about 830 ms. No polling. No indexer. No glue code.">
+<meta property="og:title" content="Sluice · Casper events, the moment they land">
+<meta property="og:description" content="Prepay in CSPR. Sluice pushes every matching Casper event to your webhook, your AI agent via MCP, or your dashboard via WebSocket. Median 830 ms.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Casper Sans';
+    src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2');
+    font-weight: 300; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Casper Sans';
+    src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2');
+    font-weight: 400; font-display: swap;
+  }
+  @font-face {
+    font-family: 'Casper Sans';
+    src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2');
+    font-weight: 500; font-display: swap;
+  }
+  body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
+  @keyframes pulse-dot { 0%,100% { box-shadow: 0 0 0 0 rgba(188,252,7,.55); } 50% { box-shadow: 0 0 0 8px rgba(188,252,7,0); } }
+  @keyframes pulse-green { 0%,100% { box-shadow: 0 0 0 0 rgba(62,220,100,.5); } 50% { box-shadow: 0 0 0 6px rgba(62,220,100,0); } }
+  @keyframes sluice-dot-pulse { 0%,100% { transform: scale(1); opacity:.9 } 50% { transform: scale(1.35); opacity:.4 } }
+  ::selection { background: #bcfc07; color: #000; }
+  a { color: inherit; }
+
+  /* ───────── MOBILE PASS (≤ 880px) ─────────
+   * Targets inline grid-template-columns via attribute selectors so we don't
+   * have to refactor every section. Pads shrink, multi-col grids stack.
+   */
+  @media (max-width: 880px) {
+    nav > div { padding-left: 16px !important; padding-right: 16px !important; gap: 12px !important; flex-wrap: wrap; height: auto !important; min-height: 60px; padding-top: 10px; padding-bottom: 10px; }
+    nav > div > div[style*="display:flex;gap:2px"] { order: 99; flex-basis: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 4px; }
+    nav a[href="/app"] { padding: 8px 14px !important; font-size: 13px !important; }
+    /* one-column stacks for hero, two-audience, code, transparency, workspace, mcp-demo, v0.1 limits, final CTA */
+    section [style*="grid-template-columns:minmax(0,1.1fr)"],
+    section [style*="grid-template-columns:minmax(0,.9fr)"],
+    section [style*="grid-template-columns:minmax(0,.7fr)"],
+    section [style*="grid-template-columns:1fr 1fr"],
+    section [style*="grid-template-columns:.8fr 1.2fr"],
+    section [style*="grid-template-columns:.9fr 1.1fr"],
+    section [style*="grid-template-columns:.7fr 1.3fr"],
+    section [style*="grid-template-columns:1.4fr 1fr"],
+    footer [style*="grid-template-columns:1.6fr 1fr 1fr 1fr 1fr"] {
+      grid-template-columns: 1fr !important;
+      gap: 24px !important;
+    }
+    footer [style*="grid-template-columns:1.6fr 1fr 1fr 1fr 1fr"] {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 32px 20px !important;
+    }
+    /* numbers strip 4 → 2x2; how-it-works 3 → 1 */
+    section [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: repeat(2,1fr) !important; }
+    section [style*="grid-template-columns:repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
+    /* trim section padding so content uses the screen */
+    section > div[style*="padding:88px"],
+    section > div[style*="padding:96px"],
+    section > div[style*="padding:120px"],
+    section > div[style*="padding:80px"] {
+      padding: 56px 18px !important;
+    }
+    section > div[style*="padding:64px 32px 28px"] { padding: 40px 18px 20px !important; }
+    /* hero typography */
+    h1[style*="clamp(44px,7.4vw,104px)"] { font-size: clamp(32px, 9vw, 56px) !important; line-height: 1 !important; }
+    h2[style*="clamp(44px,6.5vw,88px)"] { font-size: clamp(30px, 8.5vw, 48px) !important; }
+    h2[style*="clamp(40px,5.4vw,72px)"],
+    h2[style*="clamp(36px,4.6vw,60px)"],
+    h2[style*="clamp(36px,4.3vw,56px)"],
+    h2[style*="clamp(34px,4.4vw,56px)"],
+    h2[style*="clamp(34px,4vw,52px)"] { font-size: clamp(26px, 7vw, 38px) !important; }
+    h2[style*="clamp(30px,3.6vw,44px)"],
+    h2[style*="clamp(26px,3vw,36px)"] { font-size: clamp(22px, 6vw, 30px) !important; }
+    /* hero terminal, narrower padding + collapse the inner 4-col live-rows header */
+    #live-rows { min-height: 200px !important; }
+    /* nudge inner card padding down */
+    section [style*="padding:48px 44px"],
+    section [style*="padding:44px 40px"],
+    section [style*="padding:40px 36px"],
+    section [style*="padding:36px 44px"],
+    section [style*="padding:32px 28px"] { padding: 28px 20px !important; }
+    section [style*="padding:28px 28px"] { padding: 24px 18px !important; }
+    /* hero CTA buttons full-width-ish */
+    section [style*="display:flex;align-items:center;gap:12px;flex-wrap:wrap"] > a,
+    section [style*="display:flex;align-items:center;gap:12px;flex-wrap:wrap"] > button { padding: 14px 18px !important; font-size: 14px !important; flex: 1 1 auto; justify-content: center; }
+    /* MCP demo chat box shadow is too far; trim */
+    [style*="box-shadow:8px 8px 0 #bcfc07"] { box-shadow: 4px 4px 0 #bcfc07 !important; }
+    /* hide the live-deploys 80px-wide first col labels nicely, let them wrap */
+    #live-deploys [style*="grid-template-columns:80px 1fr 100px"] { grid-template-columns: 70px 1fr 80px !important; gap: 8px !important; font-size: 12px !important; }
+    /* nav stripe (version pill) shrinks */
+    nav [style*="V0.1 · TESTNET"] { font-size: 10px !important; padding: 4px 8px !important; }
+    /* hero terminal data grid, tighten cols on tiny screens */
+    [style*="grid-template-columns:72px 70px 1fr 88px"] { grid-template-columns: 52px 52px 1fr 60px !important; gap: 8px !important; font-size: 10px !important; padding-left: 12px !important; padding-right: 12px !important; }
+    /* the "transparency" box gets a smaller column inside */
+    [style*="grid-template-columns:80px 1fr 100px"] { grid-template-columns: 60px 1fr 70px !important; }
+    /* tour modal, tighten its margins */
+    #tour-modal > div { margin: 16px !important; }
+    #tour-modal [style*="padding:32px 40px"] { padding: 22px 18px !important; }
+  }
+  @media (max-width: 480px) {
+    nav [style*="display:flex;gap:2px"] a { padding: 6px 10px !important; font-size: 13px !important; }
+    section [style*="grid-template-columns:repeat(4,1fr)"] > div { padding: 22px 16px !important; }
+    section [style*="grid-template-columns:repeat(4,1fr)"] [style*="font:500 44px"] { font-size: 28px !important; }
+  }
+
+  /* Scroll-reveal. Elements with data-reveal start faded + shifted, land
+     when they enter the viewport. IntersectionObserver in landing.js toggles
+     the .revealed class. Delay steps add subtle staggering. */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);
+    will-change: opacity, transform;
+  }
+  [data-reveal].revealed { opacity: 1; transform: none; }
+  [data-reveal-delay="1"].revealed { transition-delay: .08s; }
+  [data-reveal-delay="2"].revealed { transition-delay: .16s; }
+  [data-reveal-delay="3"].revealed { transition-delay: .24s; }
+  [data-reveal-delay="4"].revealed { transition-delay: .32s; }
+  [data-reveal-delay="5"].revealed { transition-delay: .40s; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] { opacity: 1; transform: none; transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ ICON LIBRARY, reusable via <svg><use href="#icon-X"/></svg> ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- Whale, line-art body + eye + spout -->
+    <symbol id="icon-whale" viewBox="0 0 24 24">
+      <path d="M2 15c2-3 5-4.5 9-4.5 3 0 5 1 7 3 1-1.5 2-2 3-2v3c-1 0-2 .5-3 1.5v3l-2-2c-2 1.5-4 2-6 2-4 0-7-1.5-9-4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="7.5" cy="13.5" r="0.9" fill="currentColor"/>
+      <path d="M12 8V5m-1.5 1.5h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <!-- Inbox, tray with arrow-in -->
+    <symbol id="icon-inbox" viewBox="0 0 24 24">
+      <path d="M3 13v6a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-6h-6l-1 2h-4l-1-2H3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M12 3v8m-3-3l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Outbox, tray with arrow-out -->
+    <symbol id="icon-outbox" viewBox="0 0 24 24">
+      <path d="M3 13v6a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-6h-6l-1 2h-4l-1-2H3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M12 11V3m-3 3l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Network waves, 3 stacked arcs -->
+    <symbol id="icon-network" viewBox="0 0 24 24">
+      <path d="M2 18c2-2 4-3 6-3s4 1 6 3 4 3 6 3M2 12c2-2 4-3 6-3s4 1 6 3 4 3 6 3M2 6c2-2 4-3 6-3s4 1 6 3 4 3 6 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <!-- Target, 3 concentric circles + crosshair -->
+    <symbol id="icon-target" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="12" cy="12" r="2" fill="currentColor"/>
+      <path d="M12 1v3m0 16v3M1 12h3m16 0h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <!-- Recipient, arrow into a pin -->
+    <symbol id="icon-recipient" viewBox="0 0 24 24">
+      <path d="M12 21c-4-4-7-7.5-7-11a7 7 0 1 1 14 0c0 3.5-3 7-7 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M8 10l4 4 4-4M12 5v9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Sender, arrow out of pin -->
+    <symbol id="icon-sender" viewBox="0 0 24 24">
+      <path d="M12 21c-4-4-7-7.5-7-11a7 7 0 1 1 14 0c0 3.5-3 7-7 11z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M8 9l4-4 4 4M12 14V5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <!-- Amount, coin stack -->
+    <symbol id="icon-amount" viewBox="0 0 24 24">
+      <ellipse cx="12" cy="6" rx="8" ry="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M4 6v4c0 1.66 3.58 3 8 3s8-1.34 8-3V6M4 10v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4M4 14v4c0 1.66 3.58 3 8 3s8-1.34 8-3v-4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <!-- Block, chain link -->
+    <symbol id="icon-block" viewBox="0 0 24 24">
+      <rect x="3" y="8" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <rect x="13" y="8" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M11 12h2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <!-- Clock -->
+    <symbol id="icon-time" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <!-- Beaker (sandbox) -->
+    <symbol id="icon-beaker" viewBox="0 0 24 24">
+      <path d="M9 3h6M10 3v6l-5 8a2 2 0 0 0 1.7 3h10.6A2 2 0 0 0 19 17l-5-8V3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M7 15h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <!-- Sparkle (AI) -->
+    <symbol id="icon-sparkle" viewBox="0 0 24 24">
+      <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" fill="currentColor"/>
+      <path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" fill="currentColor"/>
+    </symbol>
+    <!-- Copy -->
+    <symbol id="icon-copy" viewBox="0 0 24 24">
+      <rect x="8" y="8" width="12" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <!-- Arrow right -->
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24">
+      <path d="M5 12h14m-5-5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<style>
+  /* Icon tile, dark square with green line-art glyph. */
+  .icon-tile { display:inline-flex; width:44px; height:44px; background:#000; color:#bcfc07; align-items:center; justify-content:center; flex-shrink:0; }
+  .icon-tile svg { width:24px; height:24px; }
+  .icon-tile.light { background:#f4f4f4; color:#000; border:1px solid #000; }
+  .icon-inline { display:inline-flex; width:14px; height:14px; vertical-align:-2px; color:#000; margin-right:4px; }
+  .icon-inline svg { width:14px; height:14px; }
+
+  /* MCP client picker pills. */
+  .mcp-pill { background:#0d0d0d; color:#999; border:1px solid #222; padding:8px 14px; font:500 12px 'JetBrains Mono'; letter-spacing:.02em; cursor:pointer; transition:border-color .15s, color .15s; }
+  .mcp-pill:hover { color:#fff; border-color:#444; }
+  .mcp-pill.active { background:#bcfc07; color:#000; border-color:#bcfc07; }
+
+  /* ══════════════════════════════════════════════════════════════════
+   * BLUEPRINT TERMINAL, design system for Sluice landing.
+   * Every section can carry these adornments to feel engineered:
+   *   .bp-corners     4 tick marks pinned to section corners
+   *   .bp-stamp       coordinate/version tag in a corner
+   *   .bp-tick-strip  narrow strip with ruler marks (like an axis)
+   *   .bp-hazard      diagonal yellow/black hazard tape divider
+   *   .bp-watermark   massive outlined display word in the background
+   * Colours & fonts inherit from the existing Casper palette.
+   * ══════════════════════════════════════════════════════════════════ */
+  .bp-section { position:relative; overflow:hidden; }
+  .bp-corner {
+    position:absolute; width:44px; height:44px; pointer-events:none;
+    border:1px solid #000;
+  }
+  .bp-corner.tl { top:20px; left:20px; border-right:0; border-bottom:0; }
+  .bp-corner.tr { top:20px; right:20px; border-left:0; border-bottom:0; }
+  .bp-corner.bl { bottom:20px; left:20px; border-right:0; border-top:0; }
+  .bp-corner.br { bottom:20px; right:20px; border-left:0; border-top:0; }
+  .bp-corner.acc { border-color:#bcfc07; box-shadow:inset 0 0 0 1px rgba(188,252,7,.35); }
+
+  .bp-stamp {
+    position:absolute; z-index:2; pointer-events:none;
+    display:inline-flex; align-items:center; gap:8px;
+    font:500 10.5px/1 'JetBrains Mono',ui-monospace,monospace;
+    letter-spacing:.14em; color:#000; text-transform:uppercase;
+    background:#f4f4f4; padding:6px 10px; border:1px solid #000;
+  }
+  .bp-stamp .dot { width:5px; height:5px; background:#bcfc07; border-radius:50%; box-shadow:0 0 0 1px #000; }
+  .bp-stamp.tl { top:20px; left:80px; }
+  .bp-stamp.tr { top:20px; right:80px; }
+  .bp-stamp.bl { bottom:20px; left:80px; }
+  .bp-stamp.br { bottom:20px; right:80px; }
+  .bp-stamp.dark { background:#000; color:#bcfc07; }
+
+  .bp-watermark {
+    position:absolute; pointer-events:none; user-select:none;
+    font:500 clamp(180px,22vw,320px)/.82 'Casper Sans',Inter,sans-serif;
+    letter-spacing:-.05em; text-transform:uppercase;
+    color:transparent; -webkit-text-stroke:1px rgba(0,0,0,.08);
+    white-space:nowrap;
+  }
+  .bp-watermark.dark { -webkit-text-stroke-color: rgba(188,252,7,.10); }
+
+  .bp-hazard {
+    height:22px;
+    background:repeating-linear-gradient(-45deg, #000 0 12px, #bcfc07 12px 24px);
+    border-top:1px solid #000; border-bottom:1px solid #000;
+  }
+  .bp-hazard.thin { height:14px; }
+
+  .bp-tick-strip {
+    height:26px; position:relative; background:#000;
+    border-top:1px solid #000; border-bottom:1px solid #000;
+    color:#bcfc07;
+    font:500 10px/26px 'JetBrains Mono',ui-monospace,monospace;
+    letter-spacing:.18em; text-transform:uppercase;
+    padding:0 20px;
+    background-image:
+      repeating-linear-gradient(90deg, transparent 0 32px, rgba(188,252,7,.45) 32px 33px, transparent 33px 64px);
+  }
+  .bp-tick-strip > span { position:relative; z-index:1; background:#000; padding:0 8px; }
+
+  /* Dot-grid background, 24×24 dots, subtle, replaces the old 80×80 line grid */
+  .bp-dotgrid {
+    position:absolute; inset:0; pointer-events:none;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,.14) 1px, transparent 1.4px);
+    background-size:24px 24px;
+    mask-image: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,.5) 55%, rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,.5) 55%, rgba(0,0,0,0) 100%);
+  }
+  .bp-dotgrid.dark { background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.10) 1px, transparent 1.4px); }
+
+  /* Small crosshair, decorative "pin" markers */
+  .bp-cross { position:absolute; width:14px; height:14px; pointer-events:none; }
+  .bp-cross::before, .bp-cross::after { content:""; position:absolute; background:#000; }
+  .bp-cross::before { left:6px; top:0; width:2px; height:14px; }
+  .bp-cross::after  { top:6px; left:0; height:2px; width:14px; }
+
+  /* Section eyebrow with counter, "01 / 06 · SECTION TITLE" */
+  .bp-eyebrow {
+    display:inline-flex; align-items:center; gap:14px;
+    font:500 11px 'JetBrains Mono',ui-monospace,monospace;
+    letter-spacing:.16em; text-transform:uppercase; color:#000;
+  }
+  .bp-eyebrow .num {
+    background:#000; color:#bcfc07; padding:4px 8px 3px;
+    font:500 11px 'JetBrains Mono',ui-monospace,monospace; letter-spacing:.1em;
+  }
+  .bp-eyebrow .rule { width:32px; height:1px; background:#000; }
+  .bp-eyebrow.dark { color:#bcfc07; }
+  .bp-eyebrow.dark .num { background:#bcfc07; color:#000; }
+  .bp-eyebrow.dark .rule { background:#bcfc07; }
+
+  /* Live "tick" dot inside stamps */
+  @keyframes bp-blink { 0%,49% { opacity:1 } 50%,100% { opacity:.35 } }
+  .bp-blink { animation: bp-blink 1.2s steps(1,end) infinite; }
+
+  @media (max-width: 640px) {
+    .bp-corner { width:32px; height:32px; }
+    .bp-stamp.tl, .bp-stamp.bl { left:60px; }
+    .bp-stamp.tr, .bp-stamp.br { right:60px; }
+    .bp-watermark { font-size:clamp(120px,28vw,180px) !important; }
+  }
+</style>
+
+<div style="background:#f4f4f4;min-height:100vh">
+
+  <!-- ============ NAV ============ -->
+  <nav style="background:#f4f4f4;border-bottom:1px solid #000;position:sticky;top:0;z-index:30">
+    <div style="max-width:1320px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:32px;height:64px">
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#000">
+        <span style="display:inline-flex;width:24px;height:24px;background:#000;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:6px solid #bcfc07;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span></span>
+        <span style="font:500 22px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+      </a>
+      <div style="display:flex;gap:2px;font:400 14px 'Casper Sans',Inter;color:#000;flex-wrap:wrap">
+        <a href="#how" style="text-decoration:none;padding:8px 14px">How it works</a>
+        <a href="#recipes" style="text-decoration:none;padding:8px 14px">Recipes</a>
+        <a href="#mcp-demo" style="text-decoration:none;padding:8px 14px">MCP</a>
+        <a href="/status" style="text-decoration:none;padding:8px 14px">Status</a>
+        <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="text-decoration:none;padding:8px 14px">Docs ↗</a>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:6px 10px;letter-spacing:.04em">
+        <span style="width:6px;height:6px;background:#000;border-radius:50%"></span>
+        V0.1 · TESTNET
+      </div>
+      <a href="/app" style="text-decoration:none;background:#000;color:#fff;padding:11px 20px;font:500 14px 'Casper Sans',Inter;display:flex;align-items:center;gap:8px">Open app <span style="font-size:16px;line-height:1">→</span></a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section style="border-bottom:1px solid #000;background:#f4f4f4;position:relative;overflow:hidden">
+    <div style="max-width:1320px;margin:0 auto;padding:88px 32px 96px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:64px;align-items:end;position:relative;z-index:2">
+      <div style="min-width:0">
+        <div style="display:inline-flex;align-items:center;gap:14px;font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
+          01 &nbsp;·&nbsp; The event layer for Casper
+        </div>
+        <h1 style="margin:28px 0 0;font:500 clamp(44px,7.4vw,104px)/.96 'Casper Sans',Inter;letter-spacing:-.035em;color:#000;overflow-wrap:normal;word-break:keep-all;hyphens:none">
+          <span style="white-space:nowrap">Casper events,</span><br/>
+          the moment <span style="background:#bcfc07;padding:0 .12em;display:inline-block;line-height:.95">they land.</span>
+        </h1>
+        <p style="margin:36px 0 0;font:400 20px/1.55 'Casper Sans',Inter;color:#333;max-width:600px">Pick what to watch on Casper by sender, recipient, or amount. Prepay once in CSPR. When something matches, Sluice pushes it three ways: a <b style="font-weight:500;color:#000">webhook</b> for your server, an <b style="font-weight:500;color:#000">MCP tool call</b> for your AI agent, or a <b style="font-weight:500;color:#000">live WebSocket</b> for your dashboard. Median end-to-end latency today is <span style="color:#000">~&nbsp;830&nbsp;ms</span>. No polling, no indexer, no glue code.</p>
+        <div style="margin-top:44px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <a href="/app" style="text-decoration:none;background:#bcfc07;color:#000;padding:18px 28px;font:500 16px 'Casper Sans',Inter;display:inline-flex;align-items:center;gap:10px;border:1px solid #000">Open the app <span style="font-size:18px;line-height:1">→</span></a>
+          <button id="tour-open" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:18px 24px;font:500 16px 'Casper Sans',Inter;cursor:pointer;display:inline-flex;align-items:center;gap:10px">▶ Watch a 30-second tour</button>
+          <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="text-decoration:none;color:#000;padding:18px 24px;font:500 16px 'Casper Sans',Inter;border:1px solid #000;background:transparent">Read the docs ↗</a>
+        </div>
+
+        <!-- ============ HERO · INLINE AI PARSER ============ -->
+        <div id="hero-ai" style="margin-top:36px;background:#fff;border:1px solid #000;padding:18px 20px;box-shadow:4px 4px 0 #bcfc07;max-width:640px">
+          <div style="display:flex;align-items:center;gap:10px;font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">
+            <span style="display:inline-flex;width:18px;height:18px;background:#bcfc07;align-items:center;justify-content:center;color:#000"><svg width="12" height="12"><use href="#icon-sparkle"/></svg></span>
+            DESCRIBE YOUR EVENT IN PLAIN ENGLISH
+            <span style="flex:1"></span>
+            <span style="color:#666;font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px">offline rule-based parser · no LLM</span>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;align-items:stretch">
+            <input id="hero-ai-input" type="text" maxlength="280" autocomplete="off" spellcheck="false"
+              placeholder="watch transfers over 100k cspr to dc7252…787c9c"
+              style="flex:1;min-width:0;border:1px solid #000;background:#fafafa;padding:11px 14px;font:500 14px 'JetBrains Mono';color:#000;outline:none">
+            <button id="hero-ai-go" type="button" style="background:#000;color:#bcfc07;border:1px solid #000;padding:11px 18px;font:500 14px 'Casper Sans',Inter;cursor:pointer;letter-spacing:.02em">Parse →</button>
+          </div>
+          <div id="hero-ai-suggest" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;font:500 10.5px 'JetBrains Mono';letter-spacing:.04em">
+            <span style="color:#666;padding:4px 0">TRY:</span>
+            <button class="hero-ai-chip" type="button" data-q="watch whales over 100k cspr">whales over 100k cspr</button>
+            <button class="hero-ai-chip" type="button" data-q="transfers under 10 cspr">transfers under 10 cspr</button>
+            <button class="hero-ai-chip" type="button" data-q="incoming to dc7252b3aa837d3c89eb3cbb7ff85ee3e6f23dafc7c8d31db83c83e9d3787c9c above 5000 cspr">to address ≥ 5k cspr</button>
+          </div>
+          <div id="hero-ai-output" style="display:none;margin-top:14px"></div>
+        </div>
+        <style>
+          .hero-ai-chip { background:#fff;color:#000;border:1px solid #000;padding:4px 9px;font:inherit;cursor:pointer;text-transform:none }
+          .hero-ai-chip:hover { background:#bcfc07 }
+        </style>
+        <div style="margin-top:48px;display:flex;align-items:center;gap:24px;font:500 13px 'JetBrains Mono';color:#333;flex-wrap:wrap">
+          <span id="hero-status" style="display:inline-flex;align-items:center;gap:8px"><span id="hero-status-dot" style="width:8px;height:8px;background:#3edc64;border-radius:50%;animation:pulse-green 2s infinite"></span>MATCHER · CONNECTING…</span>
+          <span style="width:3px;height:3px;background:#ccc;border-radius:50%"></span>
+          <span id="hero-block" title="Live Casper testnet head block, polled every 5 seconds" style="display:inline-flex;align-items:center;gap:8px"><span id="hero-block-dot" style="width:8px;height:8px;background:#4589f6;border-radius:50%;animation:pulse-dot 1.6s infinite"></span>CASPER-TEST · BLOCK <span id="hero-block-h">…</span></span>
+          <span style="width:3px;height:3px;background:#ccc;border-radius:50%"></span>
+          <a href="/status" style="color:#000;text-decoration:underline;text-decoration-color:#bcfc07;text-decoration-thickness:3px;text-underline-offset:4px">STATUS →</a>
+          <a href="/app" style="color:#000;text-decoration:underline;text-decoration-color:#bcfc07;text-decoration-thickness:3px;text-underline-offset:4px">DASHBOARD →</a>
+        </div>
+      </div>
+
+      <!-- Live stream terminal -->
+      <div style="background:#000;color:#fff;overflow:hidden;border:1px solid #000;box-shadow:8px 8px 0 #bcfc07;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #222">
+          <div style="display:flex;gap:5px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
+          <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">LIVE FEED · TESTNET</div>
+          <div style="flex:1"></div>
+          <div style="display:flex;align-items:center;gap:6px;font:500 10px 'JetBrains Mono';color:#bcfc07;letter-spacing:.1em"><span style="width:6px;height:6px;background:#bcfc07;border-radius:50%;animation:pulse-dot 1.6s infinite"></span>LIVE</div>
+        </div>
+        <div style="display:grid;grid-template-columns:72px 70px 1fr 88px;gap:12px;padding:10px 18px;background:#0d0d0d;font:500 9.5px 'JetBrains Mono';color:#666;letter-spacing:.1em;text-transform:uppercase">
+          <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div>
+        </div>
+        <div id="live-rows" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:280px">
+          <div style="padding:24px 18px;color:#666;font:400 12px 'JetBrains Mono';text-align:center">Connecting to live feed…</div>
+        </div>
+        <div style="padding:12px 18px;border-top:1px solid #222;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
+          <span id="hero-window">↑ ROLLING SNAPSHOT</span>
+          <span style="flex:1"></span>
+          <a href="/app" style="color:#bcfc07;text-decoration:none">OPEN FULL FEED ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ NUMBERS STRIP ============ -->
+  <section style="background:#000;color:#fff;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0">
+      <div style="padding:32px 32px;border-right:1px solid #222">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">DELIVERED · ALL TIME</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px"><span id="ns-delivered" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span></div>
+      </div>
+      <div style="padding:32px 32px;border-right:1px solid #222">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">ACTIVE SUBS</div>
+        <div id="ns-active" style="margin-top:14px;font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</div>
+      </div>
+      <div style="padding:32px 32px;border-right:1px solid #222">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">WEBHOOK SUCCESS</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-success" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span><span id="ns-success-suffix" style="font:500 22px 'Casper Sans',Inter;color:#666"></span></div>
+      </div>
+      <div style="padding:32px 32px;background:#bcfc07;color:#000;position:relative;overflow:hidden">
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">P50 LATENCY · EVT → POST</div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-latency" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span><span id="ns-latency-suffix" style="font:500 22px 'Casper Sans',Inter;color:#000">ms</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section id="how" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
+      <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:64px">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
+            02 &nbsp;·&nbsp;How it works
+          </div>
+          <h2 style="margin:18px 0 0;font:500 clamp(40px,5.4vw,72px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">One escrow. One predicate.<br/>Every matching event, delivered.</h2>
+        </div>
+        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">No polling. No chain indexer to operate. No glue code per integration. Sluice replaces ~600 lines of bespoke event-listener plumbing with one signed deploy.</p>
+      </div>
+
+      <div style="margin-bottom:32px;max-width:1080px;margin-left:auto;margin-right:auto"><img src="/pipeline.svg?v=r31" alt="Sluice pipeline. Casper events flow through the matcher, then fan out to your webhook and to an on-chain record_delivery receipt." style="width:100%;height:auto;display:block"></div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:#fff;border:1px solid #000">
+        <!-- Step 1 -->
+        <div style="padding:40px 36px;border-right:1px solid #000;position:relative">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:36px;height:36px;background:#000;color:#bcfc07;display:flex;align-items:center;justify-content:center;font:500 16px 'JetBrains Mono'">01</div>
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase">SUBSCRIBE</div>
+          </div>
+          <div style="margin-top:28px;font:500 26px/1.15 'Casper Sans',Inter;letter-spacing:-.02em;color:#000">Describe the event in JSON. Lock CSPR.</div>
+          <div style="margin-top:14px;font:400 15px/1.6 'Casper Sans',Inter;color:#666">Predicate fields are dot.notation paths into the Casper event schema. Locked CSPR is held in the on-chain escrow contract. Cancel anytime and get the remaining CSPR back.</div>
+          <div style="margin-top:26px;background:#000;color:#fff;padding:16px 18px;font:400 12px/1.7 'JetBrains Mono'">{<br/>&nbsp;"and":[<br/>&nbsp;&nbsp;{ <span style="color:#bcfc07">"field"</span>:"amount",<br/>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#bcfc07">"op"</span>:"gte",<br/>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#bcfc07">"value"</span>:"<span style="color:#80cbc4">1000000000000</span>" }<br/>&nbsp;]<br/>}</div>
+        </div>
+        <!-- Step 2 -->
+        <div style="padding:40px 36px;border-right:1px solid #000;position:relative;background:#fafafa">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:36px;height:36px;background:#000;color:#bcfc07;display:flex;align-items:center;justify-content:center;font:500 16px 'JetBrains Mono'">02</div>
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase">MATCH</div>
+          </div>
+          <div style="margin-top:28px;font:500 26px/1.15 'Casper Sans',Inter;letter-spacing:-.02em;color:#000">Matcher reads the CSPR.cloud stream in real time.</div>
+          <div style="margin-top:14px;font:400 15px/1.6 'Casper Sans',Inter;color:#666">The matcher subscribes to the CSPR.cloud WebSocket feed and evaluates your predicate against every deploy as blocks land. Avg eval cost is sub-millisecond.</div>
+          <div style="margin-top:26px;background:#fff;border:1px solid #000;padding:16px 18px;font:400 13px/1.55 'JetBrains Mono';color:#000">
+            <div style="color:#666">block 5,127,843 →</div>
+            <div style="margin-top:6px"><span style="color:#000">deploy</span> a4f2c8…d09e</div>
+            <div style="color:#666">amount: 1,250,000,000,000 motes</div>
+            <div style="margin-top:10px;display:inline-block;background:#bcfc07;color:#000;padding:3px 8px;font-weight:500;letter-spacing:.04em">PREDICATE MATCHED</div>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div style="padding:40px 36px;background:#000;color:#fff;position:relative">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:36px;height:36px;background:#bcfc07;color:#000;display:flex;align-items:center;justify-content:center;font:500 16px 'JetBrains Mono'">03</div>
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#bcfc07">DELIVER</div>
+          </div>
+          <div style="margin-top:28px;font:500 26px/1.15 'Casper Sans',Inter;letter-spacing:-.02em;color:#fff">POST to your webhook. Log on-chain.</div>
+          <div style="margin-top:14px;font:400 15px/1.6 'Casper Sans',Inter;color:#999">Idempotency-keyed HTTPS POST with exponential retries. Every successful delivery is recorded by the escrow contract. Auditable, refundable, and your bill is verifiable.</div>
+          <div style="margin-top:26px;background:#1a1a1a;color:#fff;padding:16px 18px;font:400 13px/1.7 'JetBrains Mono';border:1px solid #333">
+            <div><span style="color:#bcfc07">POST</span> /cspr-hook</div>
+            <div style="color:#666">X-Sluice-Idempotency-Key: 8a3f…</div>
+            <div style="color:#666">X-Sluice-Sub-Id: sub_4f29c1a8</div>
+            <div style="margin-top:8px;color:#3edc64">↳ 200 OK · 142ms</div>
+            <div style="margin-top:4px;color:#666;font-size:11px">↳ record_delivery on-chain ✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TWO AUDIENCES ============ -->
+  <section id="agents" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666;margin-bottom:24px">
+        03 &nbsp;·&nbsp;Built for two audiences
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <!-- Developer card -->
+        <div style="background:#fff;border:1px solid #000;padding:44px 40px;position:relative">
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#000"></span>FOR DEVELOPERS
+          </div>
+          <div style="margin-top:22px;font:500 clamp(30px,3.6vw,44px)/1.02 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">Stop writing your<br/>own indexer.</div>
+          <div style="margin-top:18px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:440px">CLI, REST, and a TS SDK. Bring your own webhook: a Cloudflare Worker, a Fly app, or a Discord URL. Sluice handles delivery, retries, idempotency, and the on-chain receipt.</div>
+          <div style="margin-top:32px;background:#000;color:#fff;padding:16px 18px;font:400 13.5px 'JetBrains Mono';display:flex;align-items:center;gap:12px">
+            <span style="color:#bcfc07">$</span>
+            <span style="flex:1">git clone github.com/UnityNodes/Sluice && cd matcher && npm link</span>
+            <span style="color:#666;font-size:12px">⧉</span>
+          </div>
+          <ul style="margin:32px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px">
+            <li style="display:flex;align-items:flex-start;gap:14px;font:400 15px/1.5 'Casper Sans',Inter;color:#000"><span style="display:inline-block;width:16px;height:16px;background:#bcfc07;flex-shrink:0;margin-top:3px;position:relative"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono';color:#000">✓</span></span>JSON predicate language with editor autocomplete</li>
+            <li style="display:flex;align-items:flex-start;gap:14px;font:400 15px/1.5 'Casper Sans',Inter;color:#000"><span style="display:inline-block;width:16px;height:16px;background:#bcfc07;flex-shrink:0;margin-top:3px;position:relative"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono';color:#000">✓</span></span>Idempotency-Key on every POST · safe retries</li>
+            <li style="display:flex;align-items:flex-start;gap:14px;font:400 15px/1.5 'Casper Sans',Inter;color:#000"><span style="display:inline-block;width:16px;height:16px;background:#bcfc07;flex-shrink:0;margin-top:3px;position:relative"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono';color:#000">✓</span></span>Cancel anytime · remaining CSPR refunded on-chain</li>
+          </ul>
+          <a href="https://github.com/UnityNodes/Sluice#quickstart" target="_blank" rel="noopener" style="margin-top:36px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:500 15px 'Casper Sans',Inter;color:#000;border-bottom:1px solid #000;padding-bottom:3px">Read the dev quickstart ↗</a>
+        </div>
+
+        <!-- Agent card -->
+        <div style="background:#000;color:#fff;padding:44px 40px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:#bcfc07;border-radius:50%;opacity:.08;pointer-events:none"></div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#bcfc07;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#bcfc07"></span>FOR AI AGENTS
+          </div>
+          <div style="margin-top:22px;font:500 clamp(30px,3.6vw,44px)/1.02 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">Give your agent<br/>chain-awareness.</div>
+          <div style="margin-top:18px;font:400 16px/1.6 'Casper Sans',Inter;color:#999;max-width:440px">One hosted URL, no install. Claude, Cursor, Windsurf, Codex, and any MCP-aware agent gets five tools: <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 5px">subscribe_to_events</code>, <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 5px">list_subscriptions</code>, <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 5px">cancel_subscription</code>, <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 5px">recent_deliveries</code>, <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 5px">sluice_sandbox_dispatch</code>.</div>
+          <div style="margin-top:32px;background:#1a1a1a;color:#fff;padding:16px 18px;font:400 13.5px 'JetBrains Mono';display:flex;align-items:center;gap:12px;border:1px solid #333">
+            <span style="color:#bcfc07">MCP</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">https://sluice.unitynodes.com/mcp</span>
+            <span style="color:#666;font-size:12px">⧉</span>
+          </div>
+          <div style="margin-top:24px;background:#1a1a1a;border:1px solid #333;padding:18px;font:400 14px/1.6 'Casper Sans',Inter;color:#ccc">
+            <div style="display:flex;gap:10px"><span style="font:500 11px 'JetBrains Mono';color:#bcfc07;width:52px;letter-spacing:.06em">USER</span><div style="flex:1;color:#fff">"Ping me on Discord if treasury receives any transfer over 5k CSPR."</div></div>
+            <div style="margin-top:14px;display:flex;gap:10px"><span style="font:500 11px 'JetBrains Mono';color:#3edc64;width:52px;letter-spacing:.06em">CLAUDE</span><div style="flex:1">→ <span style="font-family:'JetBrains Mono';color:#bcfc07">sluice.create_subscription</span> · sign deploy in your wallet</div></div>
+          </div>
+          <a href="https://github.com/UnityNodes/Sluice/tree/main/mcp#readme" target="_blank" rel="noopener" style="margin-top:36px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:500 15px 'Casper Sans',Inter;color:#bcfc07;border-bottom:1px solid #bcfc07;padding-bottom:3px">MCP setup &amp; tools ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREENCAST ============ -->
+  <section id="screencast" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px">
+      <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:40px">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
+            04 &nbsp;·&nbsp;See it in motion
+          </div>
+          <h2 style="margin:18px 0 0;font:500 clamp(34px,4.4vw,56px)/1.04 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">An 18-second loop of one real CLI session.</h2>
+        </div>
+        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">Every line is a real log. Tx-hash prefixes match the ones on cspr.live for the v0.1 contract. SVG with SMIL. No JS, no video tag, no plugins.</p>
+      </div>
+      <div style="max-width:920px;margin:0 auto">
+        <img src="/screencast.svg?v=r31" alt="Animated terminal recording of the sluice subscribe command running end-to-end. 18-second loop." style="width:100%;height:auto;display:block;border:1px solid #000;background:#000;box-shadow:6px 6px 0 #bcfc07">
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RECIPES ============ -->
+  <section id="recipes" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
+      <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:48px">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
+            05 &nbsp;·&nbsp;Recipes · DeFi, RWA, and agent triggers
+          </div>
+          <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">Six triggers. Six copy-paste lines.</h2>
+        </div>
+        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">Each recipe is a working predicate for a real DeFi, RWA, or agent use case. Swap the address or threshold, paste your webhook, lock CSPR. Point it at an agent and the match becomes an autonomous action.</p>
+      </div>
+
+      <div class="recipe-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+        <!-- Recipe: Pool Deposit → Rebalance (DeFi / Agentic) -->
+        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./pool-deposit.json --webhook $WEBHOOK --amount 50' data-predicate='{"and":[{"field":"to_account_hash","op":"eq","value":"POOL_ACCOUNT_HASH"},{"field":"amount","op":"gte","value":"50000000000000"}]}'>
+          <div class="recipe-head">
+            <span class="icon-tile"><svg><use href="#icon-inbox"/></svg></span>
+            <span class="recipe-tag">DeFi · Agentic</span>
+          </div>
+          <h3 class="recipe-title">Pool Deposit → Rebalance</h3>
+          <p class="recipe-desc">A whale deposit shifts pool APY. Point this at the yield-router agent and it reallocates funds autonomously via the CSPR.trade MCP.</p>
+          <div class="recipe-pred"><span class="recipe-pred-k">Recipient</span> = pool address<br/><span class="recipe-pred-k">Amount</span> ≥ 50,000 CSPR</div>
+          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/pool-deposit</span></button>
+        </article>
+
+        <!-- Recipe: Liquidation Guard (DeFi) -->
+        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./liquidation-guard.json --webhook $WEBHOOK --amount 40' data-predicate='{"and":[{"field":"initiator_account_hash","op":"eq","value":"LENDING_POOL_HASH"},{"field":"amount","op":"gte","value":"100000000000000"}]}'>
+          <div class="recipe-head">
+            <span class="icon-tile"><svg><use href="#icon-target"/></svg></span>
+            <span class="recipe-tag">DeFi · Risk</span>
+          </div>
+          <h3 class="recipe-title">Liquidation Guard</h3>
+          <p class="recipe-desc">A large withdrawal out of a lending pool can front-run a liquidation cascade. Alert a risk agent the instant collateral moves.</p>
+          <div class="recipe-pred"><span class="recipe-pred-k">Sender</span> = pool address<br/><span class="recipe-pred-k">Amount</span> ≥ 100,000 CSPR</div>
+          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/liquidation-guard</span></button>
+        </article>
+
+        <!-- Recipe: Whale Swap Alert (DeFi) -->
+        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./whale-swap.json --webhook $WEBHOOK --amount 100' data-predicate='{"and":[{"field":"amount","op":"gte","value":"100000000000000"}]}'>
+          <div class="recipe-head">
+            <span class="icon-tile"><svg><use href="#icon-whale"/></svg></span>
+            <span class="recipe-tag">DeFi · Market</span>
+          </div>
+          <h3 class="recipe-title">Whale Swap Alert</h3>
+          <p class="recipe-desc">Any swap-sized move across the whole chain, not just your address. Feeds market dashboards, trading bots, and X-bots.</p>
+          <div class="recipe-pred"><span class="recipe-pred-k">Amount</span> ≥ 100,000 CSPR</div>
+          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/whale-swap</span></button>
+        </article>
+
+        <!-- Recipe: Treasury Outflow Alarm (RWA / DAO) -->
+        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./treasury-outflow.json --webhook $WEBHOOK --amount 25' data-predicate='{"and":[{"field":"initiator_account_hash","op":"eq","value":"TREASURY_HASH"},{"field":"amount","op":"gte","value":"25000000000000"}]}'>
+          <div class="recipe-head">
+            <span class="icon-tile"><svg><use href="#icon-outbox"/></svg></span>
+            <span class="recipe-tag">RWA · DAO</span>
+          </div>
+          <h3 class="recipe-title">Treasury Outflow Alarm</h3>
+          <p class="recipe-desc">Any large movement out of a DAO treasury. Fire it at the multi-agent swarm so Risk, Treasury, and Legal agents deliberate on-chain.</p>
+          <div class="recipe-pred"><span class="recipe-pred-k">Sender</span> = treasury address<br/><span class="recipe-pred-k">Amount</span> ≥ 25,000 CSPR</div>
+          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/treasury-outflow</span></button>
+        </article>
+
+        <!-- Recipe: Compliance Authority Watch (RWA) -->
+        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./compliance-watch.json --webhook $WEBHOOK --amount 20' data-predicate='{"and":[{"field":"initiator_account_hash","op":"eq","value":"COMPLIANCE_AUTHORITY_HASH"}]}'>
+          <div class="recipe-head">
+            <span class="icon-tile"><svg><use href="#icon-network"/></svg></span>
+            <span class="recipe-tag">RWA · Compliance</span>
+          </div>
+          <h3 class="recipe-title">Compliance Authority Watch</h3>
+          <p class="recipe-desc">Watch a KYC or compliance authority address. When it acts, an agent can revoke or re-issue a compliance token to keep an RWA pool clean.</p>
+          <div class="recipe-pred"><span class="recipe-pred-k">Sender</span> = authority address</div>
+          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/compliance-watch</span></button>
+        </article>
+
+        <!-- Recipe: Oracle Heartbeat (RWA) -->
+        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./oracle-heartbeat.json --webhook $WEBHOOK --amount 15' data-predicate='{"and":[{"field":"initiator_account_hash","op":"eq","value":"ORACLE_UPDATER_HASH"}]}'>
+          <div class="recipe-head">
+            <span class="icon-tile"><svg><use href="#icon-time"/></svg></span>
+            <span class="recipe-tag">RWA · Oracle</span>
+          </div>
+          <h3 class="recipe-title">Oracle Heartbeat</h3>
+          <p class="recipe-desc">An RWA oracle posts periodic valuation updates. Watch its updater address so an agent can raise an alarm the moment a heartbeat is missed.</p>
+          <div class="recipe-pred"><span class="recipe-pred-k">Sender</span> = oracle updater</div>
+          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/oracle-heartbeat</span></button>
+        </article>
+      </div>
+      <style>
+        .recipe-card {
+          background:#fff; border:1px solid #000; padding:28px 26px 22px;
+          display:flex; flex-direction:column; gap:16px; cursor:pointer;
+          transition:transform .18s ease, box-shadow .18s ease;
+          position:relative;
+        }
+        .recipe-card::before {
+          content:""; position:absolute; inset:0; pointer-events:none;
+          box-shadow:0 1px 0 rgba(0,0,0,.06);
+        }
+        .recipe-card:hover { transform:translateY(-3px); box-shadow:6px 6px 0 #bcfc07; }
+        .recipe-head { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+        .recipe-tag {
+          font:500 10.5px 'JetBrains Mono',monospace; letter-spacing:.14em;
+          text-transform:uppercase; color:#000;
+          background:#f4f4f4; border:1px solid #000; padding:3px 9px;
+        }
+        .recipe-title { margin:0; font:500 22px/1.15 'Casper Sans',Inter,sans-serif; letter-spacing:-.02em; color:#000; }
+        .recipe-desc { margin:0; font:400 13.5px/1.55 'Casper Sans',Inter,sans-serif; color:#555; flex:1; }
+        .recipe-pred {
+          background:#000; color:#e6e6e6; padding:12px 14px;
+          font:400 11.5px/1.6 'JetBrains Mono',monospace;
+          overflow-wrap:anywhere;
+        }
+        .recipe-pred-k { color:#bcfc07; font-weight:500; }
+        .recipe-cta {
+          margin-top:auto; width:100%; background:#000; color:#fff; border:1px solid #000;
+          padding:11px 14px; font:500 13px 'Casper Sans',Inter,sans-serif;
+          display:flex; align-items:center; justify-content:space-between; gap:10px;
+          cursor:pointer; transition:background .15s ease, color .15s ease;
+        }
+        .recipe-cta:hover { background:#bcfc07; color:#000; }
+        .recipe-cta-label { display:inline-flex; align-items:center; gap:8px; }
+        .recipe-cta-icon { width:14px; height:14px; }
+        .recipe-cta-slug { font:400 11px 'JetBrains Mono',monospace; color:#888; letter-spacing:.03em; }
+        .recipe-cta:hover .recipe-cta-slug { color:#000; }
+      </style>
+
+      <div style="margin-top:18px;font:400 13px 'JetBrains Mono';color:#666;letter-spacing:.04em">
+        <span style="color:#000">Note.</span> Swap <code style="background:#fff;padding:1px 5px;border:1px solid #ccc">POOL_ACCOUNT_HASH</code>, <code style="background:#fff;padding:1px 5px;border:1px solid #ccc">TREASURY_HASH</code>, and the rest for the 64-hex Casper account hash you want to watch. We never auto-fill an address, so you can't paste someone else's by accident.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EVALUATE IN 60 SECONDS (judges + first-timers, no wallet) ============ -->
+  <section id="evaluate" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
+      <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:48px">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">Try it now · no wallet, no signup</div>
+          <h2 style="margin:18px 0 0;font:500 clamp(34px,4.4vw,56px)/1.04 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">Evaluate Sluice in 60 seconds.</h2>
+        </div>
+        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:360px">Three things you can do right now against the live testnet contract. None of them need a wallet or an account.</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
+        <a href="#hero-ai" style="text-decoration:none;background:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #bcfc07'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="icon-tile"><svg><use href="#icon-sparkle"/></svg></span>
+            <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#666">STEP 1</span>
+          </div>
+          <div style="font:500 20px 'Casper Sans',Inter;color:#000">Describe an event</div>
+          <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#666;flex:1">Type "whales over 100k CSPR" into the hero box. The rule-based parser turns it into a predicate, then dry-runs it against real recent testnet events.</div>
+          <div style="font:500 12px 'JetBrains Mono';color:#000;border-bottom:1px solid #000;align-self:flex-start;padding-bottom:2px">Jump to the parser ↑</div>
+        </a>
+        <a href="/app#sandbox" style="text-decoration:none;background:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #bcfc07'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="icon-tile"><svg><use href="#icon-beaker"/></svg></span>
+            <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#666">STEP 2</span>
+          </div>
+          <div style="font:500 20px 'Casper Sans',Inter;color:#000">Fire a real webhook</div>
+          <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#666;flex:1">Open the sandbox, paste a webhook.site URL, fire up to 10 real HMAC-signed POSTs. Zero CSPR spent, no subscription needed.</div>
+          <div style="font:500 12px 'JetBrains Mono';color:#000;border-bottom:1px solid #000;align-self:flex-start;padding-bottom:2px">Open the sandbox →</div>
+        </a>
+        <div id="eval-mcp" style="background:#000;color:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;cursor:pointer" onclick="(function(){var c='https://sluice.unitynodes.com/mcp';navigator.clipboard&&navigator.clipboard.writeText(c);var l=document.getElementById('eval-mcp-cta');if(l){var p=l.textContent;l.textContent='✓ Copied to clipboard';setTimeout(function(){l.textContent=p;},1500);}})()">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="icon-tile" style="background:#bcfc07;color:#000"><svg><use href="#icon-copy"/></svg></span>
+            <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#888">STEP 3</span>
+          </div>
+          <div style="font:500 20px 'Casper Sans',Inter;color:#fff">Add the MCP to your agent</div>
+          <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#999;flex:1">One hosted URL, zero install. Works with Claude, Cursor, Windsurf, VS Code, and any MCP client. Ask "show me the last 10 Sluice deliveries."</div>
+          <div style="background:#1a1a1a;border:1px solid #333;padding:10px 12px;font:400 11px/1.4 'JetBrains Mono';color:#bcfc07;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">https://sluice.unitynodes.com/mcp</div>
+          <div id="eval-mcp-cta" style="font:500 12px 'JetBrains Mono';color:#bcfc07;align-self:flex-start">⧉ Click to copy the endpoint URL</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WORKSPACE CTA (replaces playground + demos, both moved into /app) ============ -->
+  <section id="workspace" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:80px 32px;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:64px;align-items:center">
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;color:#bcfc07;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px">
+          <span style="width:24px;height:1px;background:#bcfc07"></span>WORKSPACE
+        </div>
+        <h2 style="margin:14px 0 0;font:500 clamp(34px,4vw,52px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">Everything actionable lives in the app.</h2>
+        <p style="margin:18px 0 0;font:400 17px/1.6 'Casper Sans',Inter;color:#ccc;max-width:520px">Four tabs, one workspace: live <b style="color:#fff">subscriptions</b>, a visual + plain-English <b style="color:#fff">builder</b>, a no-CSPR <b style="color:#fff">sandbox</b> that fires real webhooks at any URL, and a rolling <b style="color:#fff">activity</b> feed. Nothing else on the landing page. Everything happens in <code style="background:#1a1a1a;color:#bcfc07;padding:2px 6px;font:500 14px 'JetBrains Mono'">/app</code>.</p>
+        <a href="/app" style="margin-top:32px;display:inline-flex;align-items:center;gap:10px;background:#bcfc07;color:#000;text-decoration:none;padding:16px 26px;font:500 16px 'Casper Sans',Inter;border:1px solid #bcfc07">Open the workspace <span style="font-size:18px;line-height:1">→</span></a>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font:500 11px 'JetBrains Mono';color:#ccc;letter-spacing:.04em">
+        <a href="/app#subs"     style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07">SUBSCRIPTIONS</span><span style="color:#aaa">live table · filters · CSV · ⋯ menu</span></a>
+        <a href="/app#build"    style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07;display:inline-flex;align-items:center;gap:8px"><svg width="14" height="14" style="color:#bcfc07"><use href="#icon-sparkle"/></svg> BUILD</span><span style="color:#aaa">visual rules + plain-English → JSON</span></a>
+        <a href="/app#sandbox"  style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07;display:inline-flex;align-items:center;gap:8px"><svg width="14" height="14" style="color:#bcfc07"><use href="#icon-beaker"/></svg> SANDBOX</span><span style="color:#aaa">fire real webhooks · 0 CSPR spent</span></a>
+        <a href="/app#activity" style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07">ACTIVITY</span><span style="color:#aaa">rolling deliveries · status · tx hashes</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MCP AGENT DEMO ============ -->
+  <section id="mcp-demo" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px;display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:64px;align-items:start">
+      <!-- LEFT, copy/explanation -->
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#888">
+          06 &nbsp;·&nbsp;Watch the agent
+        </div>
+        <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#fff;max-width:520px">Any MCP client drives Sluice in natural language.</h2>
+        <p style="margin:22px 0 0;font:400 17px/1.65 'Casper Sans',Inter;color:#999;max-width:440px">MCP is an open standard, so this is not a Claude-only trick. One hosted URL plugs Sluice into Claude, Cursor, Windsurf, Cline, VS Code, or anything that speaks MCP. Five tools, four resources, two prompts. The agent subscribes, lists, cancels, and reacts to matched events without leaving the chat.</p>
+        <div id="mcp-clients" style="margin-top:32px;display:flex;flex-wrap:wrap;gap:8px">
+          <button class="mcp-pill" data-mcp-client="claude">Claude Code</button>
+          <button class="mcp-pill" data-mcp-client="cursor">Cursor</button>
+          <button class="mcp-pill" data-mcp-client="windsurf">Windsurf</button>
+          <button class="mcp-pill" data-mcp-client="vscode">VS Code</button>
+          <button class="mcp-pill" data-mcp-client="desktop">Claude Desktop</button>
+          <button class="mcp-pill" data-mcp-client="any">Any client</button>
+        </div>
+        <div style="margin-top:14px;background:#0d0d0d;border:1px solid #1a1a1a;padding:14px 16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px">
+            <span id="mcp-install-hint" style="font:500 10px 'JetBrains Mono';color:#666;letter-spacing:.12em;text-transform:uppercase">Terminal · one command</span>
+            <button id="mcp-install-copy" style="background:none;border:none;color:#bcfc07;font:500 11px 'JetBrains Mono';cursor:pointer;letter-spacing:.04em;padding:0;flex-shrink:0">⧉ COPY</button>
+          </div>
+          <pre id="mcp-install-cmd" style="margin:0;white-space:pre-wrap;word-break:break-word;font:400 12px/1.55 'JetBrains Mono';color:#bcfc07">claude mcp add --transport http sluice https://sluice.unitynodes.com/mcp</pre>
+        </div>
+        <div style="margin-top:14px;font:400 12.5px/1.6 'JetBrains Mono';color:#666;letter-spacing:.04em">Open standard, one <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">https://sluice.unitynodes.com/mcp</code> endpoint, any MCP client. Restart the client and <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">sluice</code> appears with 5 tools.</div>
+
+        <div style="margin-top:36px;display:flex;flex-direction:column;gap:12px;font:400 14px/1.6 'Casper Sans',Inter;color:#ccc">
+          <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">1</span> Same live testnet contract you see in the dashboard.</div>
+          <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">2</span> Each tool returns structured JSON the model can reason over.</div>
+          <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">3</span> Tx hashes link back to cspr.live. Auditable end-to-end.</div>
+        </div>
+      </div>
+
+      <!-- RIGHT, chat transcript -->
+      <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1a1a1a">
+          <div style="display:flex;gap:5px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
+          <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">CLAUDE CODE · CHAT TRANSCRIPT</div>
+          <div style="flex:1"></div>
+          <div style="font:500 10px 'JetBrains Mono';color:#bcfc07;letter-spacing:.1em">MCP · sluice</div>
+        </div>
+
+        <div style="padding:28px 28px;display:flex;flex-direction:column;gap:22px">
+
+          <div style="display:flex;gap:14px">
+            <div style="flex-shrink:0;font:500 10.5px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em;width:60px;padding-top:3px">USER</div>
+            <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#fff">Set up a Sluice subscription that alerts me whenever someone sends my Casper account ≥ 2.5 CSPR. Lock 10 CSPR. Use webhook.site for the receiver.</div>
+          </div>
+
+          <div style="display:flex;gap:14px">
+            <div style="flex-shrink:0;font:500 10.5px 'JetBrains Mono';color:#3edc64;letter-spacing:.08em;width:60px;padding-top:3px">CLAUDE</div>
+            <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
+              I'll check existing subscriptions first.
+              <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
+                <div style="color:#666">→ tool call</div>
+                <div style="color:#bcfc07">sluice.list_subscriptions</div>
+                <div style="color:#ccc">{}</div>
+              </div>
+              <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
+                <div style="color:#666">← result</div>
+                <div style="color:#ccc">contract <span style="color:#80cbc4">f3710eaf…b971</span></div>
+                <div style="color:#ccc">subs: [</div>
+                <div style="color:#ccc">&nbsp;&nbsp;{ id: 1, active: false, balance: 0 },</div>
+                <div style="color:#ccc">&nbsp;&nbsp;{ id: 3, active: true,  balance: 6&nbsp;CSPR } ]</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:14px">
+            <div style="flex-shrink:0;font:500 10.5px 'JetBrains Mono';color:#3edc64;letter-spacing:.08em;width:60px;padding-top:3px">CLAUDE</div>
+            <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
+              Sub <span style="font-family:'JetBrains Mono';color:#fff">#3</span> already watches your address with the same rule and has 6 CSPR left. I'll create a fresh one anyway with 10 CSPR locked, per your spec.
+              <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
+                <div style="color:#666">→ tool call</div>
+                <div style="color:#bcfc07">sluice.subscribe_to_events</div>
+                <div style="color:#ccc">{</div>
+                <div style="color:#ccc">&nbsp;&nbsp;<span style="color:#bcfc07">predicate_json</span>: <span style="color:#80cbc4">{ and: [</span></div>
+                <div style="color:#ccc">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#80cbc4">{ field: "to_account_hash", op: "eq", value: "ecf442b3…87c9c" },</span></div>
+                <div style="color:#ccc">&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#80cbc4">{ field: "amount", op: "gte", value: "2500000000" } ] }</span></div>
+                <div style="color:#ccc">&nbsp;&nbsp;<span style="color:#bcfc07">webhook_url</span>: <span style="color:#80cbc4">"https://webhook.site/4f3f550f…0d6"</span></div>
+                <div style="color:#ccc">&nbsp;&nbsp;<span style="color:#bcfc07">amount_cspr</span>: <span style="color:#80cbc4">10</span></div>
+                <div style="color:#ccc">}</div>
+              </div>
+              <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
+                <div style="color:#666">← result</div>
+                <div style="color:#ccc"><span style="color:#bcfc07">tx_hash:</span> <a href="https://testnet.cspr.live/transaction/4d454d87eb6c0cfbbd1ec4caf9b3cfe2698aba02445fec016dd8a7c88aac4567" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">4d454d87…aac4567</a></div>
+                <div style="color:#ccc"><span style="color:#bcfc07">subscription_id:</span> <span style="color:#80cbc4">3</span> · 10 CSPR escrowed</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:14px;padding-top:14px;border-top:1px dashed #222">
+            <div style="flex-shrink:0;font:500 10.5px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em;width:60px;padding-top:3px">USER</div>
+            <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#fff">I just sent myself 2.5 CSPR five times to test. Did any of them match?</div>
+          </div>
+
+          <div style="display:flex;gap:14px">
+            <div style="flex-shrink:0;font:500 10.5px 'JetBrains Mono';color:#3edc64;letter-spacing:.08em;width:60px;padding-top:3px">CLAUDE</div>
+            <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
+              All five matched. Webhook returned 200 every time, average latency 111 ms from block landing to POST.
+              <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
+                <div style="color:#666">→ tool call</div>
+                <div style="color:#bcfc07">sluice.recent_deliveries</div>
+                <div style="color:#ccc">{ limit: 5 }</div>
+              </div>
+              <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
+                <div style="color:#666">← result · 5 deliveries</div>
+                <div style="color:#3edc64">sub_3 · 200 · 105 ms · tx <a href="https://testnet.cspr.live/transaction/4287a5196a8741406098815688dc2dce63424ca1e28512c3f629f1a304672911" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">4287a519…672911</a></div>
+                <div style="color:#3edc64">sub_3 · 200 · 112 ms · tx <a href="https://testnet.cspr.live/transaction/bddc9211b25939582eda547f939bd50eda4e403687c7c549d41ecc075c495aa7" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">bddc9211…c495aa7</a></div>
+                <div style="color:#3edc64">sub_3 · 200 · &nbsp;98 ms · tx <a href="https://testnet.cspr.live/transaction/b9c841032e1f9ff6a54ed8c3596994d0f0b042205c3329ab81bcd8f873391b7a" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">b9c84103…3391b7a</a></div>
+                <div style="color:#3edc64">sub_3 · 200 · &nbsp;96 ms · tx <a href="https://testnet.cspr.live/transaction/433a07dd1be25ff1892e14bce16c3626850ce9729e41162f4ac57dd2b2488b18" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">433a07dd…2488b18</a></div>
+                <div style="color:#3edc64">sub_3 · 200 · 144 ms · tx <a href="https://testnet.cspr.live/transaction/3286f80b14e8c73c25d1765ebfee292ff57feccd8e9732922b3021f44df3b6e0" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">3286f80b…df3b6e0</a></div>
+              </div>
+              <div style="margin-top:10px;color:#fff">Balance is now 1 CSPR, enough for one more delivery. Want me to top it up?</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
+          <span>↑ REAL TRANSCRIPT · ALL TX-HASHES CLICKABLE</span>
+          <span style="flex:1"></span>
+          <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971?tab=events" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:none">EVENTS ON CSPR.LIVE ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CODE ============ -->
+  <section id="code" style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
+      <div style="display:grid;grid-template-columns:.8fr 1.2fr;gap:80px;align-items:center">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#000"></span>COPY · PASTE · SUBSCRIBE
+          </div>
+          <h2 style="margin:18px 0 0;font:500 clamp(36px,4.3vw,56px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000">Create a subscription in one call.</h2>
+          <p style="margin:22px 0 0;font:400 17px/1.6 'Casper Sans',Inter;color:#666">The whole API surface is small on purpose. Four endpoints, one signed deploy, one webhook contract. That's it for v0.1. Everything else is sugar in the CLI and MCP.</p>
+          <div style="margin-top:36px;display:flex;flex-direction:column;gap:0;border:1px solid #000;background:#fff">
+            <div style="padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #ccc"><span style="font:500 12px 'JetBrains Mono';background:#000;color:#bcfc07;padding:3px 8px;letter-spacing:.06em">CLI</span><span style="font:500 14px 'JetBrains Mono';color:#000;flex:1">sluice subscribe</span><span style="font:400 13px;color:#666">create</span></div><div style="padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #ccc"><span style="font:500 12px 'JetBrains Mono';background:#000;color:#bcfc07;padding:3px 8px;letter-spacing:.06em">CLI</span><span style="font:500 14px 'JetBrains Mono';color:#000;flex:1">sluice list / cancel</span><span style="font:400 13px;color:#666">read &amp; cancel</span></div><div style="padding:14px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #ccc"><span style="font:500 12px 'JetBrains Mono';background:#000;color:#bcfc07;padding:3px 8px;letter-spacing:.06em">MCP</span><span style="font:500 14px 'JetBrains Mono';color:#000;flex:1">subscribe_to_events</span><span style="font:400 13px;color:#666">via Claude</span></div><div style="padding:14px 18px;display:flex;align-items:center;gap:14px"><span style="font:500 12px 'JetBrains Mono';background:#ff2d2e;color:#fff;padding:3px 8px;letter-spacing:.06em">UI</span><span style="font:500 14px 'JetBrains Mono';color:#000;flex:1">cancel via Casper Wallet</span><span style="font:400 13px;color:#666">on /app</span></div>
+          </div>
+        </div>
+
+        <div style="background:#000;border:1px solid #000;box-shadow:8px 8px 0 #bcfc07;overflow:hidden">
+          <div style="display:flex;align-items:center;border-bottom:1px solid #222">
+            <div style="display:flex;gap:5px;padding:14px 18px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
+            <div style="display:flex;font:500 12px 'JetBrains Mono';color:#666;letter-spacing:.04em">
+              <span style="padding:15px 18px;color:#fff;background:#1a1a1a;border-bottom:2px solid #bcfc07;margin-bottom:-1px">curl</span>
+              <span style="padding:15px 18px">typescript</span>
+              <span style="padding:15px 18px">rust</span>
+              <span style="padding:15px 18px">claude</span>
+            </div>
+            <div style="flex:1"></div>
+            <div style="padding:14px 18px;font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">⧉ COPY</div>
+          </div>
+          <div style="padding:28px 32px;font:400 13.5px/1.75 'JetBrains Mono';color:#fff">
+            <div style="color:#666"># save a predicate, lock 10 CSPR, alert on big incoming transfers</div>
+            <div style="margin-top:8px"><span style="color:#bcfc07">cat</span> &gt; whale.json &lt;&lt;EOF</div>
+            <div>&nbsp;{ <span style="color:#bcfc07">"and"</span>: [</div>
+            <div>&nbsp;&nbsp;&nbsp;{ <span style="color:#bcfc07">"field"</span>: <span style="color:#80cbc4">"amount"</span>, <span style="color:#bcfc07">"op"</span>: <span style="color:#80cbc4">"gte"</span>, <span style="color:#bcfc07">"value"</span>: <span style="color:#80cbc4">"5000000000000"</span> },</div>
+            <div>&nbsp;&nbsp;&nbsp;{ <span style="color:#bcfc07">"field"</span>: <span style="color:#80cbc4">"to_account_hash"</span>, <span style="color:#bcfc07">"op"</span>: <span style="color:#80cbc4">"eq"</span>, <span style="color:#bcfc07">"value"</span>: <span style="color:#80cbc4">"dc7252...787c9c"</span> }</div>
+            <div>&nbsp;]}</div>
+            <div>EOF</div>
+            <div style="margin-top:14px"><span style="color:#bcfc07">sluice</span> subscribe \</div>
+            <div>&nbsp;&nbsp;--predicate ./whale.json \</div>
+            <div>&nbsp;&nbsp;--webhook <span style="color:#80cbc4">https://webhook.site/&lt;your-id&gt;</span> \</div>
+            <div>&nbsp;&nbsp;--amount <span style="color:#80cbc4">10</span> --watch</div>
+            <div style="margin-top:18px;padding-top:18px;border-top:1px dashed #333">
+              <div style="color:#666"># → stdout</div>
+              <div style="color:#ccc">submitted.</div>
+              <div style="color:#ccc">&nbsp;&nbsp;tx_hash: 3f9c…b801</div>
+              <div style="color:#ccc">&nbsp;&nbsp;amount: 10 CSPR (10000000000 motes)</div>
+              <div style="color:#ccc">&nbsp;&nbsp;webhook: https://webhook.site/&lt;your-id&gt;</div>
+              <div style="color:#ccc">⏳ waiting for matcher to see the new subscription…</div>
+              <div style="color:#ccc">✓ subscription id: 4</div>
+              <div style="color:#ccc">→ tailing deliveries (ctrl-c to quit)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRANSPARENCY ============ -->
+  <section style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
+      <div style="background:#fff;border:1px solid #000;display:grid;grid-template-columns:.9fr 1.1fr;gap:0">
+        <div style="padding:48px 44px;border-right:1px solid #000">
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#000"></span>VERIFIABLE, NOT JUST TRUSTED
+          </div>
+          <div style="margin-top:20px;font:500 clamp(30px,3.6vw,44px)/1.05 'Casper Sans',Inter;letter-spacing:-.02em;color:#000">Every delivery is a deploy on&nbsp;Casper.</div>
+          <p style="margin:22px 0 0;font:400 16px/1.65 'Casper Sans',Inter;color:#666">When Sluice POSTs to your webhook and gets a 2xx, it calls <span style="font-family:'JetBrains Mono';color:#000;background:#f4f4f4;padding:2px 6px">record_delivery</span> on the escrow contract. Your bill is a sequence of on-chain receipts, not a number we made up at month-end. Pull it from cspr.live yourself if you want.</p>
+          <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971" target="_blank" rel="noopener" style="margin-top:30px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:500 15px 'Casper Sans',Inter;color:#000;border-bottom:1px solid #000;padding-bottom:3px">See the escrow contract on cspr.live →</a>
+        </div>
+        <div style="background:#fafafa;padding:36px 44px">
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">Last 5 record_delivery deploys</div>
+          <div id="live-deploys" style="margin-top:20px">
+            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
+              <div style="font:500 12px 'JetBrains Mono';color:#666">JUST NOW</div>
+              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">3f9c…b801</span> · sub_4f29</div>
+              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
+              <div style="font:500 12px 'JetBrains Mono';color:#666">8S AGO</div>
+              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">a017…44e2</span> · sub_8b11</div>
+              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
+              <div style="font:500 12px 'JetBrains Mono';color:#666">14S AGO</div>
+              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">d2a4…9912</span> · sub_2a07</div>
+              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
+              <div style="font:500 12px 'JetBrains Mono';color:#666">22S AGO</div>
+              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">8b30…71f0</span> · sub_4f29</div>
+              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
+            </div>
+            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;align-items:center;font:400 14px;color:#000">
+              <div style="font:500 12px 'JetBrains Mono';color:#666">34S AGO</div>
+              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">c61f…0204</span> · sub_8b11</div>
+              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ V0.1 LIMITS ============ -->
+  <section style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
+      <div style="display:grid;grid-template-columns:.7fr 1.3fr;gap:64px;align-items:flex-start">
+        <div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
+            <span style="width:24px;height:1px;background:#000"></span>HONEST ABOUT V0.1
+          </div>
+          <h2 style="margin:18px 0 0;font:500 clamp(36px,4.3vw,56px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000">What's here.<br/>What's not.</h2>
+          <p style="margin:22px 0 0;font:400 16px/1.6 'Casper Sans',Inter;color:#666">Sluice is testnet-only and intentionally small. You'll hit limits. They're documented, not hidden. Roadmap is public; vote with usage.</p>
+        </div>
+        <div style="background:#fff;border:1px solid #000;display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div style="padding:28px 28px;border-right:1px solid #000;border-bottom:1px solid #000;background:#bcfc07">
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">▸ HERE TODAY</div>
+            <ul style="margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#000">
+              <li>· Predicate · AND only · 8 conditions max</li>
+              <li>· Webhook · 3 retries · idempotency keys</li>
+              <li>· MCP server · Claude Code &amp; Codex tested</li>
+              <li>· CLI · REST · TS SDK</li>
+            </ul>
+          </div>
+          <div style="padding:28px 28px;border-bottom:1px solid #000">
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">↗ COMING · Q3</div>
+            <ul style="margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#333">
+              <li>· OR / nested predicates</li>
+              <li>· Replay missed events on top-up</li>
+              <li>· SSE alternative to webhook</li>
+              <li>· Rust SDK</li>
+            </ul>
+          </div>
+          <div style="padding:28px 28px;border-right:1px solid #000">
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#ff2d2e;text-transform:uppercase">✕ NOT UNTIL MAINNET</div>
+            <ul style="margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#333">
+              <li>· Production SLAs</li>
+              <li>· Real CSPR (testnet faucet only)</li>
+              <li>· Volume pricing tiers</li>
+            </ul>
+          </div>
+          <div style="padding:28px 28px">
+            <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">OUT OF SCOPE</div>
+            <ul style="margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#333">
+              <li>· Cross-chain (Casper-only)</li>
+              <li>· Email / SMS (use a webhook)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section style="background:#bcfc07;border-bottom:1px solid #000;position:relative;overflow:hidden">
+    <!-- Subtle diagonal texture only -->
+    <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 22px,rgba(0,0,0,.03) 22px,rgba(0,0,0,.03) 24px);pointer-events:none"></div>
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px;display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center;position:relative">
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
+          <span style="width:24px;height:1px;background:#000"></span>FREE ON TESTNET
+        </div>
+        <h2 style="margin:20px 0 0;font:500 clamp(44px,6.5vw,88px)/.98 'Casper Sans',Inter;letter-spacing:-.035em;color:#000">Subscribe to your first Casper event today.</h2>
+        <p style="margin:24px 0 0;font:400 18px/1.55 'Casper Sans',Inter;color:#000;max-width:560px;opacity:.75">Lock CSPR with the CLI (or via any MCP client), paste a webhook URL, then matched events start landing immediately. Cancel anytime via the dashboard's wallet flow; remaining CSPR refunds on-chain.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <a href="/app" style="text-decoration:none;background:#000;color:#fff;padding:22px 28px;font:500 18px 'Casper Sans',Inter;display:flex;align-items:center;justify-content:space-between;border:1px solid #000"><span>Open the app</span><span style="font-size:22px">→</span></a>
+        <button id="copy-mcp-cta" style="text-align:left;cursor:pointer;background:transparent;color:#000;padding:22px 28px;font:500 18px 'Casper Sans',Inter;display:flex;align-items:center;justify-content:space-between;border:1px solid #000;font-family:inherit"><span>Copy the MCP endpoint</span><span style="font-size:14px;font-family:'JetBrains Mono';color:#000">⧉ COPY</span></button>
+        <div style="margin-top:6px;font:500 12px 'JetBrains Mono';color:#000;text-align:center;letter-spacing:.04em;opacity:.7">NO SIGNUP · CLI OR MCP · TESTNET CSPR FROM <a href="https://testnet.cspr.live/tools/faucet" target="_blank" rel="noopener" style="color:#000;text-decoration:underline;text-underline-offset:3px">FAUCET ↗</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer style="background:#000;color:#fff">
+    <div style="max-width:1320px;margin:0 auto;padding:64px 32px 28px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr 1fr;gap:48px">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="display:inline-flex;width:24px;height:24px;background:#bcfc07;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:6px solid #000;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span></span>
+          <span style="font:500 22px/1 'Casper Sans',Inter;letter-spacing:-.02em;color:#fff">sluice</span>
+        </div>
+        <div style="margin-top:18px;font:400 14px/1.6 'Casper Sans',Inter;color:#999;max-width:300px">Event infrastructure for the Casper network. Built alongside the Casper AI Toolkit.</div>
+        <div id="footer-status" style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.06em;background:#1a1a1a;padding:6px 10px;border:1px solid #222"><span id="footer-status-dot" style="width:7px;height:7px;background:#3edc64;border-radius:50%;animation:pulse-green 2s infinite"></span>CHECKING STATUS…</div>
+      </div>
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">PRODUCT</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
+          <a href="/app" style="text-decoration:none;color:inherit">App</a>
+          <a href="/app" style="text-decoration:none;color:inherit">Live feed</a>
+          <a href="/api/snapshot.json" target="_blank" style="text-decoration:none;color:inherit">Status</a>
+          <a href="https://github.com/UnityNodes/Sluice/blob/main/docs/ROADMAP.md" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Roadmap ↗</a>
+        </div>
+      </div>
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">BUILD</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
+          <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Docs ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice/tree/main/matcher/src/predicate.ts" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Predicate ref ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice/blob/main/docs/HMAC_VERIFY.md" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Verify HMAC ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice/blob/main/docs/openapi.yaml" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">OpenAPI spec ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice/tree/main/mcp#readme" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">MCP tools ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice/tree/main/matcher#readme" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">CLI ↗</a>
+        </div>
+      </div>
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">ECOSYSTEM</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
+          <a href="https://casper.network" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Casper Network ↗</a>
+          <a href="https://cspr.cloud" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">CSPR.cloud ↗</a>
+          <a href="https://testnet.cspr.live" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">cspr.live ↗</a>
+          <a href="https://www.casper.network/ai" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Casper AI Toolkit ↗</a>
+        </div>
+      </div>
+      <div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">TALK</div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
+          <a href="https://x.com/UnityNodes" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">X / Twitter ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">GitHub</a>
+          <a href="https://discord.gg/Q38s3Vh" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Casper Discord ↗</a>
+          <a href="https://github.com/UnityNodes/Sluice/issues" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Issues ↗</a>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #222">
+      <div style="max-width:1320px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;font:500 11.5px 'JetBrains Mono';color:#666;letter-spacing:.06em">
+        <span>© 2026 SLUICE · TESTNET PREVIEW · BUILT FOR THE CASPER ECOSYSTEM</span>
+        <span style="flex:1"></span>
+        <a href="https://github.com/UnityNodes/Sluice/blob/main/LICENSE" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">MIT LICENSE ↗</a>
+      </div>
+    </div>
+  </footer>
+
+</div>
+<!-- ============ TOUR MODAL ============ -->
+<div id="tour-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);overflow-y:auto" role="dialog" aria-modal="true" aria-labelledby="tour-h">
+  <div style="max-width:940px;margin:48px auto;background:#fff;border:1px solid #000;box-shadow:12px 12px 0 #bcfc07;position:relative">
+    <button id="tour-close" type="button" aria-label="close tour" style="position:absolute;top:14px;right:14px;background:#000;color:#fff;border:1px solid #000;width:32px;height:32px;font:500 18px/1 'JetBrains Mono';cursor:pointer">×</button>
+    <div style="padding:32px 40px 12px;border-bottom:1px solid #000">
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.14em;color:#000">▶ LIVE 30-SECOND TOUR</div>
+      <h2 id="tour-h" style="margin:10px 0 0;font:500 clamp(26px,3vw,36px)/1.05 'Casper Sans',Inter;letter-spacing:-.02em">Every panel below is a real API call right now.</h2>
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">
+        <span>STEP <span id="tour-step">1</span> / 5</span>
+        <span style="flex:1;height:3px;background:#eee;position:relative"><span id="tour-progress" style="position:absolute;top:0;left:0;height:100%;width:0;background:#bcfc07;transition:width .4s"></span></span>
+        <button id="tour-prev" type="button" style="background:#fff;border:1px solid #000;padding:4px 10px;font:500 11px 'JetBrains Mono';cursor:pointer">← prev</button>
+        <button id="tour-next" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:4px 10px;font:500 11px 'JetBrains Mono';cursor:pointer">next →</button>
+      </div>
+    </div>
+    <div id="tour-stage" style="padding:32px 40px;min-height:340px">
+      <div style="font:400 14px/1.55 'Casper Sans',Inter;color:#666">loading…</div>
+    </div>
+    <div style="padding:14px 40px 28px;border-top:1px solid #000;background:#fafafa;display:flex;align-items:center;gap:14px;font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.04em">
+      <span id="tour-cta">↑ each step calls a real endpoint · curl it yourself anytime</span>
+      <span style="flex:1"></span>
+      <a id="tour-cta-app" href="/app" style="color:#000">OPEN APP →</a>
+      <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="color:#000">DOCS ↗</a>
+    </div>
+  </div>
+</div>
+
+<script src="/landing.js?v=30"></script>
+</body>
+</html>

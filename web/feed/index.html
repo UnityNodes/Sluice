@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice, Live event feed</title>
+<meta name="description" content="Live full-screen stream of every Sluice delivery on Casper testnet. Updates every 5 seconds.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+  body { margin: 0; background: #000; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+  ::selection { background: #bcfc07; color: #000; }
+  a { color: #4589f6; text-decoration: none; }
+  a:hover { text-decoration: underline; text-decoration-color: #bcfc07; text-decoration-thickness: 2px; }
+  @keyframes pulse-acc { 0%,100% { box-shadow: 0 0 0 0 rgba(188,252,7,.55); } 50% { box-shadow: 0 0 0 6px rgba(188,252,7,0); } }
+  @keyframes new-row { 0% { background: rgba(188,252,7,.35); } 100% { background: transparent; } }
+  .new-row { animation: new-row 2.5s ease-out 1; }
+  @media (max-width: 880px) {
+    nav > div { padding: 10px 14px !important; gap: 10px !important; flex-wrap: wrap; height: auto !important; min-height: 60px; }
+    nav [style*="display:flex;align-items:center;gap:0"] { order: 99; flex-basis: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0 !important; }
+    nav a { padding: 6px 12px !important; font-size: 13px !important; white-space: nowrap; }
+    body > div[style*="max-width:1440px"], div[style*="max-width:1440px"] { padding: 22px 12px 60px !important; }
+    [style*="padding:48px 28px 80px"] { padding: 22px 12px 56px !important; }
+    /* feed row grid is too wide on mobile, collapse to 3 cols, hide time + age */
+    [style*="grid-template-columns:120px 90px 1fr 110px 130px 200px"] { grid-template-columns: 70px 1fr 90px !important; gap: 8px !important; font-size: 10px !important; padding-left: 14px !important; padding-right: 14px !important; }
+    [style*="grid-template-columns:120px 90px 1fr 110px 130px 200px"] > div:nth-child(2),
+    [style*="grid-template-columns:120px 90px 1fr 110px 130px 200px"] > div:nth-child(5) { display: none !important; }
+    h1, h2 { font-size: clamp(22px, 6vw, 30px) !important; line-height: 1.1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav style="background:#000;border-bottom:1px solid #1a1a1a;position:sticky;top:0;z-index:30">
+  <div style="max-width:1440px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:28px;height:60px">
+    <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff">
+      <span style="display:inline-flex;width:22px;height:22px;background:#bcfc07;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:5px solid #000;border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:2px"></span></span>
+      <span style="font:500 18px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+    </a>
+    <div style="width:1px;height:22px;background:#222"></div>
+    <div style="display:flex;align-items:center;gap:0;font:400 14px 'Casper Sans',Inter">
+      <a href="/" style="text-decoration:none;color:#999;padding:8px 14px">← Landing</a>
+      <a href="/app" style="text-decoration:none;color:#999;padding:8px 14px">Dashboard</a>
+      <a href="/feed/" style="text-decoration:none;color:#bcfc07;padding:8px 14px;background:#1a1a1a;font-weight:500">Live feed</a>
+      <a href="https://github.com/UnityNodes/Sluice" target="_blank" rel="noopener" style="text-decoration:none;color:#999;padding:8px 14px">GitHub ↗</a>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:5px 9px;letter-spacing:.06em">
+      <span id="ls-dot" style="width:6px;height:6px;background:#000;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
+      <span id="ls-rate">LIVE ·, events/min</span>
+    </div>
+    <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">SYNC: <span id="ls-sync">…</span></div>
+  </div>
+</nav>
+
+<div style="max-width:1440px;margin:0 auto;padding:48px 28px 80px">
+
+  <div style="display:flex;align-items:flex-end;gap:24px;margin-bottom:32px;flex-wrap:wrap">
+    <div>
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;color:#bcfc07;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px">
+        <span style="width:24px;height:1px;background:#bcfc07"></span>LIVE EVENT FEED
+      </div>
+      <h1 style="margin:14px 0 0;font:500 44px/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">Everything Sluice has matched</h1>
+      <div style="margin-top:8px;font:400 14px 'Casper Sans',Inter;color:#999">
+        Stream of deliveries from contract
+        <a id="ls-contract" href="#" target="_blank" rel="noopener" style="font:500 12.5px 'JetBrains Mono'">…</a>.
+        Each row links to the on-chain <code style="background:#1a1a1a;padding:1px 5px;color:#bcfc07">record_delivery</code> tx + the matched event.
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:14px;font:500 11px 'JetBrains Mono';color:#999;letter-spacing:.06em">
+      <span>TOTAL: <span id="ls-total" style="color:#fff;font-weight:500">…</span></span>
+      <span>ACTIVE SUBS: <span id="ls-active" style="color:#fff;font-weight:500">…</span></span>
+      <span>SUCCESS: <span id="ls-success" style="color:#3edc64;font-weight:500">…</span></span>
+      <span>P50: <span id="ls-p50" style="color:#fff;font-weight:500">…</span></span>
+    </div>
+  </div>
+
+  <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07">
+    <div style="display:grid;grid-template-columns:120px 90px 1fr 110px 130px 200px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
+      <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div><div style="text-align:right">Latency</div><div>Tx</div>
+    </div>
+    <div id="feed-body" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:400px"></div>
+    <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:12px;letter-spacing:.04em">
+      <span>↑ ROLLING SNAPSHOT · UP TO 20 EVENTS</span>
+      <span style="flex:1"></span>
+      <a href="/api/snapshot.json" target="_blank" style="color:#bcfc07">RAW JSON ↗</a>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;font:400 12.5px 'JetBrains Mono';color:#666;letter-spacing:.04em">
+    Matcher snapshot polled every 5 s. History before this matcher started isn't visible (cspr.cloud streaming is live-only), see <a href="" id="ls-contract-events" target="_blank" rel="noopener" style="color:#bcfc07">events on cspr.live</a> for the full timeline.
+  </div>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const seen = new Set();
+  const fmtRel = (iso) => {
+    const dt = Date.now() - new Date(iso).getTime();
+    if (dt < 5_000) return 'just now';
+    if (dt < 60_000) return `${Math.floor(dt / 1000)}s ago`;
+    if (dt < 3_600_000) return `${Math.floor(dt / 60_000)}m ago`;
+    return `${Math.floor(dt / 3_600_000)}h ago`;
+  };
+  const trunc = (s, h = 4, t = 4) => !s ? '…' : (s.length <= h + t + 1 ? s : s.slice(0, h) + '…' + s.slice(-t));
+  const motesToCspr = (m) => { try { return Number(BigInt(String(m)) / 1_000_000_000n); } catch { return 0; } };
+
+  async function tick() {
+    try {
+      const r = await fetch(`/api/snapshot.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const snap = await r.json();
+      const events = snap.recent_events || [];
+      const subs = snap.subscriptions || [];
+
+      $('ls-sync').textContent = fmtRel(snap.updated_at);
+      $('ls-contract').textContent = trunc(snap.contract_hash, 6, 4) + ' on cspr.live';
+      $('ls-contract').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}`;
+      $('ls-contract-events').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}?tab=events`;
+      $('ls-total').textContent = subs.reduce((a, s) => a + (s.deliveries || 0), 0).toLocaleString();
+      $('ls-active').textContent = subs.filter(s => s.active).length;
+      const ok = events.filter(e => e.status >= 200 && e.status < 300).length;
+      $('ls-success').textContent = events.length ? `${((ok / events.length) * 100).toFixed(0)}%` : '…';
+      const lats = events.map(e => e.latency_ms).filter(Number.isFinite);
+      const p50 = lats.length ? lats.slice().sort((a, b) => a - b)[Math.floor(lats.length / 2)] : null;
+      $('ls-p50').textContent = p50 != null ? `${p50} ms` : '…';
+      if (events.length >= 2) {
+        const span = (new Date(events[0].timestamp) - new Date(events[events.length - 1].timestamp)) / 60_000;
+        const rate = span > 0 ? Math.round(events.length / span) : events.length;
+        $('ls-rate').textContent = `LIVE · ${rate} EVENTS/MIN`;
+      }
+
+      const body = $('feed-body');
+      body.innerHTML = '';
+      if (events.length === 0) {
+        body.innerHTML = '<div style="padding:48px 22px;text-align:center;color:#666;font:400 13px Casper Sans,Inter">Matcher is connected and listening · no deliveries yet · send a 2.5+ CSPR transfer to the subscriber address to trigger a match.</div>';
+        return;
+      }
+      events.slice(0, 20).forEach((e, i) => {
+        const ok2 = e.status >= 200 && e.status < 300;
+        const time = new Date(e.timestamp).toISOString().substr(11, 8) + 'Z';
+        const isNew = !seen.has(e.event_hash);
+        seen.add(e.event_hash);
+        const row = document.createElement('div');
+        row.className = isNew && body.children.length > 0 ? 'new-row' : '';
+        row.style.cssText = `display:grid;grid-template-columns:120px 90px 1fr 110px 130px 200px;gap:14px;padding:13px 22px;border-bottom:1px solid #1a1a1a;align-items:center;${i > 6 ? 'opacity:0.85;' : ''}${i > 12 ? 'opacity:0.7;' : ''}`;
+        const cell = (txt, style = '') => { const c = document.createElement('div'); if (style) c.setAttribute('style', style); if (typeof txt === 'string') c.textContent = txt; else c.appendChild(txt); return c; };
+        row.appendChild(cell(time, 'color:#666;font-size:11px'));
+        row.appendChild(cell(`sub_${String(e.subscription_id).padStart(4, '0')}`, isNew ? 'color:#bcfc07;font-weight:500' : 'color:#3edc64'));
+        const desc = e.description || `event ${trunc(e.event_hash || '', 6, 4)}`;
+        // Show amount if event present
+        let descText = desc;
+        if (e.event && e.event.amount) {
+          descText = `transfer ${motesToCspr(e.event.amount).toLocaleString()} CSPR → ${trunc(e.event.to_account_hash || '', 6, 4)}`;
+        }
+        row.appendChild(cell(descText, 'color:#ccc'));
+        row.appendChild(cell(ok2 ? `${e.status} OK` : `${e.status || 'FAIL'} retry ${e.attempts ?? '?'}`, `text-align:right;color:${ok2 ? '#3edc64' : '#ff2d2e'};font-size:11px`));
+        row.appendChild(cell(`${e.latency_ms ?? '?'} ms`, 'text-align:right;color:#fff;font-size:11px'));
+        if (e.tx_hash) {
+          const a = document.createElement('a');
+          a.href = `https://testnet.cspr.live/transaction/${e.tx_hash}`;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.style.cssText = 'color:#4589f6;font-size:11px';
+          a.textContent = trunc(e.tx_hash, 6, 6);
+          row.appendChild(cell(a));
+        } else {
+          row.appendChild(cell('…', 'color:#666;font-size:11px'));
+        }
+        body.appendChild(row);
+      });
+    } catch (e) {
+      $('ls-sync').textContent = 'offline';
+      $('ls-rate').textContent = 'OFFLINE';
+    }
+  }
+  tick();
+  setInterval(tick, 5000);
+})();
+</script>
+
+</body>
+</html>

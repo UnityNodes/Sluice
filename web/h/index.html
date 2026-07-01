@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice, Hosted webhook receiver</title>
+<meta name="description" content="Disposable webhook receiver hosted on sluice.unitynodes.com, point Sluice subscriptions at it for free, see incoming POSTs live.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+  body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
+  ::selection { background: #bcfc07; color: #000; }
+  a { color: #4589f6; text-decoration: none; }
+  a:hover { text-decoration: underline; text-decoration-color: #bcfc07; text-decoration-thickness: 2px; }
+  @keyframes pulse-acc { 0%,100% { box-shadow: 0 0 0 0 rgba(188,252,7,.55); } 50% { box-shadow: 0 0 0 6px rgba(188,252,7,0); } }
+  @keyframes flash { 0% { background: rgba(188,252,7,.4); } 100% { background: transparent; } }
+  .flash { animation: flash 2s ease-out 1; }
+  details { background: #fafafa; border: 1px solid #ccc; padding: 0; }
+  details summary { padding: 8px 12px; cursor: pointer; font: 500 11px 'JetBrains Mono'; color: #666; letter-spacing: .06em; }
+  details pre { margin: 0; padding: 12px; font: 400 11px/1.5 'JetBrains Mono'; color: #000; background: #fff; border-top: 1px solid #ccc; overflow-x: auto; }
+  @media (max-width: 880px) {
+    nav > div { padding: 10px 14px !important; gap: 10px !important; flex-wrap: wrap; height: auto !important; min-height: 60px; }
+    nav a { padding: 6px 12px !important; font-size: 13px !important; white-space: nowrap; }
+    body > div[style*="max-width:1320px"], div[style*="max-width:1320px"] { padding: 22px 14px 60px !important; }
+    [style*="padding:48px 28px 80px"] { padding: 22px 14px 56px !important; }
+    h1, h2 { font-size: clamp(22px, 6vw, 32px) !important; line-height: 1.15 !important; }
+    [style*="grid-template-columns:repeat(auto-fit,minmax(340px,1fr))"] { grid-template-columns: 1fr !important; }
+    [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav style="background:#fff;border-bottom:1px solid #000;position:sticky;top:0;z-index:30">
+  <div style="max-width:1320px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:28px;height:60px">
+    <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#000">
+      <span style="display:inline-flex;width:22px;height:22px;background:#000;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:5px solid #bcfc07;border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:2px"></span></span>
+      <span style="font:500 18px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+    </a>
+    <div style="width:1px;height:22px;background:#ccc"></div>
+    <div style="display:flex;align-items:center;gap:0;font:400 14px 'Casper Sans',Inter;color:#000">
+      <a href="/" style="text-decoration:none;color:#000;padding:8px 14px">← Landing</a>
+      <a href="/app" style="text-decoration:none;color:#000;padding:8px 14px">Dashboard</a>
+      <a href="/feed/" style="text-decoration:none;color:#000;padding:8px 14px">Live feed</a>
+      <span style="padding:8px 14px;background:#000;color:#fff;font-weight:500">Hosted receiver</span>
+    </div>
+    <div style="flex:1"></div>
+    <button id="new-id" style="background:#fff;border:1px solid #000;padding:6px 14px;font:500 12px 'JetBrains Mono';cursor:pointer">+ New endpoint</button>
+  </div>
+</nav>
+
+<div style="max-width:1320px;margin:0 auto;padding:48px 28px 80px">
+
+  <div style="margin-bottom:32px">
+    <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;color:#000;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px">
+      <span style="width:24px;height:1px;background:#000"></span>HOSTED WEBHOOK RECEIVER
+    </div>
+    <h1 style="margin:14px 0 0;font:500 clamp(36px,4.2vw,52px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">Test Sluice without leaving Sluice.</h1>
+    <p style="margin:14px 0 0;font:400 16px/1.55 'Casper Sans',Inter;color:#666;max-width:680px">Point your subscription's webhook at the URL below. Every POST that lands shows up here in real time with full headers and body, no signup, ring buffer of 50, auto-expires after 1 hour.</p>
+  </div>
+
+  <!-- Named-slug picker (collapses to a thin bar once a slug is in the URL) -->
+  <div id="slug-picker" style="background:#fafafa;border:1px solid #000;padding:14px 22px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span style="font:500 11px 'JetBrains Mono';letter-spacing:.08em;color:#000">PICK A SLUG  ↳</span>
+    <code style="font:500 13px 'JetBrains Mono';color:#666">sluice.unitynodes.com/h/</code>
+    <input id="slug-input" placeholder="my-demo-app" pattern="[a-z0-9-]{4,64}" minlength="4" maxlength="64"
+      style="border:1px solid #000;background:#fff;padding:6px 10px;font:500 13px 'JetBrains Mono';width:200px">
+    <button id="slug-use" style="background:#000;color:#fff;border:1px solid #000;padding:7px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">Use this slug</button>
+    <span style="font:400 12px 'JetBrains Mono';color:#666;letter-spacing:.04em">4-64 chars · a-z 0-9 - · first-come, first-served</span>
+    <div style="flex:1"></div>
+    <span id="slug-current" style="font:500 11px 'JetBrains Mono';color:#3edc64"></span>
+  </div>
+
+  <!-- URL row -->
+  <div style="background:#000;color:#fff;padding:20px 24px;border:1px solid #000;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:8px 8px 0 #bcfc07">
+    <span style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">YOUR ENDPOINT</span>
+    <code id="endpoint-url" style="font:500 16px 'JetBrains Mono';color:#fff;background:#1a1a1a;padding:10px 14px;flex:1;min-width:300px;overflow-x:auto;white-space:nowrap">loading…</code>
+    <button id="copy-url" style="background:#bcfc07;color:#000;border:1px solid #bcfc07;padding:10px 18px;font:500 13px 'Casper Sans',Inter;cursor:pointer">⧉ Copy URL</button>
+    <button id="curl-it" style="background:#1a1a1a;color:#fff;border:1px solid #333;padding:10px 18px;font:500 13px 'Casper Sans',Inter;cursor:pointer">▸ Send test POST</button>
+  </div>
+
+  <!-- Stats row -->
+  <div style="margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0;border:1px solid #000;background:#fff">
+    <div style="padding:16px 22px;border-right:1px solid #000">
+      <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">REQUESTS</div>
+      <div id="stat-count" style="margin-top:8px;font:500 28px/1 'Casper Sans',Inter;color:#000">…</div>
+    </div>
+    <div style="padding:16px 22px;border-right:1px solid #000">
+      <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">LATEST</div>
+      <div id="stat-latest" style="margin-top:8px;font:500 14px 'JetBrains Mono';color:#000">…</div>
+    </div>
+    <div style="padding:16px 22px;border-right:1px solid #000">
+      <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">SLUICE SIGNED</div>
+      <div id="stat-signed" style="margin-top:8px;font:500 14px 'JetBrains Mono';color:#000">…</div>
+    </div>
+    <div style="padding:16px 22px;background:#bcfc07">
+      <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">AUTO-EXPIRES</div>
+      <div style="margin-top:8px;font:500 14px 'JetBrains Mono';color:#000">1 HOUR FROM EACH POST</div>
+    </div>
+  </div>
+
+  <!-- Requests log -->
+  <div style="margin-top:24px;background:#fff;border:1px solid #000">
+    <div style="padding:14px 22px;border-bottom:1px solid #000;display:flex;align-items:center;gap:10px">
+      <span style="width:7px;height:7px;background:#3edc64;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
+      <div style="font:500 14px 'Casper Sans',Inter;color:#000">Incoming requests</div>
+      <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">POLLED EVERY 2 SEC</div>
+      <div style="flex:1"></div>
+      <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.04em">SYNC <span id="sync-time">…</span></div>
+    </div>
+    <div id="req-list" style="min-height:280px"></div>
+  </div>
+
+  <div style="margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px">
+    <div style="background:#fafafa;border:1px solid #ccc;padding:18px 22px">
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">USE WITH SLUICE</div>
+      <pre style="margin:14px 0 0;font:400 12px/1.55 'JetBrains Mono';color:#000;white-space:pre-wrap"><span id="sample-cli">sluice subscribe \
+  --predicate ./whale.json \
+  --webhook <ENDPOINT> \
+  --amount 10</span></pre>
+    </div>
+    <div style="background:#fafafa;border:1px solid #ccc;padding:18px 22px">
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">SECURITY</div>
+      <p style="margin:14px 0 0;font:400 13px/1.55 'Casper Sans',Inter;color:#333">No auth on this receiver, anyone with the URL can POST. We never log the body to disk; ring buffer lives in matcher memory and clears on restart. Don't pipe production secrets here.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const fmtRel = (iso) => {
+    const dt = Date.now() - new Date(iso).getTime();
+    if (dt < 5000) return 'just now';
+    if (dt < 60_000) return Math.floor(dt / 1000) + 's ago';
+    if (dt < 3_600_000) return Math.floor(dt / 60_000) + 'm ago';
+    return Math.floor(dt / 3_600_000) + 'h ago';
+  };
+  const ID_RE = /^[a-z0-9-]{4,64}$/i;
+
+  function pickId() {
+    const path = location.pathname.replace(/^\/h\/?/, '').replace(/\/$/, '');
+    if (path && ID_RE.test(path)) return path;
+    // generate a 12-char nanoid-style id
+    const cs = 'abcdefghijkmnpqrstuvwxyz23456789';
+    let id = '';
+    for (let i = 0; i < 12; i++) id += cs[Math.floor(Math.random() * cs.length)];
+    history.replaceState(null, '', '/h/' + id);
+    return id;
+  }
+
+  const id = pickId();
+  const endpointUrl = location.origin + '/api/hooks/' + id;
+  $('endpoint-url').textContent = endpointUrl;
+
+  // Named-slug picker, pre-fill current slug, wire Use button.
+  const slugInput = $('slug-input');
+  const slugCurrent = $('slug-current');
+  if (slugInput && slugCurrent) {
+    slugInput.value = id;
+    slugCurrent.textContent = 'using /h/' + id;
+  }
+  const slugUse = $('slug-use');
+  if (slugUse && slugInput) {
+    const go = () => {
+      const v = slugInput.value.trim().toLowerCase();
+      if (!ID_RE.test(v)) {
+        slugInput.style.borderColor = '#ff2d2e';
+        setTimeout(() => { slugInput.style.borderColor = '#000'; }, 1500);
+        return;
+      }
+      if (v === id) return;
+      location.href = '/h/' + v;
+    };
+    slugUse.addEventListener('click', go);
+    slugInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+  }
+  // Update sample CLI snippet
+  document.querySelector('#sample-cli').textContent =
+`sluice subscribe \\
+  --predicate ./whale.json \\
+  --webhook ${endpointUrl} \\
+  --amount 10`;
+
+  const seen = new Set();
+
+  async function tick() {
+    try {
+      const r = await fetch('/api/hooks/' + id + '/feed?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      $('sync-time').textContent = new Date().toISOString().substr(11, 8);
+      $('stat-count').textContent = data.requests.length + ' / ' + data.max;
+      $('stat-latest').textContent = data.requests.length ? fmtRel(data.requests[0].ts) : 'none yet';
+      const signedN = data.requests.filter((r) => r.headers && r.headers['x-sluice-signature']).length;
+      $('stat-signed').textContent = signedN + ' of ' + data.requests.length;
+
+      const list = $('req-list');
+      list.innerHTML = '';
+      if (data.requests.length === 0) {
+        list.innerHTML = '<div style="padding:64px 22px;text-align:center;color:#666;font:400 14px Casper Sans,Inter">No requests yet, POST anything to the URL above. The page polls every 2 seconds.</div>';
+        return;
+      }
+      for (const req of data.requests.slice(0, 20)) {
+        const key = req.ts + '|' + req.method;
+        const isNew = !seen.has(key);
+        seen.add(key);
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:18px 22px;border-bottom:1px solid #ccc';
+        if (isNew) row.classList.add('flash');
+        const methodColor = req.method === 'GET' ? '#4589f6' : req.method === 'POST' ? '#3edc64' : '#ff8a65';
+        const sigOk = req.headers['x-sluice-signature'] ? '<span style="background:#bcfc07;color:#000;padding:2px 8px;font:500 10px JetBrains Mono;letter-spacing:.08em">SLUICE ✓</span>' : '';
+        let bodyPretty = req.body || '<empty>';
+        if (req.body) {
+          try { bodyPretty = JSON.stringify(JSON.parse(req.body), null, 2); } catch {}
+        }
+        const headersFlat = Object.entries(req.headers).map(([k, v]) => k + ': ' + v).join('\n');
+        row.innerHTML =
+          '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+            '<span style="background:' + methodColor + ';color:#fff;padding:3px 10px;font:500 11px JetBrains Mono;letter-spacing:.06em">' + req.method + '</span>' +
+            '<span style="font:500 13px JetBrains Mono;color:#000">' + new Date(req.ts).toISOString().substr(11, 12) + '</span>' +
+            '<span style="font:400 12.5px JetBrains Mono;color:#666">from ' + (req.remote || 'unknown') + '</span>' +
+            sigOk +
+            (req.query ? '<span style="font:400 12.5px JetBrains Mono;color:#666">?' + req.query + '</span>' : '') +
+          '</div>' +
+          '<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
+            '<details><summary>Body · ' + (req.body ? req.body.length + ' bytes' : 'empty') + '</summary><pre>' + escapeHtml(bodyPretty) + '</pre></details>' +
+            '<details><summary>Headers · ' + Object.keys(req.headers).length + ' fields</summary><pre>' + escapeHtml(headersFlat) + '</pre></details>' +
+          '</div>';
+        list.appendChild(row);
+      }
+    } catch (e) {
+      $('sync-time').textContent = 'offline';
+    }
+  }
+  function escapeHtml(s) { return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+  tick();
+  setInterval(tick, 2000);
+
+  $('copy-url').addEventListener('click', () => {
+    navigator.clipboard.writeText(endpointUrl).then(() => {
+      const b = $('copy-url'); const prev = b.textContent;
+      b.textContent = '✓ COPIED'; setTimeout(() => { b.textContent = prev; }, 1500);
+    });
+  });
+  $('new-id').addEventListener('click', () => { location.href = '/h/'; });
+  $('curl-it').addEventListener('click', async () => {
+    const b = $('curl-it'); const prev = b.textContent;
+    b.textContent = '… sending';
+    try {
+      await fetch(endpointUrl, { method: 'POST', headers: { 'content-type': 'application/json', 'x-test-from': 'sluice-receiver-ui' }, body: JSON.stringify({ hello: 'sluice', ts: new Date().toISOString() }) });
+      b.textContent = '✓ sent'; setTimeout(() => { b.textContent = prev; }, 1500);
+      setTimeout(tick, 250);
+    } catch { b.textContent = '✕ failed'; setTimeout(() => { b.textContent = prev; }, 1500); }
+  });
+})();
+</script>
+
+</body>
+</html>

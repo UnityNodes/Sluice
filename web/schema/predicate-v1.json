@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sluice.unitynodes.com/schema/predicate-v1.json",
+  "title": "Sluice Predicate v1",
+  "description": "AND-of-conditions filter applied to every Casper Transfer event on the network. When all conditions match, Sluice POSTs the full event to the subscription's webhook URL. Reference this schema in your editor for autocompletion: add a top-level \"$schema\": \"https://sluice.unitynodes.com/schema/predicate-v1.json\" to any predicate.json.",
+  "type": "object",
+  "required": ["and"],
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional, declare this schema for IDE/editor autocompletion."
+    },
+    "and": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "description": "Every condition must match. OR semantics are not yet supported in v1, file an issue at github.com/UnityNodes/Sluice if you need them.",
+      "items": { "$ref": "#/$defs/condition" }
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "required": ["field", "op", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "$ref": "#/$defs/field",
+          "description": "Dot-path into the Casper Transfer event."
+        },
+        "op": { "$ref": "#/$defs/operator" },
+        "value": {
+          "description": "Right-hand side of the comparison. Strings that parse as integers compare numerically (so motes work as bigints). For 'in' and 'not_in' this must be an array. For 'regex' this is a JS-style pattern.",
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            {
+              "type": "array",
+              "maxItems": 64,
+              "items": { "type": ["string", "number"] }
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "op": { "const": "in" } }, "required": ["op"] },
+          "then": { "properties": { "value": { "type": "array" } } }
+        },
+        {
+          "if": { "properties": { "op": { "const": "not_in" } }, "required": ["op"] },
+          "then": { "properties": { "value": { "type": "array" } } }
+        }
+      ]
+    },
+    "operator": {
+      "type": "string",
+      "enum": [
+        "eq", "neq", "gt", "gte", "lt", "lte",
+        "contains", "starts_with", "ends_with",
+        "in", "not_in", "regex"
+      ],
+      "description": "Twelve operators. Numeric ops (gt/gte/lt/lte) work on bigint-strings, useful for motes. String ops (contains/starts_with/ends_with/regex) run on the stringified value. Set ops (in/not_in) require an array value."
+    },
+    "field": {
+      "type": "string",
+      "minLength": 1,
+      "examples": [
+        "amount",
+        "to_account_hash",
+        "initiator_account_hash",
+        "from_purse",
+        "to_purse",
+        "deploy_hash",
+        "block_height",
+        "timestamp",
+        "transfer_index"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "$schema": "https://sluice.unitynodes.com/schema/predicate-v1.json",
+      "and": [
+        { "field": "amount", "op": "gte", "value": "5000000000000" },
+        { "field": "to_account_hash", "op": "eq", "value": "dc725246306b8ebfb6623feca7f777c4e9f52c96691cdccf338b797480787c9c" }
+      ]
+    },
+    {
+      "and": [
+        { "field": "initiator_account_hash", "op": "in", "value": ["aabb…", "ccdd…"] },
+        { "field": "amount", "op": "gt", "value": "100000000000" }
+      ]
+    }
+  ]
+}

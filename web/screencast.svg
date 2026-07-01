@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 560" role="img" aria-label="Sluice CLI screencast: subscribe to a Casper event predicate and watch the matcher catch a real transfer + post a webhook + record the delivery on-chain">
+  <title>sluice subscribe, end-to-end terminal session</title>
+  <defs>
+    <style>
+      .term { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; }
+      .prompt  { fill: #bcfc07; }
+      .cmd     { fill: #fff; }
+      .out     { fill: #ccc; }
+      .green   { fill: #3edc64; }
+      .red     { fill: #ff2d2e; }
+      .blue    { fill: #4589f6; }
+      .yellow  { fill: #bcfc07; }
+      .grey    { fill: #888; }
+      .accent  { fill: #80cbc4; }
+    </style>
+  </defs>
+
+  <!-- Frame -->
+  <rect width="920" height="560" fill="#f4f4f4"/>
+  <rect x="20" y="20" width="880" height="520" fill="#000" stroke="#000"/>
+  <rect x="20" y="20" width="880" height="34" fill="#0d0d0d" stroke="#1a1a1a"/>
+  <circle cx="38"  cy="37" r="6" fill="#333"/>
+  <circle cx="58"  cy="37" r="6" fill="#333"/>
+  <circle cx="78"  cy="37" r="6" fill="#333"/>
+  <text x="460" y="42" text-anchor="middle" class="term grey" font-weight="500" font-size="11" letter-spacing=".08em">SLUICE, END-TO-END CLI SESSION</text>
+  <text x="880" y="42" text-anchor="end" class="term yellow" font-weight="500" font-size="11" letter-spacing=".08em">● LIVE</text>
+
+  <!-- Animated lines. Each line fades in at "begin=Ns" and stays till the loop restarts. -->
+  <!-- Loop length: 18s. Lines staggered ~0.5-1.2s. -->
+  <g class="term" font-size="13">
+
+    <!-- t=0  prompt + command -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.04;0.95;1" dur="18s" begin="0s" repeatCount="indefinite"/>
+      <text x="40" y="82" class="prompt" font-weight="500">$</text>
+      <text x="58" y="82" class="cmd">sluice subscribe \</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="0.4s" repeatCount="indefinite"/>
+      <text x="58" y="102" class="cmd">    --predicate ./whale.json \</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="0.8s" repeatCount="indefinite"/>
+      <text x="58" y="122" class="cmd">    --webhook  https://webhook.site/4f3f550f-…0d6 \</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="1.2s" repeatCount="indefinite"/>
+      <text x="58" y="142" class="cmd">    --amount   <tspan class="accent">10</tspan></text>
+    </g>
+
+    <!-- t≈1.8  submitting -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="1.8s" repeatCount="indefinite"/>
+      <text x="40" y="172" class="out">submitting create_subscription tx to node.testnet.casper.network/rpc …</text>
+    </g>
+
+    <!-- t≈3  result -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="3.0s" repeatCount="indefinite"/>
+      <text x="40" y="194" class="green">submitted.</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="3.2s" repeatCount="indefinite"/>
+      <text x="40" y="214" class="out">  tx_hash    <tspan class="blue">4d454d87eb6c0cfbbd1ec4caf9b3cfe2698aba02445fec…</tspan></text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="3.4s" repeatCount="indefinite"/>
+      <text x="40" y="234" class="out">  initiator  <tspan class="accent">0141ae56d7afef7eb22298b50db5f013cd6945a26eab40…</tspan></text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="3.6s" repeatCount="indefinite"/>
+      <text x="40" y="254" class="out">  amount     <tspan class="accent">10 CSPR (10_000_000_000 motes)</tspan></text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="3.8s" repeatCount="indefinite"/>
+      <text x="40" y="274" class="out">  webhook    https://webhook.site/4f3f550f-…0d6</text>
+    </g>
+
+    <!-- divider, matcher tail begins -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="5.6s" repeatCount="indefinite"/>
+      <line x1="40" y1="298" x2="880" y2="298" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="40" y="318" class="grey" font-size="11" letter-spacing=".06em">↓ MATCHER TAIL · tmux attach -t sluice-matcher</text>
+    </g>
+
+    <!-- t≈7  matcher catches event -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="7.0s" repeatCount="indefinite"/>
+      <text x="40" y="348" class="out"><tspan class="yellow">[matcher]</tspan> match sub=<tspan class="accent">3</tspan> deploy_hash=<tspan class="blue">e5cb58dc1e38fdc169ae303ecb257789ee814e437af1…</tspan></text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="7.2s" repeatCount="indefinite"/>
+      <text x="40" y="368" class="out">             amount=<tspan class="accent">100000000000</tspan>  (100 CSPR)</text>
+    </g>
+
+    <!-- t≈7.8  webhook fires -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="7.8s" repeatCount="indefinite"/>
+      <text x="40" y="396" class="out"><tspan class="yellow">[matcher]</tspan> POST webhook → <tspan class="green">200 OK · 110 ms · attempts=1</tspan></text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="8.0s" repeatCount="indefinite"/>
+      <text x="40" y="416" class="out">             X-Sluice-Signature: <tspan class="accent">sha256=8a3f…</tspan>   <tspan class="grey">(HMAC verified by receiver)</tspan></text>
+    </g>
+
+    <!-- t≈8.8  record_delivery on chain -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="8.8s" repeatCount="indefinite"/>
+      <text x="40" y="444" class="out"><tspan class="yellow">[matcher]</tspan> record_delivery on-chain →</text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="9.0s" repeatCount="indefinite"/>
+      <text x="40" y="464" class="out">             tx=<tspan class="blue">8a35f6317e70c46b5d0534cc697bb5961fcfa41ef2fbb…</tspan></text>
+    </g>
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.05;0.95;1" dur="18s" begin="9.2s" repeatCount="indefinite"/>
+      <text x="40" y="484" class="green">             balance 10 → 9 CSPR · sub_3 still active</text>
+    </g>
+
+    <!-- End-to-end confirmation bar. Solid, no blink, sits comfortably above the frame edge. -->
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;1;1" keyTimes="0;0.05;1" dur="18s" begin="10.6s" repeatCount="indefinite"/>
+      <rect x="40" y="500" width="840" height="30" fill="#bcfc07"/>
+      <text x="60" y="520" class="term cmd" fill="#000" font-weight="500">END-TO-END</text>
+      <text x="180" y="520" class="term" fill="#000">WS event → webhook 200 → record_delivery confirmed</text>
+      <text x="860" y="520" class="term" fill="#000" text-anchor="end" font-weight="500">~ 830 ms</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice, System status</title>
+<meta name="description" content="Live status of the Sluice matcher, websocket connections, and Casper testnet contract. Updated every 10 seconds.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+  body { margin:0; background:#f4f4f4; font-family:'Casper Sans',Inter,system-ui,sans-serif; color:#000; -webkit-font-smoothing:antialiased; }
+  ::selection { background:#bcfc07; color:#000; }
+  a { color:#000; text-decoration:none; }
+  a:hover { text-decoration:underline; text-decoration-color:#bcfc07; text-decoration-thickness:2px; }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.55 } }
+  .pulse { animation: pulse 2s infinite; }
+  @media (max-width: 880px) {
+    nav > div { padding: 10px 14px !important; gap: 12px !important; flex-wrap: wrap; height: auto !important; min-height: 60px; }
+    nav [style*="display:flex;align-items:center;gap:0"] { order: 99; flex-basis: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; gap: 0 !important; }
+    nav [style*="display:flex;align-items:center;gap:0"] a { padding: 6px 12px !important; font-size: 13px !important; white-space: nowrap; }
+    body > div[style*="max-width:1100px"],
+    main, section > div[style*="max-width:1100px"] { padding: 28px 14px 56px !important; }
+    [style*="padding:48px 28px 80px"] { padding: 28px 14px 48px !important; }
+    h1 { font-size: clamp(24px, 7vw, 38px) !important; line-height: 1.1 !important; }
+    h2 { font-size: clamp(20px, 5.5vw, 28px) !important; line-height: 1.2 !important; }
+    [style*="padding:24px 26px"], [style*="padding:20px 24px"] { padding: 18px 16px !important; }
+    [style*="font:500 30px"], [style*="font:500 28px"], [style*="font:500 36px"] { font-size: 22px !important; }
+    [style*="grid-template-columns:1fr 320px"], [style*="grid-template-columns:1fr 340px"] { grid-template-columns: 1fr !important; gap: 18px !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav style="background:#fff;border-bottom:1px solid #000;position:sticky;top:0;z-index:30">
+  <div style="max-width:1100px;margin:0 auto;padding:0 28px;display:flex;align-items:center;gap:28px;height:60px">
+    <a href="/" style="display:flex;align-items:center;gap:10px">
+      <span style="display:inline-flex;width:22px;height:22px;background:#000;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:5px solid #bcfc07;border-top:4px solid transparent;border-bottom:4px solid transparent;margin-left:2px"></span></span>
+      <span style="font:500 18px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+    </a>
+    <div style="width:1px;height:22px;background:#ccc"></div>
+    <div style="display:flex;align-items:center;font:400 14px 'Casper Sans',Inter">
+      <a href="/" style="padding:8px 14px">← Landing</a>
+      <a href="/app" style="padding:8px 14px">Dashboard</a>
+      <a href="/feed/" style="padding:8px 14px">Live feed</a>
+      <a href="/h/" style="padding:8px 14px">Hosted receiver</a>
+      <span style="padding:8px 14px;background:#000;color:#fff;font-weight:500">Status</span>
+    </div>
+    <div style="flex:1"></div>
+    <span style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">REFRESH 10s · LAST <span id="last-sync">…</span></span>
+  </div>
+</nav>
+
+<div style="max-width:1100px;margin:0 auto;padding:48px 28px 80px">
+
+  <!-- Headline status -->
+  <div id="overall" style="background:#fff;border:1px solid #000;padding:32px 40px;display:flex;align-items:center;gap:24px;box-shadow:8px 8px 0 #bcfc07">
+    <span id="overall-dot" style="width:14px;height:14px;border-radius:50%;background:#666" class="pulse"></span>
+    <h1 id="overall-text" style="margin:0;font:500 clamp(28px,3vw,40px)/1.1 'Casper Sans',Inter;letter-spacing:-.02em">Checking systems…</h1>
+    <div style="flex:1"></div>
+    <span style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.08em">CASPER-TEST</span>
+  </div>
+
+  <!-- Components -->
+  <div style="margin-top:32px;background:#fff;border:1px solid #000">
+    <div style="padding:18px 24px;border-bottom:1px solid #000;display:flex;align-items:center;gap:12px">
+      <span style="font:500 14px 'Casper Sans',Inter">Components</span>
+      <span style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">REAL CHECKS · NO MOCKS</span>
+    </div>
+    <div id="component-list"></div>
+  </div>
+
+  <!-- Numbers -->
+  <div style="margin-top:32px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;border:1px solid #000;background:#fff">
+    <div style="padding:20px 24px;border-right:1px solid #000">
+      <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.1em">ACTIVE SUBS</div>
+      <div id="stat-subs" style="margin-top:8px;font:500 32px 'Casper Sans',Inter">…</div>
+    </div>
+    <div style="padding:20px 24px;border-right:1px solid #000">
+      <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.1em">DELIVERIES</div>
+      <div id="stat-deliveries" style="margin-top:8px;font:500 32px 'Casper Sans',Inter">…</div>
+    </div>
+    <div style="padding:20px 24px;border-right:1px solid #000">
+      <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.1em">WEBHOOK SUCCESS</div>
+      <div id="stat-success" style="margin-top:8px;font:500 32px 'Casper Sans',Inter">…</div>
+    </div>
+    <div style="padding:20px 24px">
+      <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.1em">CHAIN HEAD</div>
+      <div id="stat-block" style="margin-top:8px;font:500 32px 'Casper Sans',Inter">…</div>
+    </div>
+  </div>
+
+  <!-- Endpoint reference -->
+  <div style="margin-top:32px;background:#fafafa;border:1px solid #ccc;padding:20px 24px">
+    <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em">RAW ENDPOINTS</div>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font:400 13px 'JetBrains Mono';color:#333">
+      <div>POST <a href="/api/health">/api/health</a> &nbsp;,  matcher liveness</div>
+      <div>GET &nbsp;<a href="/api/metrics">/api/metrics</a>Prometheus exposition</div>
+      <div>GET &nbsp;<a href="/api/snapshot.json">/api/snapshot.json</a>active subs + recent events</div>
+      <div>GET &nbsp;<a href="/api/chain/head">/api/chain/head</a>Casper testnet head block (3s TTL)</div>
+    </div>
+  </div>
+
+  <p style="margin-top:28px;font:400 12px/1.55 'Casper Sans',Inter;color:#666">This page polls the same public endpoints in your browser, there is no separate status service. If a component shows red here it is red for everyone.</p>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const fmtAgo = (iso) => {
+    if (!iso) return '…';
+    const dt = Date.now() - new Date(iso).getTime();
+    if (dt < 5_000) return 'just now';
+    if (dt < 60_000) return Math.floor(dt / 1000) + 's ago';
+    if (dt < 3_600_000) return Math.floor(dt / 60_000) + 'm ago';
+    return Math.floor(dt / 3_600_000) + 'h ago';
+  };
+  const num = (n) => typeof n === 'number' ? n.toLocaleString('en-US') : '…';
+
+  const COMPONENTS = [
+    { key: 'api',     name: 'Matcher API',                 hint: 'POST /api/health' },
+    { key: 'ws',      name: 'WebSocket · transfers',       hint: 'CSPR.cloud streaming' },
+    { key: 'snap',    name: 'Snapshot publisher',          hint: 'GET /api/snapshot.json' },
+    { key: 'chain',   name: 'Casper testnet node',         hint: 'GET /api/chain/head' },
+    { key: 'metrics', name: 'Metrics endpoint',            hint: 'GET /api/metrics' },
+  ];
+
+  function setComponent(key, status, detail) {
+    const row = $('row-' + key);
+    if (!row) return;
+    const dot = row.querySelector('.dot');
+    const det = row.querySelector('.detail');
+    const col = status === 'ok' ? '#3edc64' : status === 'warn' ? '#ffb347' : '#ff2d2e';
+    dot.style.background = col;
+    det.textContent = detail;
+  }
+
+  function setOverall(states) {
+    const fails = states.filter((s) => s === 'fail').length;
+    const warns = states.filter((s) => s === 'warn').length;
+    const dot = $('overall-dot');
+    const txt = $('overall-text');
+    if (fails > 0) {
+      dot.style.background = '#ff2d2e';
+      txt.textContent = `${fails} system${fails > 1 ? 's' : ''} down`;
+    } else if (warns > 0) {
+      dot.style.background = '#ffb347';
+      txt.textContent = `${warns} degraded`;
+    } else {
+      dot.style.background = '#3edc64';
+      txt.textContent = 'All systems operational';
+    }
+  }
+
+  // Build component rows once.
+  const list = $('component-list');
+  COMPONENTS.forEach((c) => {
+    const row = document.createElement('div');
+    row.id = 'row-' + c.key;
+    row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid #ddd';
+    row.innerHTML =
+      `<span class="dot" style="width:11px;height:11px;border-radius:50%;background:#666"></span>` +
+      `<span style="font:500 14px 'Casper Sans',Inter;flex:1">${c.name}</span>` +
+      `<span class="detail" style="font:500 12px 'JetBrains Mono';color:#666">checking…</span>` +
+      `<span style="font:400 11px 'JetBrains Mono';color:#999;letter-spacing:.04em">${c.hint}</span>`;
+    list.appendChild(row);
+  });
+
+  async function probeApi() {
+    try {
+      const r = await fetch('/api/health', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+      if (!r.ok) return { status: 'fail', detail: `HTTP ${r.status}` };
+      const j = await r.json();
+      return { status: 'ok', detail: `contract ${(j.contract || '').slice(0, 8)}…` };
+    } catch (e) { return { status: 'fail', detail: 'unreachable' }; }
+  }
+  async function probeSnapshot() {
+    try {
+      const r = await fetch('/api/snapshot.json?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return { status: 'fail', detail: `HTTP ${r.status}`, data: null };
+      const j = await r.json();
+      const age = (Date.now() - new Date(j.updated_at).getTime()) / 1000;
+      const status = age < 90 ? 'ok' : age < 600 ? 'warn' : 'fail';
+      return { status, detail: `${Math.round(age)}s old · ${j.subscriptions.length} subs`, data: j };
+    } catch { return { status: 'fail', detail: 'parse error', data: null }; }
+  }
+  async function probeMetrics() {
+    try {
+      const r = await fetch('/api/metrics?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return { status: 'fail', detail: `HTTP ${r.status}`, body: '' };
+      const body = await r.text();
+      return { status: 'ok', detail: `${body.split('\n').length} lines`, body };
+    } catch { return { status: 'fail', detail: 'unreachable', body: '' }; }
+  }
+  async function probeChain() {
+    try {
+      const r = await fetch('/api/chain/head?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return { status: 'fail', detail: `HTTP ${r.status}`, data: null };
+      const j = await r.json();
+      return { status: 'ok', detail: `head ${num(j.height)} · era ${j.era}`, data: j };
+    } catch { return { status: 'fail', detail: 'node unreachable', data: null }; }
+  }
+
+  // Find first Prometheus line whose left-hand-side starts with `prefix`
+  // (a literal, no regex escaping needed by the caller) and return its
+  // numeric value. Pass the full labelled name when you want a specific
+  // labelled series, e.g. 'sluice_ws_connected{stream="transfers"}'.
+  function parseMetric(body, prefix) {
+    for (const raw of body.split('\n')) {
+      const line = raw.trim();
+      if (!line || line.startsWith('#')) continue;
+      if (!line.startsWith(prefix)) continue;
+      const rest = line.slice(prefix.length);
+      // rest must start with space (then value) or with `{...} value` if the
+      // caller passed the unlabeled name, we accept either.
+      const m = rest.match(/^(?:\{[^}]*\})?\s+([\d.eE+-]+)$/);
+      if (m) return Number(m[1]);
+    }
+    return null;
+  }
+
+  async function tick() {
+    const [api, snap, metrics, chain] = await Promise.all([probeApi(), probeSnapshot(), probeMetrics(), probeChain()]);
+    setComponent('api', api.status, api.detail);
+    setComponent('snap', snap.status, snap.detail);
+    setComponent('metrics', metrics.status, metrics.detail);
+    setComponent('chain', chain.status, chain.detail);
+
+    // WS status from metrics body.
+    let wsStatus = 'warn', wsDetail = 'unknown';
+    if (metrics.body) {
+      const wsTransfers = parseMetric(metrics.body, 'sluice_ws_connected{stream="transfers"}');
+      if (wsTransfers === 1) { wsStatus = 'ok'; wsDetail = 'connected'; }
+      else if (wsTransfers === 0) { wsStatus = 'fail'; wsDetail = 'disconnected'; }
+    }
+    setComponent('ws', wsStatus, wsDetail);
+
+    setOverall([api.status, snap.status, metrics.status, chain.status, wsStatus]);
+
+    $('stat-subs').textContent = snap.data ? snap.data.subscriptions.filter((s) => s.active).length : '…';
+    $('stat-deliveries').textContent = snap.data ? num(snap.data.subscriptions.reduce((a, s) => a + (s.deliveries || 0), 0)) : '…';
+    if (metrics.body) {
+      const ok = parseMetric(metrics.body, 'sluice_webhook_results_total{result="ok"}') ?? 0;
+      const fail = parseMetric(metrics.body, 'sluice_webhook_results_total{result="fail"}') ?? 0;
+      const total = ok + fail;
+      $('stat-success').textContent = total > 0 ? Math.round((ok / total) * 100) + '%' : '…';
+    }
+    $('stat-block').textContent = chain.data ? num(chain.data.height) : '…';
+    $('last-sync').textContent = new Date().toISOString().substr(11, 8);
+  }
+  tick();
+  setInterval(tick, 10_000);
+})();
+</script>
+
+</body>
+</html>
