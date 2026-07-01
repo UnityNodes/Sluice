@@ -1,0 +1,11 @@
+last_updated = "2026-07-01T09:00:15Z"
+
+[[contracts]]
+name = "SubscriptionRegistry"
+package_name = "SubscriptionRegistry"
+package_hash = "hash-f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971"
+
+[[contracts]]
+name = "DemoDex"
+package_name = "DemoDex"
+package_hash = "hash-ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7"
