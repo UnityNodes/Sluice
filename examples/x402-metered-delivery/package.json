@@ -1,0 +1,16 @@
+{
+  "name": "@sluice/example-x402-metered-delivery",
+  "version": "0.1.0",
+  "private": true,
+  "description": "x402-gated Sluice webhook receiver: each on-chain event delivery must carry a valid x402 micropayment or it is refused with HTTP 402. Demonstrates machine-to-machine pay-per-delivery as an alternative to pre-locked CSPR escrow.",
+  "main": "receiver.js",
+  "scripts": {
+    "start": "node receiver.js",
+    "pay": "node payer.js",
+    "demo": "./demo.sh"
+  },
+  "dependencies": {
+    "express": "^4.19.0"
+  },
+  "engines": { "node": ">=20" }
+}

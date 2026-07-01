@@ -1,0 +1,18 @@
+{
+  "_comment": "A real CES Swap event captured live from the CSPR.cloud contract-events stream (testnet) for the DemoDex contract, block 8359594, deploy 012f04061483a1fdac1f9f82eee7d74381f1da8d6baae3b4c2a0a03ef53fb699. This is the exact envelope shape the Sluice matcher normalizes and evaluates predicates against.",
+  "action": "emitted",
+  "timestamp": "2026-07-01T09:01:19.286323672Z",
+  "extra": { "block_height": 8359594, "deploy_hash": "012f04061483a1fdac1f9f82eee7d74381f1da8d6baae3b4c2a0a03ef53fb699", "event_id": 0, "transform_id": 7 },
+  "data": {
+    "contract_package_hash": "ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7",
+    "contract_hash": "30c8cee0275bf114b6e4327b1271b46c5cbf8ac82d1d8781d70c9d619e9f7de0",
+    "name": "Swap",
+    "data": {
+      "amount_in": "250000000000000",
+      "amount_out": "249500000000000",
+      "token_in": "CSPR",
+      "token_out": "USDC",
+      "trader": "aaaa1111bbbb2222cccc3333dddd4444eeee5555ffff6666aaaa7777bbbb8888"
+    }
+  }
+}

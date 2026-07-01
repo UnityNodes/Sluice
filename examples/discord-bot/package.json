@@ -1,0 +1,17 @@
+{
+  "name": "sluice-discord-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "End-to-end Discord bot example: /sluice-watch creates a Sluice subscription (or sandbox test), then posts every matched on-chain Transfer to the channel.",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "register": "node register-commands.js"
+  },
+  "dependencies": {
+    "@sluice/client": "file:../../clients/typescript",
+    "discord.js": "^14.16.0",
+    "express": "^4.19.0"
+  },
+  "engines": { "node": ">=20" }
+}

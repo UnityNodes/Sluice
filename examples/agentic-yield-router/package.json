@@ -1,0 +1,17 @@
+{
+  "name": "@sluice/example-agentic-yield-router",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Autonomous yield-routing agent (Casper Agentic Buildathon, Build Direction #1). Sluice pushes on-chain Transfer events → this agent verifies + evaluates a yield condition (via Casper AI Toolkit MCPs) → decides rebalance/hold.",
+  "main": "agent.js",
+  "scripts": {
+    "start": "node agent.js",
+    "dry-run": "node agent.js --dry-run",
+    "demo": "bash demo.sh"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
+    "express": "^4.19.0"
+  },
+  "engines": { "node": ">=20" }
+}

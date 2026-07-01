@@ -1,0 +1,11 @@
+{
+  "name": "sluice-telegram-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Sluice webhook → Telegram chat bridge.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "express": "^4.19.2" },
+  "engines": { "node": ">=20" },
+  "license": "MIT"
+}

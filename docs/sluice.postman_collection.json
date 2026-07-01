@@ -1,0 +1,121 @@
+{
+  "info": {
+    "_postman_id": "sluice-matcher-collection-v1",
+    "name": "Sluice Matcher API",
+    "description": "Every public endpoint of the Sluice on-chain event subscription service for Casper.\n\n- Import this collection into Postman → Import → Files\n- Set the `baseUrl` collection variable below to your matcher (defaults to the live testnet at https://sluice.unitynodes.com/api)\n- Set `webhookUrl` to any place you want to receive POSTs (https://webhook.site/<your-uuid> works)\n- Set `subId` to a known subscription id (defaults to 3)\n\nSee the live OpenAPI spec at {{baseUrl}}/openapi.yaml for the complete schema.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",    "value": "https://sluice.unitynodes.com/api", "type": "string" },
+    { "key": "rootUrl",    "value": "https://sluice.unitynodes.com",     "type": "string" },
+    { "key": "webhookUrl", "value": "https://webhook.site/your-uuid-here", "type": "string" },
+    { "key": "subId",      "value": "3",                                 "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health & Status",
+      "item": [
+        { "name": "Liveness, POST /health",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" } } },
+        { "name": "Snapshot, GET /snapshot.json",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/snapshot.json", "host": ["{{baseUrl}}"], "path": ["snapshot.json"] } } },
+        { "name": "Prometheus metrics, GET /metrics",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/metrics", "host": ["{{baseUrl}}"], "path": ["metrics"] } } },
+        { "name": "Chain head (cached 3s), GET /chain/head",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/chain/head", "host": ["{{baseUrl}}"], "path": ["chain","head"] } } },
+        { "name": "OpenAPI spec, GET /openapi.yaml",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/openapi.yaml", "host": ["{{baseUrl}}"], "path": ["openapi.yaml"] } } }
+      ]
+    },
+    {
+      "name": "Predicates",
+      "item": [
+        { "name": "Dry-run a predicate, POST /predicate/validate",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/predicate/validate", "host": ["{{baseUrl}}"], "path": ["predicate","validate"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"predicate\": {\n    \"and\": [\n      { \"field\": \"amount\", \"op\": \"gte\", \"value\": \"5000000000000\" }\n    ]\n  }\n}" } } },
+        { "name": "Per-condition trace, POST /predicate/explain",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/predicate/explain", "host": ["{{baseUrl}}"], "path": ["predicate","explain"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"predicate\": {\n    \"and\": [\n      { \"field\": \"amount\", \"op\": \"gte\", \"value\": \"100000000000\" },\n      { \"field\": \"to_account_hash\", \"op\": \"eq\", \"value\": \"deadbeef\" }\n    ]\n  },\n  \"event\": {\n    \"id\": 0,\n    \"deploy_hash\": \"c60a4bfebc1ad5e6ac7272b0cc0a3ed93cc3a34335c049368db75e139b5711db\",\n    \"block_height\": 0,\n    \"transform_key\": null,\n    \"transfer_index\": 0,\n    \"initiator_account_hash\": \"00\",\n    \"from_purse\": \"u\",\n    \"to_purse\": \"u\",\n    \"to_account_hash\": \"dc725246306b8ebfb6623feca7f777c4e9f52c96691cdccf338b797480787c9c\",\n    \"amount\": \"5000000000000\",\n    \"timestamp\": \"2026-06-30T05:00:00Z\"\n  }\n}" } } }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "item": [
+        { "name": "Calendar feed, GET /sub/{id}.ics",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/sub/{{subId}}.ics", "host": ["{{baseUrl}}"], "path": ["sub","{{subId}}.ics"] } } },
+        { "name": "Re-dispatch last N deliveries, POST /sub/{id}/replay-last",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/sub/{{subId}}/replay-last", "host": ["{{baseUrl}}"], "path": ["sub","{{subId}}","replay-last"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"n\": 5\n}" } } },
+        { "name": "OG card image, GET /og/sub/{id} (root)",
+          "request": { "method": "GET", "url": { "raw": "{{rootUrl}}/og/sub/{{subId}}", "host": ["{{rootUrl}}"], "path": ["og","sub","{{subId}}"] } } },
+        { "name": "Iframe widget, GET /embed/sub/{id} (root)",
+          "request": { "method": "GET", "url": { "raw": "{{rootUrl}}/embed/sub/{{subId}}", "host": ["{{rootUrl}}"], "path": ["embed","sub","{{subId}}"] } } }
+      ]
+    },
+    {
+      "name": "Sandbox (no on-chain effect)",
+      "item": [
+        { "name": "Fire N webhooks at a URL, POST /sandbox/dispatch",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/sandbox/dispatch", "host": ["{{baseUrl}}"], "path": ["sandbox","dispatch"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"webhook\": \"{{webhookUrl}}\",\n  \"predicate\": {\n    \"and\": [\n      { \"field\": \"amount\", \"op\": \"gte\", \"value\": \"2500000000\" }\n    ]\n  },\n  \"count\": 3\n}" } } }
+      ]
+    },
+    {
+      "name": "Badges",
+      "item": [
+        { "name": "subs-active",     "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/badges/subs-active.svg",     "host": ["{{baseUrl}}"], "path": ["badges","subs-active.svg"] } } },
+        { "name": "deliveries",      "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/badges/deliveries.svg",      "host": ["{{baseUrl}}"], "path": ["badges","deliveries.svg"] } } },
+        { "name": "delivery-success","request": { "method": "GET", "url": { "raw": "{{baseUrl}}/badges/delivery-success.svg","host": ["{{baseUrl}}"], "path": ["badges","delivery-success.svg"] } } },
+        { "name": "latency-p95",     "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/badges/latency-p95.svg",     "host": ["{{baseUrl}}"], "path": ["badges","latency-p95.svg"] } } },
+        { "name": "uptime",          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/badges/uptime.svg",          "host": ["{{baseUrl}}"], "path": ["badges","uptime.svg"] } } },
+        { "name": "ws",              "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/badges/ws.svg",              "host": ["{{baseUrl}}"], "path": ["badges","ws.svg"] } } }
+      ]
+    },
+    {
+      "name": "Transaction write path",
+      "item": [
+        { "name": "Build create_subscription tx, POST /tx/build/create-subscription",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tx/build/create-subscription", "host": ["{{baseUrl}}"], "path": ["tx","build","create-subscription"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"initiator\": \"01abcdef...your_pubkey_hex...\",\n  \"predicate_json\": \"{\\\"and\\\":[{\\\"field\\\":\\\"amount\\\",\\\"op\\\":\\\"gte\\\",\\\"value\\\":\\\"5000000000000\\\"}]}\",\n  \"webhook_url\": \"{{webhookUrl}}\",\n  \"motes\": \"10000000000\"\n}" } } },
+        { "name": "Build top_up tx, POST /tx/build/top-up",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tx/build/top-up", "host": ["{{baseUrl}}"], "path": ["tx","build","top-up"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"initiator\": \"01abcdef...your_pubkey_hex...\",\n  \"id\": {{subId}},\n  \"motes\": \"10000000000\"\n}" } } },
+        { "name": "Build cancel tx, POST /tx/build/cancel",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tx/build/cancel", "host": ["{{baseUrl}}"], "path": ["tx","build","cancel"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"initiator\": \"01abcdef...your_pubkey_hex...\",\n  \"id\": {{subId}}\n}" } } },
+        { "name": "Submit signed tx, POST /tx/submit",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tx/submit", "host": ["{{baseUrl}}"], "path": ["tx","submit"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"signed_tx\": { \"...\": \"casper Version1 JSON with approvals[]\" }\n}" } } },
+        { "name": "Fire a test webhook for one sub, POST /tx/test-webhook",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tx/test-webhook", "host": ["{{baseUrl}}"], "path": ["tx","test-webhook"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"subscription_id\": {{subId}}\n}" } } },
+        { "name": "Replay one past delivery, POST /tx/replay",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/tx/replay", "host": ["{{baseUrl}}"], "path": ["tx","replay"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"event_hash\": \"64-hex-event-hash-from-snapshot.recent_events\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Hosted receiver (ring buffer)",
+      "item": [
+        { "name": "Read incoming POSTs, GET /hooks/{id}/feed",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/hooks/my-test-slug/feed", "host": ["{{baseUrl}}"], "path": ["hooks","my-test-slug","feed"] } } },
+        { "name": "Send a POST to a hosted slug, POST /hooks/{id}",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/hooks/my-test-slug", "host": ["{{baseUrl}}"], "path": ["hooks","my-test-slug"] },
+            "header": [{ "key": "content-type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"hello\": \"from postman\"\n}" } } }
+      ]
+    }
+  ]
+}

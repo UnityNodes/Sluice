@@ -1,0 +1,49 @@
+# Example GitHub Action: trigger a workflow when a Sluice subscription delivers a match.
+#
+# This file lives at .github/workflows/sluice-watch.yml in YOUR repository.
+# Sluice's webhook receiver (run anywhere, a Cloudflare Worker, Fly app, ngrok)
+# calls the GitHub `repository_dispatch` API which fires this workflow.
+#
+# The receiver is two HTTP hops:
+#   matcher → your bridge (verifies HMAC) → GitHub repository_dispatch
+# See examples/github-action/dispatcher.js for the minimal bridge.
+
+name: sluice-watch
+
+on:
+  repository_dispatch:
+    types: [sluice-match]
+
+jobs:
+  react:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo the matched Casper event
+        env:
+          SUB_ID:    ${{ github.event.client_payload.subscription_id }}
+          AMOUNT:    ${{ github.event.client_payload.event.amount }}
+          TO:        ${{ github.event.client_payload.event.to_account_hash }}
+          DEPLOY:    ${{ github.event.client_payload.event.deploy_hash }}
+          BLOCK:     ${{ github.event.client_payload.event.block_height }}
+          TIMESTAMP: ${{ github.event.client_payload.event.timestamp }}
+        run: |
+          echo "🐋 Sluice match (sub_$SUB_ID)"
+          echo "  amount (motes): $AMOUNT"
+          echo "  to_account:     $TO"
+          echo "  deploy:         https://testnet.cspr.live/transaction/$DEPLOY"
+          echo "  block:          $BLOCK"
+          echo "  at:             $TIMESTAMP"
+
+      # Wire your own job here. Some ideas:
+      # - rebuild a status page
+      # - notify your team via Slack
+      # - kick off a deploy when a treasury top-up lands
+      # - update a public README counter
+
+      - name: Pin the event tx as a job summary
+        env:
+          DEPLOY: ${{ github.event.client_payload.event.deploy_hash }}
+        run: |
+          echo "## Sluice match" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "[$DEPLOY on cspr.live](https://testnet.cspr.live/transaction/$DEPLOY)" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,443 @@
+openapi: 3.1.0
+info:
+  title: Sluice Matcher API
+  version: 0.1.0
+  summary: HTTP API exposed by the off-chain Sluice matcher process.
+  description: |
+    The matcher serves three concerns over HTTP:
+
+    1. **`/snapshot.json`**, read-only, no auth: the matcher's current view of
+       the contract (subscriptions + recent deliveries). Polled by the dashboard
+       and the landing page every 5 s.
+    2. **`/tx/build/*`**, read-only, no auth: build an unsigned `TransactionV1`
+       JSON ready to be signed by a Casper Wallet against the on-chain
+       `SubscriptionRegistry`. Wraps `casper-client make-transaction package`
+       and returns the JSON.
+    3. **`/tx/submit`** + **`/tx/replay`**, write paths. `submit` accepts a
+       signed `TransactionV1` and forwards it to the chain via
+       `casper-client send-transaction`. `replay` re-fires a past delivery's
+       webhook from the in-memory `recent_events` buffer.
+
+    All endpoints return `application/json` with permissive CORS. The matcher
+    listens on `127.0.0.1:7799` and Caddy reverse-proxies `/api/tx/*` from
+    `sluice.unitynodes.com`; the snapshot file is served by Caddy directly.
+servers:
+  - url: https://sluice.unitynodes.com/api
+    description: Live testnet matcher
+  - url: http://127.0.0.1:7799
+    description: Local matcher
+
+paths:
+  /snapshot.json:
+    get:
+      summary: Current matcher snapshot
+      description: The matcher's view of the contract. Written every 30 s.
+      responses:
+        '200':
+          description: Snapshot JSON.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Snapshot' }
+
+  /badge.svg:
+    get:
+      summary: Status badge (SVG)
+      description: Shields-style badge, "sluice: N delivered · M active".
+      responses:
+        '200':
+          description: Static SVG.
+          content:
+            image/svg+xml: {}
+
+  /tx/build/create-subscription:
+    post:
+      summary: Build an unsigned create_subscription transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiator, predicate_json, webhook_url, motes]
+              properties:
+                initiator:      { type: string, description: 64-hex public key with algo prefix byte (01=ed25519, 02=secp256k1) }
+                predicate_json: { type: string, description: JSON-stringified predicate (AND-of-fields, six ops) }
+                webhook_url:    { type: string, format: uri }
+                motes:          { type: string, description: CSPR amount to lock, in motes (1 CSPR = 1e9 motes) }
+      responses:
+        '200': { description: Unsigned tx ready for the wallet, content: { application/json: { schema: { $ref: '#/components/schemas/UnsignedTxResponse' } } } }
+        '400': { description: invalid args }
+
+  /tx/build/top-up:
+    post:
+      summary: Build an unsigned top_up transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiator, id, motes]
+              properties:
+                initiator: { type: string }
+                id:        { type: integer, minimum: 1 }
+                motes:     { type: string }
+      responses:
+        '200': { description: Unsigned tx, content: { application/json: { schema: { $ref: '#/components/schemas/UnsignedTxResponse' } } } }
+
+  /tx/build/cancel:
+    post:
+      summary: Build an unsigned cancel_subscription transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [initiator, id]
+              properties:
+                initiator: { type: string }
+                id:        { type: integer, minimum: 1 }
+      responses:
+        '200': { description: Unsigned tx, content: { application/json: { schema: { $ref: '#/components/schemas/UnsignedTxResponse' } } } }
+
+  /tx/submit:
+    post:
+      summary: Submit a signed transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signed_tx]
+              properties:
+                signed_tx:
+                  type: object
+                  description: Full Version1 transaction JSON with `approvals[]` populated.
+      responses:
+        '200':
+          description: Transaction hash from the node.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { tx_hash: { type: string } }
+        '400': { description: build / send failed }
+
+  /tx/replay:
+    post:
+      summary: Re-fire a past delivery's webhook
+      description: |
+        Looks up the event in the matcher's in-memory `recent_events` ring
+        (capacity 20). Re-POSTs to the original webhook URL with the same
+        `Idempotency-Key`; the receiver can dedupe.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event_hash]
+              properties:
+                event_hash: { type: string }
+      responses:
+        '200':
+          description: Replay result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:          { type: boolean }
+                  statusCode:  { type: integer }
+                  attempts:    { type: integer }
+                  latency_ms:  { type: integer }
+        '404': { description: event not in buffer }
+
+  /tx/test-webhook:
+    post:
+      summary: Fire a synthetic Transfer at one subscription's webhook (no on-chain effect)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [subscription_id], properties: { subscription_id: { type: integer } } } } }
+      responses:
+        '200': { description: dispatch result }
+        '404': { description: subscription not in matcher view }
+
+  /predicate/validate:
+    post:
+      summary: Dry-run a predicate against the matcher's recent-events ring buffer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - { type: object, required: [predicate], properties: { predicate: { $ref: '#/components/schemas/Predicate' } } }
+                - { type: object, required: [predicate_json], properties: { predicate_json: { type: string } } }
+      responses:
+        '200':
+          description: how many recent events would have matched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:              { type: integer }
+                  total_scanned:        { type: integer }
+                  sample_matches:       { type: array, items: { $ref: '#/components/schemas/TransferEvent' } }
+                  time_window_seconds:  { type: integer }
+                  estimated_per_day:    { type: number, nullable: true }
+                  source:               { type: string, enum: [live, sample, mixed] }
+
+  /predicate/explain:
+    post:
+      summary: Evaluate every condition independently against one event, return pass/fail trace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [predicate, event]
+              properties:
+                predicate: { $ref: '#/components/schemas/Predicate' }
+                event:     { $ref: '#/components/schemas/TransferEvent' }
+      responses:
+        '200':
+          description: per-condition trace
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  match:             { type: boolean }
+                  conditions_total:  { type: integer }
+                  conditions_passed: { type: integer }
+                  trace:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index:    { type: integer }
+                        field:    { type: string }
+                        op:       { type: string }
+                        expected: {}
+                        actual:   {}
+                        pass:     { type: boolean }
+                        reason:   { type: string }
+
+  /sub/{id}.ics:
+    get:
+      summary: iCalendar feed for one subscription (weekly check-in + balance-runout estimate + delivery milestones)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: text/calendar, content: { text/calendar: { schema: { type: string } } } }
+        '404': { description: subscription not in matcher view }
+
+  /sub/{id}/replay-last:
+    post:
+      summary: Re-dispatch the last N deliveries for one subscription (no on-chain re-record)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { n: { type: integer, minimum: 1, maximum: 20, default: 10 } }
+      responses:
+        '200':
+          description: per-replay outcomes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requested: { type: integer }
+                  found:     { type: integer }
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        event_hash: { type: string }
+                        ok:         { type: boolean }
+                        statusCode: { type: integer }
+                        attempts:   { type: integer }
+                        latency_ms: { type: integer }
+                        timestamp:  { type: string, format: date-time }
+
+  /og/sub/{id}:
+    get:
+      summary: 1200x630 OG card SVG for a subscription (image/svg+xml)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: SVG, content: { image/svg+xml: { schema: { type: string } } } }
+        '404': { description: subscription not in matcher view }
+
+  /embed/sub/{id}:
+    get:
+      summary: 320x120 iframe-embed HTML widget for a subscription
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: HTML, content: { text/html: { schema: { type: string } } } }
+        '404': { description: subscription not in matcher view }
+
+  /badges/{metric}.svg:
+    get:
+      summary: Shields-style badge for a live metric
+      parameters:
+        - name: metric
+          in: path
+          required: true
+          schema: { type: string, enum: [subs-active, deliveries, delivery-success, latency-p95, uptime, ws] }
+      responses:
+        '200': { description: SVG }
+        '404': { description: unknown metric (response lists available) }
+
+  /metrics:
+    get:
+      summary: Prometheus exposition format
+      responses:
+        '200':
+          description: text/plain
+          content:
+            text/plain:
+              schema: { type: string, example: 'sluice_deliveries_total 42\nsluice_ws_connected{stream="transfers"} 1' }
+
+  /chain/head:
+    get:
+      summary: Cached Casper chain-head info (3s TTL, in-flight collapsed)
+      responses:
+        '200':
+          description: chain head
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  height:     { type: integer }
+                  era:        { type: integer }
+                  timestamp:  { type: string, format: date-time }
+                  chain:      { type: string }
+                  fetched_at: { type: string, format: date-time }
+
+  /stream:
+    get:
+      summary: 'WebSocket fan-out of live matcher events (use ws://, not http://; ?sub=N filter)'
+      description: |
+        Upgrade-only endpoint. Emits a hello envelope on connect, then
+        `{type:'delivery', data:RecentEvent}` for every webhook dispatch and
+        `{type:'subs.reload', data:{active,total,updated_at}}` on every poll.
+        Server pings every 25s; clients SHOULD reconnect on close.
+      responses:
+        '101': { description: WebSocket upgrade }
+
+  /openapi.yaml:
+    get:
+      summary: This document (so codegen tools can curl it directly)
+      responses:
+        '200':
+          description: this OpenAPI document
+          content:
+            application/yaml:
+              schema: { type: string }
+
+  /health:
+    post:
+      summary: Liveness probe
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:       { type: boolean }
+                  contract: { type: string }
+                  chain:    { type: string }
+
+components:
+  schemas:
+    Snapshot:
+      type: object
+      properties:
+        contract_hash: { type: string }
+        chain:         { type: string, enum: [casper, casper-test] }
+        updated_at:    { type: string, format: date-time }
+        subscriptions:
+          type: array
+          items: { $ref: '#/components/schemas/Subscription' }
+        recent_events:
+          type: array
+          items: { $ref: '#/components/schemas/RecentEvent' }
+    Subscription:
+      type: object
+      properties:
+        id:           { type: integer }
+        owner:        { type: string }
+        predicate:    { $ref: '#/components/schemas/Predicate' }
+        webhook_url:  { type: string }
+        balance:      { type: string, description: motes }
+        deliveries:   { type: integer }
+        active:       { type: boolean }
+        created_at:   { type: integer }
+    RecentEvent:
+      type: object
+      properties:
+        subscription_id: { type: integer }
+        event_hash:      { type: string }
+        description:     { type: string }
+        status:          { type: integer }
+        attempts:        { type: integer }
+        latency_ms:      { type: integer }
+        timestamp:       { type: string, format: date-time }
+        tx_hash:         { type: string }
+        event:           { $ref: '#/components/schemas/TransferEvent' }
+        webhook_url:     { type: string }
+    TransferEvent:
+      type: object
+      properties:
+        id:                     { type: integer }
+        deploy_hash:            { type: string }
+        block_height:           { type: integer }
+        transfer_index:         { type: integer }
+        initiator_account_hash: { type: string }
+        from_purse:             { type: string }
+        to_purse:               { type: string }
+        to_account_hash:        { type: string }
+        amount:                 { type: string, description: motes }
+        timestamp:              { type: string, format: date-time }
+    Predicate:
+      type: object
+      properties:
+        and:
+          type: array
+          items: { $ref: '#/components/schemas/Condition' }
+    Condition:
+      type: object
+      properties:
+        field: { type: string, description: dot.notation path into a TransferEvent }
+        op:    { type: string, enum: [eq, neq, gt, gte, lt, lte, contains, starts_with, ends_with, in, not_in, regex] }
+        value:
+          oneOf:
+            - { type: string }
+            - { type: number }
+            - { type: boolean }
+            - { type: array }
+    UnsignedTxResponse:
+      type: object
+      properties:
+        tx:
+          type: object
+          description: Casper Version1 transaction JSON, ready to sign in a wallet.

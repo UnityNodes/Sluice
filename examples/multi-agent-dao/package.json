@@ -1,0 +1,16 @@
+{
+  "name": "@sluice/example-multi-agent-dao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Buildathon Direction #3: a Sluice governance event fans out to a swarm of specialized LLM-backed agents (Risk / Treasury / Legal) that deliberate, then a coordinator tallies votes and executes.",
+  "main": "coordinator.js",
+  "scripts": {
+    "start": "node coordinator.js",
+    "demo": "bash demo.sh"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
+    "express": "^4.19.0"
+  },
+  "engines": { "node": ">=20" }
+}

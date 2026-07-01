@@ -1,0 +1,18 @@
+{
+  "data": {
+    "id": 0,
+    "deploy_hash": "c60a4bfebc1ad5e6ac7272b0cc0a3ed93cc3a34335c049368db75e139b5711db",
+    "block_height": 8338998,
+    "transform_key": null,
+    "transfer_index": 0,
+    "initiator_account_hash": "b383c7cc23d18bc1b42406a1b2d29fc8dba86425197b6f553d7fd61375b5e446",
+    "from_purse": "uref-b06a1ab0cfb52b5d4f9a08b68a5dbe78e999de0b0484c03e64f5c03897cf637b-007",
+    "to_purse": "uref-bf49d64c019420b4988804e02be96dd6be15331ba95537ef04d3e7e74db230fa-004",
+    "to_account_hash": "dc725246306b8ebfb6623feca7f777c4e9f52c96691cdccf338b797480787c9c",
+    "amount": "5000000000000",
+    "timestamp": "2026-06-29T11:14:49.671Z"
+  },
+  "action": "created",
+  "extra": null,
+  "timestamp": "2026-06-29T11:15:00.470693904Z"
+}
