@@ -1,0 +1,51 @@
+{
+  "name": "@sluice/mcp",
+  "version": "0.2.0",
+  "description": "Sluice MCP server \u2014 lets AI agents (Claude Code, Codex, any MCP client) manage Casper event subscriptions in natural language.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/server.js",
+  "bin": {
+    "sluice-mcp": "dist/server.js",
+    "sluice-mcp-http": "dist/server-http.js"
+  },
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p .",
+    "start": "node dist/server.js",
+    "start:http": "node dist/server-http.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UnityNodes/Sluice.git",
+    "directory": "mcp"
+  },
+  "homepage": "https://sluice.unitynodes.com",
+  "bugs": "https://github.com/UnityNodes/Sluice/issues",
+  "keywords": [
+    "casper",
+    "casper-network",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai-agent",
+    "webhooks",
+    "events",
+    "blockchain"
+  ]
+}
