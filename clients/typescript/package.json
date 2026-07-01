@@ -1,0 +1,37 @@
+{
+  "name": "@sluice/client",
+  "version": "0.1.0",
+  "description": "Thin typed client for the Sluice matcher API, on-chain event subscriptions on Casper. Fetch-based, zero runtime deps; optional ws import for the live stream.",
+  "keywords": ["casper", "blockchain", "events", "webhook", "sluice", "subscriptions"],
+  "license": "MIT",
+  "author": "Sluice contributors",
+  "homepage": "https://sluice.unitynodes.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UnityNodes/Sluice",
+    "directory": "clients/typescript"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".":            { "types": "./dist/index.d.ts",      "default": "./dist/index.js" },
+    "./middleware": { "types": "./dist/middleware.d.ts", "default": "./dist/middleware.js" }
+  },
+  "files": ["dist/", "README.md"],
+  "scripts": {
+    "build": "tsc -p .",
+    "prepack": "npm run build"
+  },
+  "engines": { "node": ">=18" },
+  "peerDependencies": {
+    "ws": "^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ws": { "optional": true }
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.0"
+  }
+}

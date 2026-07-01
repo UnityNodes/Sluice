@@ -1,0 +1,51 @@
+{
+  "name": "sluice-vscode",
+  "displayName": "Sluice, Casper event subscriptions",
+  "description": "Sluice status bar + commands inside VS Code. Live subscription count and delivery total polled from the matcher, command palette entries for sandbox dispatch and the workspace, JSON Schema validation for predicate*.json files.",
+  "version": "0.1.0",
+  "publisher": "UnityNodes",
+  "license": "MIT",
+  "homepage": "https://sluice.unitynodes.com",
+  "repository": { "type": "git", "url": "https://github.com/UnityNodes/Sluice", "directory": "clients/vscode" },
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Other"],
+  "keywords": ["casper", "blockchain", "webhook", "sluice", "event-subscriptions"],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "package": "vsce package --no-dependencies"
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:**/predicate*.json",
+    "workspaceContains:**/sluice*.json"
+  ],
+  "contributes": {
+    "commands": [
+      { "command": "sluice.openWorkspace",    "title": "Sluice: Open workspace in browser",        "category": "Sluice" },
+      { "command": "sluice.sandboxDispatch",  "title": "Sluice: Fire sandbox webhooks at a URL",   "category": "Sluice" },
+      { "command": "sluice.buildPredicate",   "title": "Sluice: Build predicate (AI → JSON)",      "category": "Sluice" },
+      { "command": "sluice.refreshSnapshot",  "title": "Sluice: Refresh status bar now",           "category": "Sluice" },
+      { "command": "sluice.copyMcpInstall",   "title": "Sluice: Copy MCP install command",         "category": "Sluice" }
+    ],
+    "configuration": {
+      "title": "Sluice",
+      "properties": {
+        "sluice.apiBase":   { "type": "string", "default": "https://sluice.unitynodes.com/api", "description": "Matcher API base URL." },
+        "sluice.pollSeconds": { "type": "number", "default": 10, "minimum": 3, "description": "How often to refresh the status bar (seconds)." },
+        "sluice.statusBarFormat": { "type": "string", "default": "Sluice  ${active}/${total} active · ${delivered} delivered", "description": "Status bar label format. Supports ${active}, ${total}, ${delivered}." }
+      }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": ["**/predicate*.json", "**/sluice-predicate*.json", "**/whale*.json"],
+        "url": "https://sluice.unitynodes.com/schema/predicate-v1.json"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.4.0"
+  }
+}
