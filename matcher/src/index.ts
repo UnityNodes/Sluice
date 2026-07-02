@@ -185,9 +185,29 @@ export class Matcher {
     private readonly reader: ContractStateReader,
   ) {
     this.maybeSeedValidationBuffer();
+    this.maybeSeedRecentFromSnapshot();
   }
 
   setBroadcaster(fn: Broadcast): void { this.broadcast = fn; }
+
+  /**
+   * Restore the recent-events feed from the last snapshot on the disk so a
+   * matcher restart does not blank the dashboard's activity list. Testnet
+   * events are sparse, so an empty feed after every deploy reads as "nothing
+   * ever happened"; reloading the last snapshot keeps continuity.
+   */
+  private maybeSeedRecentFromSnapshot(): void {
+    const p = this.cfg.snapshotPath;
+    if (!p || !existsSync(p)) return;
+    try {
+      const snap = JSON.parse(readFileSync(p, 'utf8'));
+      const rows = Array.isArray(snap?.recent_events) ? snap.recent_events : [];
+      this.recentEvents = rows.slice(0, Matcher.MAX_RECENT) as RecentEvent[];
+      if (this.recentEvents.length) log(`recent feed seeded with ${this.recentEvents.length} events from ${p}`);
+    } catch (e) {
+      log(`recent seed failed at ${p}: ${(e as Error).message}`);
+    }
+  }
 
   private maybeSeedValidationBuffer(): void {
     const candidates = [

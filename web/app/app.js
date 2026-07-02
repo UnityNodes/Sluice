@@ -83,6 +83,17 @@
     from_purse: 'From purse',
     to_purse: 'To purse',
     timestamp: 'Time',
+    event_type: 'Source',
+    name: 'Event',
+    contract_package_hash: 'Contract',
+  };
+  /* Known third-party Casper testnet contracts Sluice watches, so predicate
+   * rows show the project name instead of a bare package hash. */
+  const KNOWN_CONTRACTS = {
+    '65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f': 'Wisp Dollar (stablecoin)',
+    '1d25c895320b16f37eb57b344b8b655f56c30ca6e941e903976fc0e97a803409': 'STEWARD Institutional Fund (RWA)',
+    '0d5ae3015928b0070f03b9a377cf09fa86c63f3ce86f24b357f570977b786d8d': 'Meridian RWA',
+    'ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7': 'DemoDex (Sluice)',
   };
   const FIELD_ICON = {
     amount: '<svg class="pi"><use href="#icon-amount"/></svg>',
@@ -110,6 +121,7 @@
     const s = String(v ?? '');
     if (field === 'amount' && /^\d{10,}$/.test(s)) return `${motesToCspr(s).toLocaleString('en-US')} CSPR`;
     if (field === 'timestamp' && /^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 16).replace('T', ' ');
+    if (KNOWN_CONTRACTS[s.toLowerCase()]) return KNOWN_CONTRACTS[s.toLowerCase()];
     if (/^[0-9a-f]{64}$/i.test(s)) return truncHash(s, 6, 4);
     return s.length > 32 ? truncHash(s, 14, 10) : s;
   };
