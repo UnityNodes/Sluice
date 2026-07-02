@@ -93,20 +93,20 @@
   <g>
     <circle r="10" fill="#bcfc07" fill-opacity=".2">
       <animateMotion begin="0s"   dur="2.2s" repeatCount="indefinite"
-                     path="M 304 260 L 448 260 L 448 260 L 736 260 L 880 200"/>
+                     path="M 304 260 L 448 260 L 736 240 Q 840 240 880 200"/>
     </circle>
     <circle r="4" fill="#bcfc07" stroke="#000" stroke-width="1">
       <animateMotion begin="0s"   dur="2.2s" repeatCount="indefinite"
-                     path="M 304 260 L 448 260 L 448 260 L 736 260 L 880 200"/>
+                     path="M 304 260 L 448 260 L 736 240 Q 840 240 880 200"/>
     </circle>
     <!-- Second pulse takes the on-chain branch, offset by 1.1s so the two look interleaved -->
     <circle r="10" fill="#bcfc07" fill-opacity=".2">
       <animateMotion begin="1.1s" dur="2.2s" repeatCount="indefinite"
-                     path="M 304 260 L 448 260 L 448 260 L 736 260 L 880 320"/>
+                     path="M 304 260 L 448 260 L 736 280 Q 840 280 880 320"/>
     </circle>
     <circle r="4" fill="#bcfc07" stroke="#000" stroke-width="1">
       <animateMotion begin="1.1s" dur="2.2s" repeatCount="indefinite"
-                     path="M 304 260 L 448 260 L 448 260 L 736 260 L 880 320"/>
+                     path="M 304 260 L 448 260 L 736 280 Q 840 280 880 320"/>
     </circle>
   </g>
 
