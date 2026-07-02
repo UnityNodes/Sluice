@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice · Roadmap</title>
+<meta name="description" content="Where Sluice goes from a testnet v0.1 to a mainnet service, how it pays for itself, and what a grant would fund. Honest about what is shipped and what is not.">
+<meta property="og:title" content="Sluice · Roadmap">
+<meta property="og:description" content="From testnet v0.1 to a mainnet service: wallet-native subscribe, durable delivery, mainnet launch, and cross-contract predicates.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  ::selection { background: #bcfc07; color: #000; }
+  .eyebrow { font: 500 11px 'JetBrains Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: #666; display: inline-flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ''; width: 24px; height: 1px; background: #bcfc07; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 32px; }
+  .row { display: grid; grid-template-columns: 220px minmax(0,1fr); gap: 40px; padding: 44px 0; border-top: 1px solid #ddd; }
+  .row:first-of-type { border-top: none; }
+  .period { font: 500 13px 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase; color: #000; }
+  .period .tag { display: inline-block; margin-top: 10px; font: 500 10.5px 'JetBrains Mono', monospace; letter-spacing: .1em; padding: 4px 9px; }
+  .tag.now { background: #bcfc07; color: #000; }
+  .tag.next { background: #000; color: #fff; }
+  .tag.later { background: #fff; color: #000; border: 1px solid #000; }
+  .items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  .items li { font: 400 15.5px/1.6 'Casper Sans', Inter, sans-serif; color: #333; }
+  .items li b { color: #000; font-weight: 500; }
+  code { font-family: 'JetBrains Mono', monospace; background: #e9e9e9; padding: 1px 6px; font-size: .88em; }
+  @media (max-width: 720px) {
+    .row { grid-template-columns: 1fr; gap: 14px; padding: 32px 0; }
+    .wrap { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav style="background:#f4f4f4;border-bottom:1px solid #000;position:sticky;top:0;z-index:30">
+    <div style="max-width:1320px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:32px;height:64px">
+      <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#000">
+        <span style="display:inline-flex;width:24px;height:24px;background:#000;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:6px solid #bcfc07;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span></span>
+        <span style="font:500 22px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+      </a>
+      <div style="display:flex;gap:2px;font:400 14px 'Casper Sans',Inter;color:#000;flex-wrap:wrap">
+        <a href="/#how" style="text-decoration:none;padding:8px 14px">How it works</a>
+        <a href="/#recipes" style="text-decoration:none;padding:8px 14px">Recipes</a>
+        <a href="/#mcp-demo" style="text-decoration:none;padding:8px 14px">MCP</a>
+        <a href="/status" style="text-decoration:none;padding:8px 14px">Status</a>
+        <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="text-decoration:none;padding:8px 14px">Docs ↗</a>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:6px 10px;letter-spacing:.04em">
+        <span style="width:6px;height:6px;background:#000;border-radius:50%"></span>
+        V0.1 · TESTNET
+      </div>
+      <a href="/app" style="text-decoration:none;background:#000;color:#fff;padding:11px 20px;font:500 14px 'Casper Sans',Inter;display:flex;align-items:center;gap:8px">Open app <span style="font-size:16px;line-height:1">→</span></a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div class="wrap" style="padding:96px 32px 72px">
+      <div class="eyebrow">Roadmap</div>
+      <h1 style="margin:20px 0 0;font:500 clamp(40px,6vw,72px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;max-width:820px">From a testnet prototype to a mainnet service.</h1>
+      <p style="margin:24px 0 0;font:400 18px/1.6 'Casper Sans',Inter;color:#555;max-width:640px">Where Sluice goes next, how it pays for itself, and what a grant would fund. Honest about what is shipped and what is not.</p>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section style="background:#fff;border-bottom:1px solid #000">
+    <div class="wrap" style="padding:24px 32px 40px">
+
+      <div class="row">
+        <div class="period">Now<div class="tag now">LIVE ON TESTNET</div></div>
+        <ul class="items">
+          <li><b>On-chain escrow contract.</b> <code>SubscriptionRegistry</code> (Rust + Odra 2.8): <code>create_subscription</code>, <code>record_delivery</code>, <code>top_up</code>, <code>cancel_subscription</code>, with four emitted events.</li>
+          <li><b>Off-chain matcher</b> reading the live CSPR.cloud stream, median end-to-end ~830 ms on testnet.</li>
+          <li><b>Three delivery channels</b> from one subscription: HMAC-signed webhook, MCP tool call, live WebSocket.</li>
+          <li><b>MCP server</b>, stdio and hosted Streamable-HTTP: 5 tools, 4 resources, 2 prompts, for any MCP client.</li>
+          <li><b>Predicate language</b>: JSON, AND with nested OR, 12 operators, plain-English parser (rule-based, no LLM).</li>
+          <li><b>Every delivery billed on-chain</b> via <code>record_delivery</code>. Web workspace, CLI, self-host installer, Docker, Prometheus + Grafana, TypeScript and Python clients.</li>
+        </ul>
+      </div>
+
+      <div class="row">
+        <div class="period">Q3 2026<div class="tag next">NEXT</div></div>
+        <ul class="items">
+          <li><b>Wallet-native subscribe via <code>TransactionV1</code>.</b> Create and top up a subscription from a browser wallet, no CLI or key file.</li>
+          <li><b>Historical replay.</b> Backfill matches from CSPR.cloud so a new subscription can be seeded against past events, and a matcher restart no longer drops history.</li>
+          <li><b>SSE delivery channel.</b> A lighter alternative to WebSocket for front ends behind restrictive proxies.</li>
+          <li><b>Rust SDK.</b> A first-class client alongside the TypeScript and Python ones.</li>
+        </ul>
+      </div>
+
+      <div class="row">
+        <div class="period">Q4 2026<div class="tag later">MAINNET</div></div>
+        <ul class="items">
+          <li><b>Mainnet contract.</b> Production deployment of <code>SubscriptionRegistry</code> with the redesigned <code>TransactionV1</code> flow.</li>
+          <li><b>Free tier for entry.</b> A no-cost daily allowance so developers can build against mainnet before paying, the way Alchemy and Helius win adoption. Self-host stays free; prepaid escrow is only the hosted, high-volume path.</li>
+          <li><b>Volume pricing tiers.</b> A per-delivery rate that steps down as monthly volume grows.</li>
+          <li><b>Dead-letter queue.</b> Failed deliveries after retry exhaustion land in a durable queue with a replay endpoint, so no match is silently lost.</li>
+          <li><b>x402 metered tier.</b> An optional pay-per-delivery path for callers who prefer metered billing over prepaid escrow.</li>
+        </ul>
+      </div>
+
+      <div class="row">
+        <div class="period">2027<div class="tag later">LATER</div></div>
+        <ul class="items">
+          <li><b>Cross-contract predicates.</b> Match arbitrary contract events, so DeFi and RWA protocols can subscribe to their own domain events.</li>
+          <li><b>Timelocked subscriptions.</b> Activate or expire at a block height or timestamp, for scheduled and campaign-bounded monitoring.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BUSINESS MODEL -->
+  <section style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div class="wrap" style="padding:80px 32px">
+      <div class="eyebrow">Business model</div>
+      <h2 style="margin:16px 0 0;font:500 clamp(30px,4vw,48px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;max-width:680px">Free to try and self-host. Pay per delivery on the hosted mainnet tier.</h2>
+      <div style="margin-top:40px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:1px solid #000;background:#fff">
+        <div style="padding:28px 26px;border-right:1px solid #000;border-bottom:1px solid #000">
+          <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em;text-transform:uppercase">Testnet</div>
+          <div style="margin-top:12px;font:400 15px/1.55 'Casper Sans',Inter;color:#333">Free. No charge to try, subscribe, or self-host against testnet.</div>
+        </div>
+        <div style="padding:28px 26px;border-bottom:1px solid #000">
+          <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em;text-transform:uppercase">Mainnet, hosted</div>
+          <div style="margin-top:12px;font:400 15px/1.55 'Casper Sans',Inter;color:#333">Per-delivery CSPR escrow. Lock up front, each delivery deducts a small fee via <code>record_delivery</code>. Auditable on cspr.live, refundable on cancel. Volume tiers lower the rate as usage grows.</div>
+        </div>
+        <div style="padding:28px 26px;border-right:1px solid #000">
+          <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em;text-transform:uppercase">x402 metered</div>
+          <div style="margin-top:12px;font:400 15px/1.55 'Casper Sans',Inter;color:#333">An optional pay-per-delivery path via x402 for callers who prefer metered billing over prepaid escrow.</div>
+        </div>
+        <div style="padding:28px 26px">
+          <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em;text-transform:uppercase">Self-host</div>
+          <div style="margin-top:12px;font:400 15px/1.55 'Casper Sans',Inter;color:#333">Free and open source (MIT). Run your own matcher against the same contract. The contract is the source of truth, so self-hosting is first-class, not a downgrade.</div>
+        </div>
+      </div>
+      <p style="margin:24px 0 0;font:400 15px/1.65 'Casper Sans',Inter;color:#555;max-width:680px">The hosted service earns per delivery. Self-hosting keeps the ecosystem honest and gives large operators an escape hatch. Both paths generate on-chain <code>record_delivery</code> activity on Casper.</p>
+    </div>
+  </section>
+
+  <!-- GRANT MILESTONES -->
+  <section style="background:#000;color:#fff;border-bottom:1px solid #000">
+    <div class="wrap" style="padding:80px 32px">
+      <div class="eyebrow" style="color:#888">Grant ask and milestones</div>
+      <h2 style="margin:16px 0 0;font:500 clamp(30px,4vw,48px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff;max-width:680px">Funding the path from v0.1 to a production mainnet service.</h2>
+      <div style="margin-top:40px;display:flex;flex-direction:column;gap:0;border:1px solid #222">
+        <div style="padding:26px 24px;border-bottom:1px solid #222;display:grid;grid-template-columns:130px minmax(0,1fr);gap:24px">
+          <div style="font:500 12px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">M1 · 4-6 wks</div>
+          <div style="font:400 15px/1.6 'Casper Sans',Inter;color:#ccc"><b style="color:#fff;font-weight:500">Wallet-native subscribe.</b> Redesign the contract around <code style="background:#1a1a1a;color:#bcfc07">TransactionV1</code>, wire browser-wallet subscribe and top-up in <code style="background:#1a1a1a;color:#bcfc07">/app</code>, ship to testnet with tests.</div>
+        </div>
+        <div style="padding:26px 24px;border-bottom:1px solid #222;display:grid;grid-template-columns:130px minmax(0,1fr);gap:24px">
+          <div style="font:500 12px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">M2 · 3-4 wks</div>
+          <div style="font:400 15px/1.6 'Casper Sans',Inter;color:#ccc"><b style="color:#fff;font-weight:500">Durability and replay.</b> Historical replay from CSPR.cloud, matcher checkpointing, and a dead-letter queue with a replay endpoint. No delivery is silently lost.</div>
+        </div>
+        <div style="padding:26px 24px;border-bottom:1px solid #222;display:grid;grid-template-columns:130px minmax(0,1fr);gap:24px">
+          <div style="font:500 12px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">M3 · 4-6 wks</div>
+          <div style="font:400 15px/1.6 'Casper Sans',Inter;color:#ccc"><b style="color:#fff;font-weight:500">Mainnet launch.</b> Deploy <code style="background:#1a1a1a;color:#bcfc07">SubscriptionRegistry</code> to mainnet, ship volume pricing, and stand up production hosting with monitoring and published uptime.</div>
+        </div>
+        <div style="padding:26px 24px;display:grid;grid-template-columns:130px minmax(0,1fr);gap:24px">
+          <div style="font:500 12px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">M4 · 5-7 wks</div>
+          <div style="font:400 15px/1.6 'Casper Sans',Inter;color:#ccc"><b style="color:#fff;font-weight:500">x402 tier and cross-contract predicates.</b> Optional x402 pay-per-delivery, plus predicate matching on arbitrary contract events for DeFi and RWA protocols.</div>
+        </div>
+      </div>
+      <p style="margin:22px 0 0;font:400 14px/1.65 'Casper Sans',Inter;color:#888;max-width:680px">Grant funds cover the contract redesign, production matcher hosting, and audit-readiness work.</p>
+    </div>
+  </section>
+
+  <!-- WHY CASPER -->
+  <section style="background:#f4f4f4;border-bottom:1px solid #000">
+    <div class="wrap" style="padding:80px 32px">
+      <div class="eyebrow">Why this matters for Casper</div>
+      <p style="margin:22px 0 0;font:400 clamp(18px,2.4vw,24px)/1.55 'Casper Sans',Inter;color:#000;max-width:820px;letter-spacing:-.01em">Sluice lowers the bar for building agentic and event-driven apps on Casper from a multi-week indexer project to a single MCP install. It is the reaction layer the AI Toolkit was missing, and it composes with the rest of the toolkit instead of competing: it reads from CSPR.cloud, pairs with x402 for pay-per-delivery, and hands events to CSPR.trade-driven agents. Every active subscription is a continuous stream of fee-paying <code>record_delivery</code> transactions, so the service scales on-chain usage as it grows.</p>
+    </div>
+  </section>
+
+  <!-- CTA / FOOTER -->
+  <section style="background:#bcfc07;border-bottom:1px solid #000">
+    <div class="wrap" style="padding:64px 32px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+      <div style="font:500 clamp(24px,3.2vw,36px)/1.1 'Casper Sans',Inter;letter-spacing:-.02em;color:#000;max-width:520px">Subscribe to your first Casper event today.</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <a href="/app" style="text-decoration:none;background:#000;color:#fff;padding:16px 26px;font:500 16px 'Casper Sans',Inter">Open the app →</a>
+        <a href="/" style="text-decoration:none;background:transparent;color:#000;border:1px solid #000;padding:16px 26px;font:500 16px 'Casper Sans',Inter">Back to home</a>
+      </div>
+    </div>
+  </section>
+
+  <footer style="background:#000;color:#888">
+    <div class="wrap" style="padding:40px 32px;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;font:400 13px 'JetBrains Mono'">
+      <span>Sluice · Casper events, the moment they land</span>
+      <span>Made by Unity Nodes for the Casper Agentic Buildathon 2026</span>
+    </div>
+  </footer>
+
+</body>
+</html>
