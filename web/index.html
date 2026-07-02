@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sluice · Casper events, the moment they land</title>
-<meta name="description" content="Sluice pushes every matching Casper event to your webhook, your AI agent (MCP), or your dashboard (WebSocket) in about 830 ms. No polling. No indexer. No glue code.">
+<meta name="description" content="Sluice pushes every matching Casper event to your webhook, your AI agent (MCP), or your dashboard (WebSocket) in under a second, median ~830 ms on testnet. No polling. No indexer. No glue code.">
 <meta property="og:title" content="Sluice · Casper events, the moment they land">
-<meta property="og:description" content="Prepay in CSPR. Sluice pushes every matching Casper event to your webhook, your AI agent via MCP, or your dashboard via WebSocket. Median 830 ms.">
+<meta property="og:description" content="Sluice pushes every matching Casper event to your webhook, your AI agent via MCP, or your dashboard via WebSocket. Median ~830 ms on testnet, typically under a second.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -367,7 +367,7 @@
           <span style="white-space:nowrap">Casper events,</span><br/>
           the moment <span style="background:#bcfc07;padding:0 .12em;display:inline-block;line-height:.95">they land.</span>
         </h1>
-        <p style="margin:36px 0 0;font:400 20px/1.55 'Casper Sans',Inter;color:#333;max-width:600px">Pick what to watch on Casper by sender, recipient, or amount. Prepay once in CSPR. When something matches, Sluice pushes it three ways: a <b style="font-weight:500;color:#000">webhook</b> for your server, an <b style="font-weight:500;color:#000">MCP tool call</b> for your AI agent, or a <b style="font-weight:500;color:#000">live WebSocket</b> for your dashboard. Median end-to-end latency today is <span style="color:#000">~&nbsp;830&nbsp;ms</span>. No polling, no indexer, no glue code.</p>
+        <p style="margin:36px 0 0;font:400 20px/1.55 'Casper Sans',Inter;color:#333;max-width:600px">Pick what to watch on Casper by sender, recipient, or amount. Prepay once in CSPR. When something matches, Sluice pushes it three ways: a <b style="font-weight:500;color:#000">webhook</b> for your server, an <b style="font-weight:500;color:#000">MCP tool call</b> for your AI agent, or a <b style="font-weight:500;color:#000">live WebSocket</b> for your dashboard. Median end-to-end latency on testnet is <span style="color:#000">~&nbsp;830&nbsp;ms</span>, typically under a second. No polling, no indexer, no glue code.</p>
         <div style="margin-top:44px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <a href="/app" style="text-decoration:none;background:#bcfc07;color:#000;padding:18px 28px;font:500 16px 'Casper Sans',Inter;display:inline-flex;align-items:center;gap:10px;border:1px solid #000">Open the app <span style="font-size:18px;line-height:1">→</span></a>
           <button id="tour-open" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:18px 24px;font:500 16px 'Casper Sans',Inter;cursor:pointer;display:inline-flex;align-items:center;gap:10px">▶ Watch a 30-second tour</button>
@@ -1007,6 +1007,35 @@
     </div>
   </section>
 
+  <!-- ============ DELIVERY GUARANTEES ============ -->
+  <section id="delivery" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:88px 32px">
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#bcfc07;display:inline-flex;align-items:center;gap:10px">
+        <span style="width:24px;height:1px;background:#bcfc07"></span>DELIVERY GUARANTEES
+      </div>
+      <h2 style="margin:16px 0 0;font:500 clamp(30px,3.6vw,48px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff;max-width:760px">Speed is half the product. Getting the event to you is the other half.</h2>
+      <div style="margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #222">
+        <div style="padding:26px 24px;border-right:1px solid #222">
+          <div style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">RETRIES</div>
+          <div style="margin-top:12px;font:400 14px/1.55 'Casper Sans',Inter;color:#ccc">Three attempts with backoff (1s, 4s, 16s) before a POST is marked failed.</div>
+        </div>
+        <div style="padding:26px 24px;border-right:1px solid #222">
+          <div style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">SIGNED</div>
+          <div style="margin-top:12px;font:400 14px/1.55 'Casper Sans',Inter;color:#ccc">HMAC-SHA256 on every POST, so you can reject anything not from Sluice.</div>
+        </div>
+        <div style="padding:26px 24px;border-right:1px solid #222">
+          <div style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">IDEMPOTENT</div>
+          <div style="margin-top:12px;font:400 14px/1.55 'Casper Sans',Inter;color:#ccc">A stable key per delivery, so a retry never double-counts on your side.</div>
+        </div>
+        <div style="padding:26px 24px">
+          <div style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">REPLAY</div>
+          <div style="margin-top:12px;font:400 14px/1.55 'Casper Sans',Inter;color:#ccc">Re-send recent deliveries on demand, with no new on-chain cost.</div>
+        </div>
+      </div>
+      <p style="margin:24px 0 0;font:400 14px/1.65 'Casper Sans',Inter;color:#888;max-width:760px">On the roadmap, and honestly not in v0.1: a durable at-least-once queue that survives a matcher restart and auto-redelivers once your endpoint recovers. That gap is the line between a demo and production, and we would rather name it than hide it.</p>
+    </div>
+  </section>
+
   <!-- ============ V0.1 LIMITS ============ -->
   <section style="background:#f4f4f4;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
@@ -1022,17 +1051,17 @@
           <div style="padding:28px 28px;border-right:1px solid #000;border-bottom:1px solid #000;background:#bcfc07">
             <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">▸ HERE TODAY</div>
             <ul style="margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#000">
-              <li>· Predicate · AND only · 8 conditions max</li>
-              <li>· Webhook · 3 retries · idempotency keys</li>
-              <li>· MCP server · Claude Code &amp; Codex tested</li>
-              <li>· CLI · REST · TS SDK</li>
+              <li>· Predicate · AND + nested OR · 32 conditions</li>
+              <li>· Webhook · 3 retries · HMAC · idempotency · replay</li>
+              <li>· MCP server · any MCP client</li>
+              <li>· CLI · REST · TS &amp; Python SDK</li>
             </ul>
           </div>
           <div style="padding:28px 28px;border-bottom:1px solid #000">
             <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">↗ COMING · Q3</div>
             <ul style="margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#333">
-              <li>· OR / nested predicates</li>
-              <li>· Replay missed events on top-up</li>
+              <li>· Durable at-least-once queue</li>
+              <li>· Wallet-native subscribe</li>
               <li>· SSE alternative to webhook</li>
               <li>· Rust SDK</li>
             </ul>

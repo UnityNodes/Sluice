@@ -13,7 +13,7 @@ Live today on testnet:
 - Three delivery channels from one subscription: HMAC-signed webhook, MCP tool call, live WebSocket (`/api/stream`).
 - MCP stdio server and hosted Streamable-HTTP server. 5 tools, 4 resources, 2 prompts.
 - Predicate language: JSON, AND-of-conditions with nested OR groups and parens, 12 operators, plain-English AI parser (rule-based, no LLM, under 5 ms).
-- On-chain billing: every successful delivery calls `record_delivery`. Median end-to-end ~830 ms.
+- On-chain billing: every successful delivery calls `record_delivery`. Median end-to-end ~830 ms on testnet.
 - Web workspace, CLI, self-host installer, Docker stack, Prometheus + Grafana, TypeScript and Python client libraries.
 
 Honest limits: testnet only, no dead-letter queue, in-memory delivery ring buffer, no production SLAs, wallet-native subscribe not yet wired. Full list in `docs/HONEST_LIMITS.md`.
@@ -36,6 +36,7 @@ Close the gaps that block a smooth developer experience.
 Go to mainnet and make the economics real.
 
 - **Mainnet contract.** Production deployment of `SubscriptionRegistry` with the redesigned `TransactionV1` flow.
+- **Free tier for entry.** A no-cost daily allowance of deliveries so developers can build against mainnet before paying anything, the way Alchemy and Helius win adoption. Self-host stays free and open source; prepaid escrow is only the hosted, high-volume path.
 - **Volume pricing tiers.** Per-delivery escrow rate that steps down as monthly volume grows, so high-throughput protocols pay less per event.
 - **Dead-letter queue.** Failed deliveries after retry exhaustion land in a durable queue with a replay endpoint, so no match is silently lost.
 - **x402 metered tier.** An optional pay-per-delivery path via x402 for callers who prefer metered billing over prepaid CSPR escrow.

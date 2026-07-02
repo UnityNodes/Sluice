@@ -27,12 +27,12 @@ Ethereum has Alchemy webhooks. Solana has Helius. Casper had nothing. **Sluice f
 ## How it works
 
 <p align="center">
-  <img src="https://sluice.unitynodes.com/pipeline.svg" alt="Sluice pipeline. Casper events, then JSON predicate, then your webhook, then on-chain receipt. End-to-end 830 ms." width="900">
+  <img src="https://sluice.unitynodes.com/pipeline.svg" alt="Sluice pipeline. Casper events, then JSON predicate, then your webhook, then on-chain receipt. End-to-end median about 830 ms on testnet." width="900">
 </p>
 
 1. **Write a rule.** JSON predicate. "Any transfer to my address over 5000 CSPR."
 2. **Prepay in CSPR.** Locked into the on-chain escrow contract. Each webhook delivery costs a fraction of a CSPR.
-3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in about 830 ms.
+3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in about 830 ms (median, measured on testnet).
 4. **Every delivery is written on chain.** The contract itself emits `record_delivery`. Your bill is an auditable ledger on cspr.live, not a monthly invoice we made up.
 
 Cancel any time. Remaining CSPR is refunded to your wallet.
@@ -69,7 +69,7 @@ sluice subscribe \
   --amount 10 --watch
 ```
 
-`--watch` waits until the contract emits SubscriptionCreated, then tails deliveries for you. Every match shows up in webhook.site within about 830 ms of the block landing.
+`--watch` waits until the contract emits SubscriptionCreated, then tails deliveries for you. Every match shows up in webhook.site within about a second of the block landing (median ~830 ms on testnet).
 
 ### With Claude Code (no signup)
 
@@ -222,6 +222,22 @@ Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Predicate: fuzzed against the CSPR.cloud transfer schema in `matcher/tests/predicate.test.ts`.
 
 Run the full suite with `cd matcher && npm test`.
+
+## Delivery guarantees
+
+Speed is only half the product. The other half is making sure a match actually reaches you, even when your endpoint has a bad moment.
+
+Guaranteed today:
+- **Retries with backoff.** A failed webhook is retried 3 times (1s, 4s, 16s) before it is marked failed.
+- **Signed payloads.** Every POST carries `X-Sluice-Signature: sha256=<hmac>` when a secret is set, so you can reject anything that is not from Sluice.
+- **Idempotency keys.** Each delivery carries a stable key, so a retry never double-counts on your side.
+- **Manual replay.** `sluice replay-last <id>` re-sends the most recent deliveries with no new on-chain cost.
+
+On the roadmap, and honestly not in v0.1:
+- **Durable at-least-once queue.** Deliveries survive a matcher restart and auto-redeliver once your endpoint recovers.
+- **Dead-letter handling** for endpoints that stay down past the retry window.
+
+That gap is the line between a demo and a service you trust in production. We would rather name it than pretend it is closed.
 
 ## Honest v0.1 limits
 
