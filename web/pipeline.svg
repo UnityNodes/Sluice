@@ -18,10 +18,9 @@
   <!-- Paper -->
   <rect width="1200" height="460" fill="#f4f4f4"/>
 
-  <!-- Header block -->
-  <g transform="translate(64,60)">
-    <text font-size="12" fill="#666" letter-spacing="3">02 · HOW IT WORKS</text>
-    <text y="42" font-family="'Casper Sans', Inter, system-ui, sans-serif" font-size="26" font-weight="500" letter-spacing="-0.5" fill="#000">
+  <!-- Caption (the section eyebrow lives in the page, not here) -->
+  <g transform="translate(64,96)">
+    <text font-family="'Casper Sans', Inter, system-ui, sans-serif" font-size="26" font-weight="500" letter-spacing="-0.5" fill="#000">
       Casper events. JSON rule. Your webhook. On-chain receipt.
     </text>
   </g>
@@ -59,12 +58,12 @@
 
   <!-- Fork wires 2a and 2b -->
   <g>
-    <!-- 2a. matcher -> webhook (top branch) -->
+    <!-- 2a. matcher -> webhook (top branch); label sits clear above the wire -->
     <path id="wire2a" d="M 736 240 Q 840 240 880 200" fill="none" stroke="url(#pipe-line)" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-    <text x="808" y="220" text-anchor="middle" font-size="10" letter-spacing="2" fill="#666">HTTPS POST · 200 OK</text>
-    <!-- 2b. matcher -> on-chain (bottom branch) -->
+    <text x="800" y="210" text-anchor="middle" font-size="10" letter-spacing="1" fill="#666">HTTPS POST</text>
+    <!-- 2b. matcher -> on-chain (bottom branch); label sits clear below the wire -->
     <path id="wire2b" d="M 736 280 Q 840 280 880 320" fill="none" stroke="url(#pipe-line)" stroke-width="1.4" marker-end="url(#arrowhead)"/>
-    <text x="808" y="308" text-anchor="middle" font-size="10" letter-spacing="2" fill="#666">RECORD_DELIVERY</text>
+    <text x="800" y="314" text-anchor="middle" font-size="10" letter-spacing="1" fill="#666">RECORD_DELIVERY</text>
   </g>
 
   <!-- ================================================================== -->
