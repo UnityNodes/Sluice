@@ -74,7 +74,7 @@ Pairs natively with x402 for pay-per-delivery. It composes with the ecosystem, i
 
 ### 6/ (CTA)
 
-Of 77 buildathon BUIDLs, we're the only push-based event service.
+As far as we can tell, we are the only push-based event service in the buildathon.
 
 Live on testnet. MIT-licensed. No signup to try.
 

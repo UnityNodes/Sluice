@@ -12,7 +12,7 @@ Casper's AI Toolkit lets agents query state, trade, and pay per call, but there 
 
 ## Why vote for us
 
-- **We built the one primitive nobody else did.** Of 77 buildathon BUIDLs, zero others ship a push-based event service. Sluice is it.
+- **We built the one primitive nobody else did.** We could not find another push-based event service in the buildathon. Sluice is it.
 - **It's live on testnet, not a mockup.** Contract, matcher, MCP servers, web app, CLI. You can subscribe right now and watch a real event land.
 - **On-chain billing you can audit.** Every delivery calls `record_delivery` on-chain, so your bill is a ledger on cspr.live, not a number we made up.
 - **It makes Casper the easy chain to build agents on.** From a multi-week indexer to one MCP install. That helps every other builder in the ecosystem, not just us.

@@ -1,6 +1,6 @@
 # HONEST_LIMITS
 
-These limits ship verbatim in `README.md`. They exist because a payments-savvy reviewer will catch any overclaiming, and shipping known caveats is much cheaper than fielding objections during judging.
+These limits are summarized in `README.md`. They exist because a payments-savvy reviewer will catch any overclaiming, and shipping known caveats is much cheaper than fielding objections during judging.
 
 ---
 
@@ -10,7 +10,7 @@ These limits ship verbatim in `README.md`. They exist because a payments-savvy r
 
 3. **Predicate eval is O(N_subscriptions) per event.** The demo is bounded to ≤100 subs; production shards by predicate key (e.g. `to_account_hash` index) so unrelated subscribers don't pay each other's CPU.
 
-4. **Event coverage day-1: Transfer only.** Deploy/Balance/Contract/NFT events are on the v0.2 roadmap. Validator-skip and governance are *derived* events (synthesise from Block + active validator set), Phase 2 work.
+4. **Event coverage: native Transfer plus CES contract events** (the latter via `SLUICE_WATCH_CONTRACTS`). Deploy, Balance, and NFT event types are on the roadmap. Validator-skip and governance are *derived* events (synthesise from Block + active validator set), Phase 2 work.
 
 5. **Filter coverage: subscriber-defined predicates evaluated off-chain.** CSPR.cloud Streaming only supports `account_hash`/`public_key` filtering server-side; everything else (amount, contract args, direction, custom fields) runs in our matcher's predicate engine. This is intentional, defining the filter language is the differentiation.
 

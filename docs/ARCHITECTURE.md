@@ -18,10 +18,10 @@
             ┌─────────────────────────▼─────────────────────────────────────┐│
             │  Matcher (Node 20, stateless except for in-mem subs cache)    ││
             │                                                               ││
-            │   1. WS  wss://streaming.testnet.cspr.cloud/transfer  ◀───┐   ││
+            │   1. WS  wss://streaming.testnet.cspr.cloud/transfers ◀───┐   ││
             │      (every Transfer event, env { action, data, … })     │   ││
             │   2. for each event, eval against every active sub       │   ││
-            │      (AND-of-fields, 6 ops, dot.notation field access)   │   ││
+            │      (AND plus nested OR, 12 ops, dot.notation field access)   │   ││
             │   3. on match → POST webhook (retries, SSRF-guarded) ────┼───┼┘
             │   4. then → record_delivery(id, event_hash) on-chain     │   │
             │   5. periodically reload active subs from contract state │   │
@@ -67,7 +67,7 @@ The matcher is the *execution engine*. WebSocket parsing, predicate evaluation, 
 - Matcher cursor / backfill (at-most-once on matcher restart). Phase 2.
 - `gas_reimbursement` field deducted from subscriber's escrow per `record_delivery`. Phase 2.
 - Predicate sharding (current eval is O(N_subscriptions) per event). Phase 3.
-- Multi-event coverage beyond Transfer (Deploy, Balance, Contract, derived validator-skip). Phase 2.
+- Broader event coverage beyond native Transfer and CES contract events (Deploy, Balance, NFT, derived validator-skip). Phase 2.
 - Restricted `record_delivery` (currently anyone-callable for demo). Phase 2.
 
-See [HONEST_LIMITS.md](./HONEST_LIMITS.md) for the verbatim list shipped in the submission README.
+See [HONEST_LIMITS.md](./HONEST_LIMITS.md) for the full list of v0.1 limits.

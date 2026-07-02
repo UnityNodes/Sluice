@@ -38,7 +38,7 @@ The Casper AI Toolkit ships three primitives that let an agent *act* on chain:
 2. **Trades** via the CSPR.trade MCP.
 3. **Pay-per-call** via x402.
 
-The fourth one was missing: **events**. To *react* to chain activity, an agent has to poll, stand up its own indexer, or hand-roll a WebSocket consumer over the CSPR.cloud stream. That is a multi-week side quest before any real agent logic gets written. Of the 77 BUIDLs in this buildathon, zero others ship a push-based event service. Ethereum has Alchemy webhooks. Solana has Helius. Casper had nothing. Sluice fills that gap.
+The fourth one was missing: **events**. To *react* to chain activity, an agent has to poll, stand up its own indexer, or hand-roll a WebSocket consumer over the CSPR.cloud stream. That is a multi-week side quest before any real agent logic gets written. We could not find another push-based event service in the buildathon. Ethereum has Alchemy webhooks. Solana has Helius. Casper had nothing. Sluice fills that gap.
 
 ### The solution
 
@@ -127,7 +127,7 @@ Q3 2026: wallet-native subscribe via `TransactionV1`, historical replay, SSE, Ru
 | Criterion | Concrete evidence |
 | --- | --- |
 | **Technical Execution** | Live testnet contract (Odra 2.8) plus TypeScript matcher, MCP servers, CLI, web app, client libraries, Docker stack, and Prometheus metrics. Median ~830 ms end-to-end, measured. On-chain `record_delivery` receipt for every delivery. |
-| **Innovation & Originality** | The only push-based event service in the buildathon (0 of 77 others ship one). Named and fills the missing 4th primitive of the Casper AI Toolkit. |
+| **Innovation & Originality** | As far as we can tell, the only push-based event service in the buildathon. Named and fills the missing 4th primitive of the Casper AI Toolkit. |
 | **Use of AI / Agentic Systems** | Two shipped agent loops (agentic-yield-router, multi-agent-dao). MCP delivery channel lets an agent receive an event and act without glue code. Plain-English predicate parser turns "whales over 100k CSPR" into JSON. |
 | **Real-World Applicability (DeFi & RWA)** | DeFi: liquidation alerts, yield-change triggers, whale-swap monitoring. RWA: compliance-token revocation events, oracle-update triggers. Sluice is infrastructure protocols build on. |
 | **UX & Design** | `/app` workspace: visual predicate builder, plain-English input, dry-run sandbox that fires real webhooks, click-to-explain on every delivery. No signup. |

@@ -12,7 +12,7 @@ with no human in the loop: it discovers what an event feed costs, pays a
 micropayment per delivery, and reacts, end to end, machine to machine.
 
 > **Status:** the Casper x402 **facilitator** (verify + on-chain settlement)
-> launches **June 2026**. The runnable example in
+> becomes available. The runnable example in
 > [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/)
 > implements the full HTTP 402 challenge → pay → retry flow with the payment
 > **signing and verification clearly stubbed**. This doc describes the target
@@ -85,7 +85,7 @@ half-autonomous, and vice-versa. Pairing them unlocks self-directed workflows:
 | Phase | State | What lands |
 |---|---|---|
 | **1, Shape** | ✅ done | 402 challenge → pay → retry flow, nonce/replay handling, ledger, escrow-vs-x402 model. Signing + verification **stubbed**. See the example dir. |
-| **2, Facilitator wiring** | ⏳ June 2026 | Replace `verifyPaymentStub()` (receiver) and `signPayment()` (payer) with real Casper x402 facilitator calls. Real settlement receipts / tx hashes. |
+| **2, Facilitator wiring** | ⏳ pending facilitator | Replace `verifyPaymentStub()` (receiver) and `signPayment()` (payer) with real Casper x402 facilitator calls. Real settlement receipts / tx hashes. |
 | **3, Native Sluice option** | planned | `x402` as a first-class billing mode on a Sluice subscription, alongside escrow, pick per subscription. |
 | **4, Price discovery** | planned | Publishers advertise per-feed pricing; agents negotiate escrow vs x402 automatically based on projected volume. |
 

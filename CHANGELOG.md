@@ -12,7 +12,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 - Webhook dispatcher: HTTP POST + 3-retry exponential backoff (1s/4s/16s), HMAC-SHA256 signing via `X-Sluice-Signature: sha256=<hex>` when `SLUICE_WEBHOOK_SECRET` is set, SSRF guard against private CIDR ranges.
 
 ### Added: clients & SDKs
-- `sluice` CLI (Node, 11 commands): `subscribe`, `subscribe --watch`, `cancel`, `top-up`, `list`, `watch`, `tail`, `replay-last`, `doctor`, `repl`, `sandbox`, `completion`.
+- `sluice` CLI (Node, 11 commands): `subscribe`, `list`, `cancel`, `tail`, `watch`, `replay-last`, `sandbox`, `doctor`, `ai`, `repl`, `completion`.
 - `@sluice/client` TypeScript npm package, fetch-based, zero runtime deps; optional `ws` peer for Node < 22. Subpath `./middleware` ships Express + Fastify HMAC verifiers.
 - `sluice-client` Python package, stdlib-only HTTP, optional `[stream]` extra for WebSocket. Includes `verify_hmac_signature` / `compute_signature` receiver helpers.
 - `sluice-mcp` MCP server, 5 tools (`subscribe_to_events`, `list_subscriptions`, `cancel_subscription`, `recent_deliveries`, `sluice_sandbox_dispatch`). Stdio transport for Claude Code, Codex, Continue.
@@ -52,7 +52,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 - JSON Schema for predicates at [/schema/predicate-v1.json](https://sluice.unitynodes.com/schema/predicate-v1.json) for IDE autocomplete
 
 ### Tests
-52 Jest tests across the predicate engine (12 operators × edge cases), HMAC signing/verification, webhook retry semantics, and real-event regressions.
+69 Jest tests across the predicate engine (12 operators × edge cases), contract-event matching, HMAC signing/verification, webhook retry semantics, and real-event regressions.
 
 ### Known limits (v0.1)
 Documented honestly in [docs/HONEST_LIMITS.md](docs/HONEST_LIMITS.md):

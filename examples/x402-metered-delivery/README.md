@@ -32,7 +32,7 @@ decrements per delivery), this endpoint charges **pay-as-you-go** over HTTP 402.
 ```
 
 > ⚠️ **Honesty first.** The Casper x402 **facilitator** (the service that
-> verifies a signed payment and settles it on-chain) launches **June 2026**.
+> verifies a signed payment and settles it on-chain) becomes available.
 > Until then, both the payment **signing** (in `payer.js`) and the payment
 > **verification/settlement** (in `receiver.js`) are **clearly-labeled STUBS**.
 > They validate structure and shape, not on-chain fund movement. **No real CSPR
@@ -147,7 +147,7 @@ been paid for?"*, the HMAC answers *"did Sluice really send this body?"*.
 
 ## Wiring the real Casper x402 facilitator
 
-When the Casper x402 facilitator ships (June 2026, see
+When the Casper x402 facilitator ships (when it ships, see
 <https://www.casper.network/ai>), replace the two stubs:
 
 1. **Receiver, `verifyPaymentStub()` in `receiver.js`.** Swap the structural

@@ -23,7 +23,7 @@ Runnable integrations and predicate fixtures for Sluice.
 ## whale-transfers.json
 Matches every Transfer with `amount >= 10 000 CSPR` (10,000 · 10⁹ motes). Drop-in for `sluice subscribe --predicate examples/whale-transfers.json`.
 
-## transfer-event.json *(generated on Day 0)*
+## transfer-event.json
 A real CSPR.cloud Streaming Transfer event captured by `scripts/dump-ws-sample.js`. Used as a ground-truth fixture for predicate tests; do **not** edit by hand.
 
 ## Predicate shape
@@ -37,4 +37,4 @@ A real CSPR.cloud Streaming Transfer event captured by `scripts/dump-ws-sample.j
 }
 ```
 
-Operators: `eq`, `neq`, `gt`, `gte`, `lt`, `lte`. Numeric strings compare as bigints; everything else compares as strings. Field paths support dot-notation (e.g. `extra.tag`).
+Operators: `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `contains`, `starts_with`, `ends_with`, `in`, `not_in`, `regex` (12 total). Numeric strings compare as bigints; everything else compares as strings. Field paths support dot-notation (e.g. `extra.tag`).

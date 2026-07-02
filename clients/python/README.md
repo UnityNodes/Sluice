@@ -49,7 +49,7 @@ if not verify_hmac_signature(raw_body, request.headers["X-Sluice-Signature"], SE
     return Response(status=401)
 ```
 
-Works in FastAPI / Flask / Django, wherever you have access to the raw bytes (FastAPI: `request = await request.body()`; Flask: `request.get_data(cache=True, as_text=False)`).
+Works in FastAPI / Flask / Django, wherever you have access to the raw bytes (FastAPI: `raw = await request.body()`; Flask: `request.get_data(cache=True, as_text=False)`).
 
 ## Self-host
 

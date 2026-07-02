@@ -13,13 +13,15 @@
 
 set -euo pipefail
 
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
 DEX_PACKAGE="${DEX_PACKAGE:-ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7}"
 # Default to the subscriber key: it carries the demo-swap budget and keeps the
 # matcher key free for its real job (record_delivery on genuine subscriptions).
-KEY="${DEMO_SWAP_KEY:-/root/Sluice/keys/subscriber/secret_key.pem}"
+KEY="${DEMO_SWAP_KEY:-$REPO_DIR/keys/subscriber/secret_key.pem}"
 NODE="${SLUICE_NODE_RPC_URL:-https://node.testnet.casper.network/rpc}"
 CHAIN="${SLUICE_CHAIN_NAME:-casper-test}"
-CC="${CASPER_CLIENT_BIN:-/home/claude/.cargo/bin/casper-client}"
+CC="${CASPER_CLIENT_BIN:-$HOME/.cargo/bin/casper-client}"
 
 AMOUNT_CSPR="${1:-500000}"
 TOKEN_IN="${2:-CSPR}"

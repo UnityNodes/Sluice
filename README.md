@@ -42,7 +42,7 @@ Cancel any time. Remaining CSPR is refunded to your wallet.
 | Piece | What it does |
 |---|---|
 | **Matcher** | Watches CSPR.cloud streaming WebSocket. Evaluates predicates. Dispatches webhooks with HMAC signature and idempotency key. Records deliveries on chain. |
-| **`sluice` CLI** | `subscribe`, `list`, `cancel`, `top-up`, `tail`, `doctor`, `ai`, `repl`. One binary, works against any deployed contract. |
+| **`sluice` CLI** | `subscribe`, `list`, `cancel`, `tail`, `watch`, `replay-last`, `sandbox`, `doctor`, `ai`, `repl`. One binary, works against any deployed contract. |
 | **MCP server (stdio)** | 5 tools, 4 resources, 2 prompts. Open standard, so any MCP client works: Claude, Cursor, Windsurf, Cline, VS Code, Codex. `npm i -g @sluice/mcp`. |
 | **Hosted MCP (HTTP)** | Zero install, one URL for any client: `https://sluice.unitynodes.com/mcp`. Per-client setup in [docs/MCP_CLIENTS.md](docs/MCP_CLIENTS.md). |
 | **Web workspace** | Live subscription table, visual builder with plain-English AI parser, sandbox that fires real webhooks, rolling activity feed with click-to-explain. |
@@ -64,7 +64,7 @@ export SLUICE_NODE_RPC_URL=https://node.testnet.casper.network/rpc
 
 # 3. Grab a free webhook URL from https://webhook.site and subscribe
 sluice subscribe \
-  --predicate ./examples/whale.json \
+  --predicate ./examples/whale-transfers.json \
   --webhook https://webhook.site/<your-uuid> \
   --amount 10 --watch
 ```
@@ -207,7 +207,7 @@ Every line above is a real log. Tx-hash prefixes match the ones on cspr.live for
                              └─────────────────┘
 ```
 
-- **Contract** ([contract/](contract/)). Rust + Casper Odra 2.8. Holds subscriptions, tracks escrow balance, emits `SubscriptionCreated / SubscriptionCancelled / DeliveryRecorded` events.
+- **Contract** ([contract/](contract/)). Rust + Casper Odra 2.8. Holds subscriptions, tracks escrow balance, emits `SubscriptionCreated / SubscriptionCancelled / DeliveryRecorded / ToppedUp` events.
 - **Matcher** ([matcher/](matcher/)). Node 20 + TypeScript. Subscribes to the CSPR.cloud transfer WebSocket. Evaluates predicates. Dispatches webhooks with `X-Sluice-Idempotency-Key` and `X-Sluice-Signature` (HMAC-SHA256). Retries with exponential backoff. Records delivery on chain via signed deploy.
 - **MCP** ([mcp/](mcp/)). stdio server + Streamable HTTP server. 5 tools, 4 resources, 2 prompts.
 - **Web** ([web/](web/)). Static HTML + vanilla JS. Landing, `/app` workspace, `/status`, `/feed`, hosted receiver at `/h/<slug>`.
@@ -273,7 +273,7 @@ X-Sluice-Idempotency-Key: <sha256-of-event-payload>
 X-Sluice-Sub-Id: <subscription-id>
 ```
 
-Verify the signature server-side with a shared secret you set when you subscribed. Full snippets for Node, Python, Go, and Rust in [docs/HMAC_VERIFY.md](docs/HMAC_VERIFY.md). Drop-in middleware for Express and Fastify in [clients/typescript/hmac/](clients/typescript/hmac/).
+Verify the signature server-side with a shared secret you set when you subscribed. Full snippets for Node, Python, Go, and Rust in [docs/HMAC_VERIFY.md](docs/HMAC_VERIFY.md). Drop-in middleware for Express and Fastify ships as the `@sluice/client` middleware ([clients/typescript/src/middleware.ts](clients/typescript/src/middleware.ts)).
 
 ## Prometheus and Grafana
 

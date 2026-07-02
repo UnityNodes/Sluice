@@ -6,7 +6,7 @@
 # so scheduled demo swaps can never starve the key that records real deliveries.
 #
 # Enable (every 30 minutes):
-#   (crontab -l 2>/dev/null; echo "*/30 * * * * /root/Sluice/scripts/demo-swap-cron.sh >> /tmp/demo-swap-cron.log 2>&1") | crontab -
+#   (crontab -l 2>/dev/null; echo "*/30 * * * * /path/to/Sluice/scripts/demo-swap-cron.sh >> /tmp/demo-swap-cron.log 2>&1") | crontab -
 # Disable:
 #   crontab -l | grep -v demo-swap-cron.sh | crontab -
 

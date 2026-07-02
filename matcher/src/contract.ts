@@ -27,18 +27,14 @@ export class CsprCloudStateReader implements ContractStateReader {
   ) {}
 
   /**
-   * Pulls all active subscriptions from the CSPR.cloud REST API.
-   *
-   * In v0.1 we lean on contract-emitted events (SubscriptionCreated) accessible
-   * via /events endpoints. Subscription state is then derived locally.
-   *
-   * Until the exact REST path is confirmed (Day-0 task), this is a stub that
-   * returns the demo-test fixtures.
-   *
-   * TODO(day-1): swap to actual cspr.cloud event list call.
+   * REST-based subscription loader. The running matcher does not use this path:
+   * it derives subscription state from SubscriptionCreated events via the
+   * event-sourced reader in index.ts (and the injected-subscription reader for
+   * demos). This REST loader is kept as a simple fallback and returns the demo
+   * fixtures rather than calling a REST endpoint.
    */
   async loadActiveSubscriptions(): Promise<Subscription[]> {
-    // Quiet unused-var warnings until we wire the REST call.
+    // Fields are unused in this fallback path; reference them to satisfy the linter.
     void this.baseUrl;
     void this.contractHash;
     void this.authToken;

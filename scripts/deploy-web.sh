@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Syncs /root/Sluice/web → /var/www/sluice and reloads Caddy.
+# Syncs web/ to /var/www/sluice and reloads Caddy.
 # Use after changing the landing or app HTML.
 #
 #   sudo scripts/deploy-web.sh
