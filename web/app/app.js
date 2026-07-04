@@ -31,7 +31,7 @@
   // CSPR.click app id, register one for this origin at https://console.cspr.build .
   // While empty, the dashboard uses the direct Casper Wallet provider (no CSPR.click
   // load), so connect keeps working; set this to activate multi-wallet + social login.
-  const CSPRCLICK_APP_ID = '';
+  const CSPRCLICK_APP_ID = 'f3f81255-ff8d-458e-b844-68440025';
 
   /* ─────────────────── helpers ─────────────────── */
   const $ = (sel, root = document) => root.querySelector(sel);
