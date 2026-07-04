@@ -219,7 +219,7 @@ Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Matcher: 69 Jest tests. `cd matcher && npm test`.
 - Contract: 6 wasm integration tests. `cd contract && cargo test`.
 - MCP: end-to-end smoke via `docs/sluice.postman_collection.json`.
-- Predicate: fuzzed against the CSPR.cloud transfer schema in `matcher/tests/predicate.test.ts`.
+- Predicate: fuzzed against the CSPR.cloud transfer schema in `matcher/test/predicate.test.ts`.
 
 Run the full suite with `cd matcher && npm test`.
 
@@ -261,7 +261,7 @@ Vote with usage. Roadmap tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 - **TypeScript / Node**: [`@sluice/client`](clients/typescript/) on npm. `npm i @sluice/client`.
 - **Python**: [`sluice-client`](clients/python/) on PyPI. `pip install sluice-client`.
-- **VS Code extension**: [clients/vscode/](clients/vscode/). Status bar shows live matcher block height; command palette gives one-key access to `sluice subscribe`, `list`, `tail`, `doctor`.
+- **VS Code extension**: [clients/vscode/](clients/vscode/). Status bar shows live active/total subscription count and total deliveries; command palette gives one-key access to `sluice subscribe`, `list`, `tail`, `doctor`.
 
 ## HMAC webhook verification
 

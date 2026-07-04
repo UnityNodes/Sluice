@@ -12,7 +12,7 @@ with no human in the loop: it discovers what an event feed costs, pays a
 micropayment per delivery, and reacts, end to end, machine to machine.
 
 > **Status:** the Casper x402 **facilitator** (verify + on-chain settlement)
-> becomes available. The runnable example in
+> is **not yet publicly available**. The runnable example in
 > [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/)
 > implements the full HTTP 402 challenge → pay → retry flow with the payment
 > **signing and verification clearly stubbed**. This doc describes the target

@@ -3,7 +3,7 @@
 //
 //   SLUICE_CSPR_CLOUD_TOKEN=<token> node scripts/dump-ws-sample.js
 //
-// Used once on Day 0 to capture the real payload schema before writing predicates.
+// Run once to capture the real CSPR.cloud payload schema into examples/transfer-event.json.
 
 const fs = require('node:fs');
 const path = require('node:path');

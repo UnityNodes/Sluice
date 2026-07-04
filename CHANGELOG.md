@@ -52,7 +52,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 - JSON Schema for predicates at [/schema/predicate-v1.json](https://sluice.unitynodes.com/schema/predicate-v1.json) for IDE autocomplete
 
 ### Tests
-69 Jest tests across the predicate engine (12 operators × edge cases), contract-event matching, HMAC signing/verification, webhook retry semantics, and real-event regressions.
+74 Jest tests across the predicate engine (12 operators × edge cases, regex ReDoS guard), contract-event matching, idempotency-key uniqueness, HMAC signing/verification, webhook retry semantics, and real-event regressions.
 
 ### Known limits (v0.1)
 Documented honestly in [docs/HONEST_LIMITS.md](docs/HONEST_LIMITS.md):

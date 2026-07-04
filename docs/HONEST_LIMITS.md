@@ -24,6 +24,8 @@ These limits are summarized in `README.md`. They exist because a payments-savvy 
 
 10. **The dashboard is read-only in v0.1; every mutation is CLI- or MCP-driven.** Odra `#[odra(payable)]` entry-points compile to a two-step calling convention: the caller creates a temporary purse, funds it, then calls the contract with that purse URef as a `__cargo_purse` argument. Casper Wallet's single-`sign()` signs one `TransactionV1` at a time and can't drive that, so for v0.1 we chose to ship a clean read-only dashboard rather than a half-functional wallet panel. The "+ New subscription", "Top-up", and "Cancel" modals copy the equivalent `sluice …` CLI command (and a Claude Code MCP prompt). The matcher API endpoints (`/api/tx/build/*`, `/api/tx/submit`) stay live, verified end-to-end with the subscriber key during development, so the dashboard's wallet-sign path can be turned back on with no chain or server changes once a contract redesign (v0.2) lifts the cargo-purse arg.
 
+11. **The public API is rate-limited, not authenticated.** The demo dashboard is meant to be usable by anyone without a login, so the matcher's HTTP API stays open and applies a per-IP rate limit (`SLUICE_API_RATE_LIMIT`, default 60/min) rather than requiring a token. Outbound webhook dispatch (including the sandbox and replay tools) runs through an SSRF guard that resolves the target once, rejects private/link-local/loopback ranges, and pins the connection to the validated IP. A hosted production tier would put a real auth boundary in front of the side-effecting routes; that is a deployment posture, not a code change.
+
 ---
 
 If you spot something else worth disclosing, file an issue and label it `honest-limits`.
