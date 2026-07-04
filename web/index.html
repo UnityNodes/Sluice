@@ -723,7 +723,7 @@
           <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">Try it now · no wallet, no signup</div>
           <h2 style="margin:18px 0 0;font:500 clamp(34px,4.4vw,56px)/1.04 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">Evaluate Sluice in 60 seconds.</h2>
         </div>
-        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:360px">Three things you can do right now against the live testnet contract. None of them need a wallet or an account.</p>
+        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:360px">Four things you can do right now against the live testnet contract, including a real x402 payment. None of them need a wallet or an account.</p>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
         <a href="#hero-ai" style="text-decoration:none;background:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #bcfc07'" onmouseout="this.style.transform='';this.style.boxShadow=''">
@@ -754,29 +754,20 @@
           <div style="background:#1a1a1a;border:1px solid #333;padding:10px 12px;font:400 11px/1.4 'JetBrains Mono';color:#bcfc07;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">https://sluice.unitynodes.com/mcp</div>
           <div id="eval-mcp-cta" style="font:500 12px 'JetBrains Mono';color:#bcfc07;align-self:flex-start">⧉ Click to copy the endpoint URL</div>
         </div>
+        <a href="/app" style="text-decoration:none;background:#bcfc07;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #000'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span class="icon-tile" style="background:#000;color:#bcfc07"><svg><use href="#icon-amount"/></svg></span>
+            <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#000">STEP 4 · x402</span>
+          </div>
+          <div style="font:500 20px 'Casper Sans',Inter;color:#000">Pay for an event via x402</div>
+          <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#333;flex:1">Fire a real on-chain micropayment for one matched event through the official Casper x402 facilitator. No wallet, the paying agent runs server-side, and it settles live with a cspr.live transaction.</div>
+          <div style="font:500 12px 'JetBrains Mono';color:#000;border-bottom:1px solid #000;align-self:flex-start;padding-bottom:2px">Fire a live payment →</div>
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- ============ WORKSPACE CTA (replaces playground + demos, both moved into /app) ============ -->
-  <section id="workspace" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
-    <div style="max-width:1320px;margin:0 auto;padding:80px 32px;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:64px;align-items:center">
-      <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;color:#bcfc07;text-transform:uppercase;display:inline-flex;align-items:center;gap:10px">
-          <span style="width:24px;height:1px;background:#bcfc07"></span>WORKSPACE
-        </div>
-        <h2 style="margin:14px 0 0;font:500 clamp(34px,4vw,52px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">Everything actionable lives in the app.</h2>
-        <p style="margin:18px 0 0;font:400 17px/1.6 'Casper Sans',Inter;color:#ccc;max-width:520px">Four tabs, one workspace: live <b style="color:#fff">subscriptions</b>, a visual + plain-English <b style="color:#fff">builder</b>, a no-CSPR <b style="color:#fff">sandbox</b> that fires real webhooks at any URL, and a rolling <b style="color:#fff">activity</b> feed. Nothing else on the landing page. Everything happens in <code style="background:#1a1a1a;color:#bcfc07;padding:2px 6px;font:500 14px 'JetBrains Mono'">/app</code>.</p>
-        <a href="/app" style="margin-top:32px;display:inline-flex;align-items:center;gap:10px;background:#bcfc07;color:#000;text-decoration:none;padding:16px 26px;font:500 16px 'Casper Sans',Inter;border:1px solid #bcfc07">Open the workspace <span style="font-size:18px;line-height:1">→</span></a>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font:500 11px 'JetBrains Mono';color:#ccc;letter-spacing:.04em">
-        <a href="/app#subs"     style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07">SUBSCRIPTIONS</span><span style="color:#aaa">live table · filters · CSV · ⋯ menu</span></a>
-        <a href="/app#build"    style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07;display:inline-flex;align-items:center;gap:8px"><svg width="14" height="14" style="color:#bcfc07"><use href="#icon-sparkle"/></svg> BUILD</span><span style="color:#aaa">visual rules + plain-English → JSON</span></a>
-        <a href="/app#sandbox"  style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07;display:inline-flex;align-items:center;gap:8px"><svg width="14" height="14" style="color:#bcfc07"><use href="#icon-beaker"/></svg> SANDBOX</span><span style="color:#aaa">fire real webhooks · 0 CSPR spent</span></a>
-        <a href="/app#activity" style="background:#1a1a1a;border:1px solid #222;padding:18px 20px;text-decoration:none;color:#fff;display:flex;flex-direction:column;gap:6px"><span style="color:#bcfc07">ACTIVITY</span><span style="color:#aaa">rolling deliveries · status · tx hashes</span></a>
-      </div>
-    </div>
-  </section>
+  
 
   <!-- ============ MCP AGENT DEMO ============ -->
   <section id="mcp-demo" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
