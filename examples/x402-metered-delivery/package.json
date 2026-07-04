@@ -1,15 +1,24 @@
 {
   "name": "@sluice/example-x402-metered-delivery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "x402-gated Sluice webhook receiver: each on-chain event delivery must carry a valid x402 micropayment or it is refused with HTTP 402. Demonstrates machine-to-machine pay-per-delivery as an alternative to pre-locked CSPR escrow.",
-  "main": "receiver.js",
+  "type": "module",
+  "description": "x402-gated Sluice event delivery: each on-chain event delivery must carry a valid x402 micropayment or it is refused with HTTP 402. The real integration settles through the live hosted Casper x402 facilitator; the stub files illustrate the raw protocol with no dependencies.",
+  "main": "x402-receiver.mjs",
   "scripts": {
-    "start": "node receiver.js",
-    "pay": "node payer.js",
+    "start": "node x402-receiver.mjs",
+    "pay": "node x402-payer.mjs",
+    "stub-receiver": "node receiver.js",
+    "stub-payer": "node payer.js",
     "demo": "./demo.sh"
   },
   "dependencies": {
+    "@make-software/casper-x402": "^1.0.0",
+    "@x402/core": "^2.17.0",
+    "@x402/express": "^2.17.0",
+    "@x402/fetch": "^2.17.0",
+    "casper-js-sdk": "^5.0.0",
+    "cors": "^2.8.5",
     "express": "^4.19.0"
   },
   "engines": { "node": ">=20" }

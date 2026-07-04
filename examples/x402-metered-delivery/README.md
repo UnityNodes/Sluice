@@ -9,6 +9,25 @@ request, with cryptographic proof.
 Instead of Sluice's usual model (pre-lock CSPR in an on-chain escrow that
 decrements per delivery), this endpoint charges **pay-as-you-go** over HTTP 402.
 
+## This really works, on-chain, today
+
+`x402-receiver.mjs` and `x402-payer.mjs` are a **real** integration against the
+live hosted Casper x402 facilitator (`https://x402-facilitator.cspr.cloud`,
+part of the [Casper AI Toolkit](https://www.casper.network/ai)) using the
+official [`@make-software/casper-x402`](https://github.com/make-software/casper-x402)
+SDK. A paying agent requests a gated event delivery, signs an EIP-712 payment
+authorization with its Casper key, and the facilitator verifies and **settles
+the payment on-chain**. Proof on testnet:
+
+- **Settlement transaction:** [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5) (success, block 8393413)
+- Payer signs, the facilitator's fee-payer pays gas, and 0.1 SLX moves from payer to payee, all from one HTTP 402 exchange.
+- Payment asset: `Sluice X402 Token (SLX)`, package `220ed4c8…db88b`, an x402-capable CEP-18 (`transfer_with_authorization`) we deployed on testnet.
+
+Run it yourself: `npm install`, copy `.env.sample` to `.env`, fill in your
+CSPR.cloud token and a key holding SLX, then `npm start` (receiver) and
+`npm run pay` (payer). The `receiver.js` / `payer.js` files below are the
+dependency-free **protocol illustration**; the `.mjs` files are the real thing.
+
 ```text
    payer.js                                 receiver.js  (POST /hook)
  ┌──────────┐                              ┌────────────────────────┐
@@ -31,13 +50,12 @@ decrements per delivery), this endpoint charges **pay-as-you-go** over HTTP 402.
  └──────────┘                              └────────────────────────┘
 ```
 
-> ⚠️ **Honesty first.** The Casper x402 **facilitator** (the service that
-> verifies a signed payment and settles it on-chain) becomes available.
-> Until then, both the payment **signing** (in `payer.js`) and the payment
-> **verification/settlement** (in `receiver.js`) are **clearly-labeled STUBS**.
-> They validate structure and shape, not on-chain fund movement. **No real CSPR
-> moves.** Do not deploy this as a live paywall, see *Wiring the real Casper
-> x402 facilitator* below.
+> **Note.** The ASCII flow and the `payer.js` / `receiver.js` files below are a
+> dependency-free illustration of the raw x402 protocol, with the signing and
+> verification shown as labeled STUBS so you can read the shape without any SDK.
+> The **real** integration lives in `x402-receiver.mjs` / `x402-payer.mjs`: it
+> uses the official SDK, settles through the live facilitator, and moves real
+> tokens on-chain (see the settlement transaction above).
 
 ## Run it
 

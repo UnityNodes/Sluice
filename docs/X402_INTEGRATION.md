@@ -17,9 +17,11 @@ micropayment per delivery, and reacts, end to end, machine to machine.
 > SDK, [`@make-software/casper-x402`](https://github.com/make-software/casper-x402),
 > exposing `/verify` and `/settle` behind a CSPR.cloud access token. The runnable
 > example in [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/)
-> implements the full HTTP 402 challenge → pay → retry flow with the payment
-> **signing and verification stubbed**. It predates the public facilitator, so
-> wiring it to the live SDK is the remaining step (Roadmap phase 2 below).
+> is **wired to it for real**: `x402-receiver.mjs` and `x402-payer.mjs` settle a
+> live payment through the hosted facilitator. Proof on testnet:
+> [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5)
+> (a paid Sluice event delivery, settled on-chain). The dependency-free
+> `receiver.js` / `payer.js` remain as a stubbed protocol walkthrough.
 
 ## How the two primitives compose
 
@@ -88,7 +90,7 @@ half-autonomous, and vice-versa. Pairing them unlocks self-directed workflows:
 | Phase | State | What lands |
 |---|---|---|
 | **1, Shape** | ✅ done | 402 challenge → pay → retry flow, nonce/replay handling, ledger, escrow-vs-x402 model. Signing + verification **stubbed**. See the example dir. |
-| **2, Facilitator wiring** | ready to wire | The facilitator is live, so replace `verifyPaymentStub()` (receiver) and `signPayment()` (payer) with the `@make-software/casper-x402` SDK calling `/verify` and `/settle`. Absorb the live wire format: x402 v2, CAIP-2 networks (`casper:casper-test`), a `PAYMENT-SIGNATURE` header, EIP-712 authorization, and CEP-18-token pricing (asset package hash) rather than native motes. Real settlement receipts / tx hashes. |
+| **2, Facilitator wiring** | ✅ done | `x402-receiver.mjs` + `x402-payer.mjs` use the `@make-software/casper-x402` SDK against the live hosted facilitator. A paid Sluice delivery settled on testnet: [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5). Payment is a CEP-18 x402 token (SLX, `220ed4c8…db88b`); the facilitator's fee-payer covers gas. |
 | **3, Native Sluice option** | planned | `x402` as a first-class billing mode on a Sluice subscription, alongside escrow, pick per subscription. |
 | **4, Price discovery** | planned | Publishers advertise per-feed pricing; agents negotiate escrow vs x402 automatically based on projected volume. |
 
