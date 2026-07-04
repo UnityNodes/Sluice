@@ -1,6 +1,6 @@
 # Sluice
 
-[![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-69%2F69%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
+[![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-74%2F74%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
 > Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
@@ -23,6 +23,8 @@ Your options today:
 3. Sit and refresh cspr.live by hand.
 
 Ethereum has Alchemy webhooks. Solana has Helius. Casper had nothing. **Sluice fills the gap.**
+
+Casper's [AI Toolkit](https://www.casper.network/ai) already lets an agent **read** chain state (CSPR.cloud MCP), **act** on it (CSPR.trade MCP), and **pay** per request (x402). The missing primitive is **react**: knowing the instant something happens on chain without polling for it. Sluice is that piece, shipped as the same kind of hosted MCP, so an agent installs one URL and gets matched events pushed to it as tool calls. It composes with the rest of the toolkit rather than competing with it.
 
 ## How it works
 

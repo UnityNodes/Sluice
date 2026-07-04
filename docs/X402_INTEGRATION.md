@@ -11,12 +11,15 @@ payments primitive.** Together they let an agent **subscribe-and-pay-per-event**
 with no human in the loop: it discovers what an event feed costs, pays a
 micropayment per delivery, and reacts, end to end, machine to machine.
 
-> **Status:** the Casper x402 **facilitator** (verify + on-chain settlement)
-> is **not yet publicly available**. The runnable example in
-> [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/)
+> **Status:** the Casper x402 **facilitator** went live in June 2026 as part of
+> the [Casper AI Toolkit](https://www.casper.network/ai). It is hosted at
+> `https://x402-facilitator.cspr.cloud` (mainnet and testnet) with an official
+> SDK, [`@make-software/casper-x402`](https://github.com/make-software/casper-x402),
+> exposing `/verify` and `/settle` behind a CSPR.cloud access token. The runnable
+> example in [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/)
 > implements the full HTTP 402 challenge → pay → retry flow with the payment
-> **signing and verification clearly stubbed**. This doc describes the target
-> integration; the stubs are the only pieces waiting on the facilitator.
+> **signing and verification stubbed**. It predates the public facilitator, so
+> wiring it to the live SDK is the remaining step (Roadmap phase 2 below).
 
 ## How the two primitives compose
 
@@ -85,7 +88,7 @@ half-autonomous, and vice-versa. Pairing them unlocks self-directed workflows:
 | Phase | State | What lands |
 |---|---|---|
 | **1, Shape** | ✅ done | 402 challenge → pay → retry flow, nonce/replay handling, ledger, escrow-vs-x402 model. Signing + verification **stubbed**. See the example dir. |
-| **2, Facilitator wiring** | ⏳ pending facilitator | Replace `verifyPaymentStub()` (receiver) and `signPayment()` (payer) with real Casper x402 facilitator calls. Real settlement receipts / tx hashes. |
+| **2, Facilitator wiring** | ready to wire | The facilitator is live, so replace `verifyPaymentStub()` (receiver) and `signPayment()` (payer) with the `@make-software/casper-x402` SDK calling `/verify` and `/settle`. Absorb the live wire format: x402 v2, CAIP-2 networks (`casper:casper-test`), a `PAYMENT-SIGNATURE` header, EIP-712 authorization, and CEP-18-token pricing (asset package hash) rather than native motes. Real settlement receipts / tx hashes. |
 | **3, Native Sluice option** | planned | `x402` as a first-class billing mode on a Sluice subscription, alongside escrow, pick per subscription. |
 | **4, Price discovery** | planned | Publishers advertise per-feed pricing; agents negotiate escrow vs x402 automatically based on projected volume. |
 
