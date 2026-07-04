@@ -566,23 +566,7 @@
     </div>
   </section>
 
-  <!-- ============ SCREENCAST ============ -->
-  <section id="screencast" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
-    <div style="max-width:1320px;margin:0 auto;padding:120px 32px">
-      <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:40px">
-        <div>
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
-            04 &nbsp;·&nbsp;See it in motion
-          </div>
-          <h2 style="margin:18px 0 0;font:500 clamp(34px,4.4vw,56px)/1.04 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">An 18-second loop of one real CLI session.</h2>
-        </div>
-        <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">Every line is a real log. Tx-hash prefixes match the ones on cspr.live for the v0.1 contract. SVG with SMIL. No JS, no video tag, no plugins.</p>
-      </div>
-      <div style="max-width:920px;margin:0 auto">
-        <img src="/screencast.svg?v=r31" alt="Animated terminal recording of the sluice subscribe command running end-to-end. 18-second loop." style="width:100%;height:auto;display:block;border:1px solid #000;background:#000;box-shadow:6px 6px 0 #bcfc07">
-      </div>
-    </div>
-  </section>
+  
 
   <!-- ============ RECIPES ============ -->
   <section id="recipes" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
@@ -592,7 +576,7 @@
           <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
             05 &nbsp;·&nbsp;Recipes · DeFi, RWA, and agent triggers
           </div>
-          <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">Six triggers. Six copy-paste lines.</h2>
+          <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">Four triggers. Four copy-paste lines.</h2>
         </div>
         <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">Each recipe is a working predicate for a real DeFi, RWA, or agent use case. Swap the address or threshold, paste your webhook, lock CSPR. Point it at an agent and the match becomes an autonomous action.</p>
       </div>
@@ -623,16 +607,7 @@
         </article>
 
         <!-- Recipe: Whale Swap Alert (DeFi) -->
-        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./whale-swap.json --webhook $WEBHOOK --amount 100' data-predicate='{"and":[{"field":"amount","op":"gte","value":"100000000000000"}]}'>
-          <div class="recipe-head">
-            <span class="icon-tile"><svg><use href="#icon-whale"/></svg></span>
-            <span class="recipe-tag">DeFi · Market</span>
-          </div>
-          <h3 class="recipe-title">Whale Swap Alert</h3>
-          <p class="recipe-desc">Any swap-sized move across the whole chain, not just your address. Feeds market dashboards, trading bots, and X-bots.</p>
-          <div class="recipe-pred"><span class="recipe-pred-k">Amount</span> ≥ 100,000 CSPR</div>
-          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/whale-swap</span></button>
-        </article>
+        
 
         <!-- Recipe: Treasury Outflow Alarm (RWA / DAO) -->
         <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./treasury-outflow.json --webhook $WEBHOOK --amount 25' data-predicate='{"and":[{"field":"initiator_account_hash","op":"eq","value":"TREASURY_HASH"},{"field":"amount","op":"gte","value":"25000000000000"}]}'>
@@ -659,16 +634,7 @@
         </article>
 
         <!-- Recipe: Oracle Heartbeat (RWA) -->
-        <article class="recipe recipe-card" data-cli='sluice subscribe --predicate ./oracle-heartbeat.json --webhook $WEBHOOK --amount 15' data-predicate='{"and":[{"field":"initiator_account_hash","op":"eq","value":"ORACLE_UPDATER_HASH"}]}'>
-          <div class="recipe-head">
-            <span class="icon-tile"><svg><use href="#icon-time"/></svg></span>
-            <span class="recipe-tag">RWA · Oracle</span>
-          </div>
-          <h3 class="recipe-title">Oracle Heartbeat</h3>
-          <p class="recipe-desc">An RWA oracle posts periodic valuation updates. Watch its updater address so an agent can raise an alarm the moment a heartbeat is missed.</p>
-          <div class="recipe-pred"><span class="recipe-pred-k">Sender</span> = oracle updater</div>
-          <button class="copy-recipe recipe-cta"><span class="recipe-cta-label"><svg class="recipe-cta-icon"><use href="#icon-copy"/></svg> Copy CLI</span><span class="recipe-cta-slug">/oracle-heartbeat</span></button>
-        </article>
+        
       </div>
       <style>
         .recipe-card {
