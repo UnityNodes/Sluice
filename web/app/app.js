@@ -710,6 +710,32 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     }
   }
 
+  // Judge-clickable live x402 payment: POST /api/x402/pay fires a real on-chain
+  // micropayment (server-side paying agent) and returns the settlement tx.
+  function bindX402() {
+    const btn = document.getElementById('x402-pay-btn');
+    const out = document.getElementById('x402-result');
+    if (!btn) return;
+    btn.onclick = async () => {
+      const label = btn.textContent;
+      btn.disabled = true; btn.style.opacity = '.6'; btn.textContent = 'Settling on-chain…';
+      if (out) out.textContent = 'Signing the payment authorization and settling through the facilitator…';
+      try {
+        const r = await fetch('/api/x402/pay', { method: 'POST' });
+        const j = await r.json();
+        if (j && j.ok && j.tx) {
+          out.innerHTML = 'Settled · 0.1 SLX paid · <a href="' + j.explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + j.tx.slice(0, 10) + '…' + j.tx.slice(-6) + ' on cspr.live</a>';
+        } else {
+          out.textContent = (j && j.error) ? j.error : 'payment failed, try again in a moment';
+        }
+      } catch (e) {
+        out.textContent = 'error: ' + ((e && e.message) || e);
+      } finally {
+        btn.disabled = false; btn.style.opacity = '1'; btn.textContent = label;
+      }
+    };
+  }
+
   async function connectWallet() {
     if (window.csprclick && typeof window.csprclick.signIn === 'function') {
       try { await window.csprclick.signIn(); return; }
@@ -1570,6 +1596,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     restoreWalletFromStorage();
     renderWalletButton();
     setupCsprClick();
+    bindX402();
     pbBind();
     bindSandbox();
     bindReveals();
