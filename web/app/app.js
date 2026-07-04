@@ -28,6 +28,10 @@
     wallet: { connected: false, pubkey: null, accountHash: null }, // read-only, filter only, no signing in v0.1
   };
   const STORAGE_KEY = 'sluice-wallet';
+  // CSPR.click app id, register one for this origin at https://console.cspr.build .
+  // While empty, the dashboard uses the direct Casper Wallet provider (no CSPR.click
+  // load), so connect keeps working; set this to activate multi-wallet + social login.
+  const CSPRCLICK_APP_ID = '';
 
   /* ─────────────────── helpers ─────────────────── */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -653,7 +657,67 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
 
   /* ─────────────────── init ─────────────────── */
   /* ─────────────────── wallet (read-only · v0.1) ─────────────────── */
+  function applyWalletAccount(pubkey, accountHash) {
+    state.wallet.connected = true;
+    state.wallet.pubkey = pubkey;
+    state.wallet.accountHash = accountHash;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.wallet)); } catch {}
+    renderWalletButton();
+    render();
+  }
+  function clearWalletState() {
+    state.wallet = { connected: false, pubkey: null, accountHash: null };
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    renderWalletButton();
+    render();
+  }
+
+  /* CSPR.click, Casper's official auth layer (multi-wallet + social login). We
+   * drive it headlessly from our own button; the account (public key + account
+   * hash) arrives on the signed_in event, so no manual derivation is needed. The
+   * SDK is loaded dynamically after its options are set. If it is unavailable,
+   * connect() falls back to the Casper Wallet provider directly. */
+  function setupCsprClick() {
+    if (!CSPRCLICK_APP_ID) return; // not configured, direct Casper Wallet provider is used instead
+    window.clickUIOptions = { uiContainer: 'csprclick-ui', rootAppElement: 'body', defaultTheme: 'light', showTopBar: false };
+    window.clickSDKOptions = { appName: 'Sluice', appId: CSPRCLICK_APP_ID, contentMode: 'iframe', providers: ['casper-wallet', 'ledger', 'metamask-snap'] };
+    const onAccount = (evt) => {
+      const acc = (evt && (evt.account || evt)) || {};
+      const pubkey = acc.public_key || acc.publicKey || acc.public_key_hex;
+      if (!pubkey) return;
+      let accountHash = acc.account_hash || acc.accountHash || '';
+      accountHash = String(accountHash).replace(/^account-hash-/, '');
+      if (!accountHash) { try { accountHash = pubkeyToAccountHash(pubkey); } catch {} }
+      applyWalletAccount(pubkey, accountHash);
+      toast('Wallet connected · ' + truncHash(pubkey, 6, 6), 'success');
+    };
+    window.addEventListener('csprclick:loaded', () => {
+      try {
+        window.csprclick.on('csprclick:signed_in', onAccount);
+        window.csprclick.on('csprclick:switched_account', onAccount);
+        window.csprclick.on('csprclick:signed_out', clearWalletState);
+        window.csprclick.on('csprclick:disconnected', clearWalletState);
+        const active = window.csprclick.getActiveAccount && window.csprclick.getActiveAccount();
+        if (active) onAccount({ account: active });
+      } catch (e) { console.warn('csprclick wiring failed', e); }
+    });
+    if (!document.getElementById('csprclick-client')) {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.cspr.click/ui/v2.1.0/csprclick-client-2.1.0.js';
+      s.id = 'csprclick-client';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  }
+
   async function connectWallet() {
+    if (window.csprclick && typeof window.csprclick.signIn === 'function') {
+      try { await window.csprclick.signIn(); return; }
+      catch (e) { console.warn('csprclick signIn failed, using direct provider', e); }
+    }
+    return connectWalletLegacy();
+  }
+  async function connectWalletLegacy() {
     if (typeof window.CasperWalletProvider !== 'function') {
       toast('Casper Wallet extension not detected, install from casperwallet.io', 'error');
       window.open('https://www.casperwallet.io/', '_blank');
@@ -664,23 +728,19 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       const ok = await wallet.requestConnection();
       if (!ok) { toast('Wallet connection rejected', 'warn'); return; }
       const pubkey = await wallet.getActivePublicKey();
-      state.wallet.connected = true;
-      state.wallet.pubkey = pubkey;
-      state.wallet.accountHash = await pubkeyToAccountHash(pubkey);
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.wallet)); } catch {}
-      renderWalletButton();
-      render();
+      applyWalletAccount(pubkey, pubkeyToAccountHash(pubkey));
       toast('Wallet connected · ' + truncHash(pubkey, 6, 6), 'success');
     } catch (e) {
       toast(`Wallet error: ${(e && e.message) || e}`, 'error');
     }
   }
   async function disconnectWallet() {
-    try { await window.CasperWalletProvider().disconnectFromSite(); } catch {}
-    state.wallet = { connected: false, pubkey: null, accountHash: null };
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
-    renderWalletButton();
-    render();
+    if (window.csprclick && typeof window.csprclick.signOut === 'function') {
+      try { await window.csprclick.signOut(); } catch {}
+    } else {
+      try { await window.CasperWalletProvider().disconnectFromSite(); } catch {}
+    }
+    clearWalletState();
   }
   function renderWalletButton() {
     const btn = $('#wallet-btn');
@@ -1509,6 +1569,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     bindToolbar();
     restoreWalletFromStorage();
     renderWalletButton();
+    setupCsprClick();
     pbBind();
     bindSandbox();
     bindReveals();
