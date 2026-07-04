@@ -21,7 +21,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 import { CasperClient } from './casper';
-import { CsprCloudStateReader, parsePredicateJson, type ContractStateReader } from './contract';
+import { parsePredicateJson, type ContractStateReader } from './contract';
 import { evaluate, validatePredicate as assertPredicate, PredicateError } from './predicate';
 import { startApi, type ApiStreamEnvelope } from './api';
 import { dispatchWebhook, computeIdempotencyKey } from './webhook';
@@ -163,6 +163,10 @@ export class Matcher {
   private seededEventCount = 0;        // events loaded from sample file on cold-start
   static MAX_RECENT = 20;
   static MAX_VALIDATION = 1000;
+  // Cap concurrent casper-client record_delivery subprocesses so a burst of
+  // matched events cannot fork an unbounded number of signing processes.
+  private recordSlots = Number(process.env.SLUICE_MAX_RECORD_DELIVERY_CONCURRENCY ?? 4);
+  private recordWaiters: Array<() => void> = [];
 
   private counters: MatcherCounters = {
     startedAtMs: Date.now(),
@@ -270,7 +274,7 @@ export class Matcher {
         await writeFile(this.cfg.snapshotPath, JSON.stringify(snapshot, null, 2));
         const totalDeliveries = subs.reduce((a, s) => a + (s.deliveries || 0), 0);
         const activeCount = subs.filter(s => s.active).length;
-        const badge = renderBadge(activeCount, totalDeliveries, true);
+        const badge = renderBadge(activeCount, totalDeliveries, this.counters.wsTransfers);
         const badgePath = path.join(path.dirname(this.cfg.snapshotPath), 'badge.svg');
         await writeFile(badgePath, badge);
       } catch (e) {
@@ -320,15 +324,19 @@ export class Matcher {
     if (!event || typeof event !== 'object') return;
     this.recordForValidation(event);
 
-    for (const sub of this.active) {
-      if (!sub.active || !evaluate(sub.predicate, event)) continue;
+    const matches = this.active.filter((sub) => sub.active && this.safeMatch(sub, event));
+    // Dispatch matched subscriptions concurrently: a slow or failing webhook for
+    // one subscriber must not delay delivery to the others for the same event.
+    await Promise.all(matches.map((sub) => {
       log(`match sub=${sub.id} deploy_hash=${event.deploy_hash} amount=${event.amount}`);
-      try {
-        await this.dispatch(sub, event);
-      } catch (e) {
-        log(`dispatch error sub=${sub.id}:`, (e as Error).message);
-      }
-    }
+      return this.dispatch(sub, event).catch((e) => log(`dispatch error sub=${sub.id}:`, (e as Error).message));
+    }));
+  }
+
+  /** Evaluate a predicate without letting a malformed one throw out of the match loop. */
+  private safeMatch(sub: Subscription, event: TransferEvent): boolean {
+    try { return evaluate(sub.predicate, event); }
+    catch { return false; }
   }
 
   /**
@@ -338,24 +346,28 @@ export class Matcher {
    * match here; amount/to_account_hash transfer predicates naturally do not.
    */
   async ingestContractEvent(ev: NormalizedContractEvent): Promise<void> {
-    for (const sub of this.active) {
-      if (!sub.active) continue;
-      let ok = false;
-      try { ok = evaluate(sub.predicate, ev as unknown as TransferEvent); }
-      catch { ok = false; }
-      if (!ok) continue;
+    const event = ev as unknown as TransferEvent;
+    const matches = this.active.filter((sub) => sub.active && this.safeMatch(sub, event));
+    await Promise.all(matches.map((sub) => {
       log(`contract-event match sub=${sub.id} name=${ev.name} pkg=${ev.contract_package_hash.slice(0, 8)}…`);
-      try {
-        await this.dispatch(sub, ev as unknown as TransferEvent);
-      } catch (e) {
-        log(`dispatch error sub=${sub.id}:`, (e as Error).message);
-      }
-    }
+      return this.dispatch(sub, event).catch((e) => log(`dispatch error sub=${sub.id}:`, (e as Error).message));
+    }));
   }
 
   /** Flag for /metrics + status: are we connected to any watched-contract stream. */
   setContractWatchConnected(connected: boolean): void {
     this.counters.wsContractWatch = connected;
+  }
+
+  /** Bounded-concurrency gate for record_delivery subprocess spawns. */
+  private async acquireRecordSlot(): Promise<void> {
+    if (this.recordSlots > 0) { this.recordSlots--; return; }
+    await new Promise<void>((resolve) => this.recordWaiters.push(resolve));
+  }
+  private releaseRecordSlot(): void {
+    const next = this.recordWaiters.shift();
+    if (next) next();
+    else this.recordSlots++;
   }
 
   private async dispatch(sub: Subscription, event: TransferEvent): Promise<void> {
@@ -410,6 +422,7 @@ export class Matcher {
       return;
     }
 
+    await this.acquireRecordSlot();
     try {
       const txHash = await this.submitRecordDelivery(sub.id, idempotencyKey);
       this.counters.recordDeliveryOk++;
@@ -419,6 +432,8 @@ export class Matcher {
       this.counters.recordDeliveryFail++;
       log(`record_delivery failed sub=${sub.id}: ${(e as Error).message}`);
       this.pushEvent(baseRow);
+    } finally {
+      this.releaseRecordSlot();
     }
   }
 
@@ -673,11 +688,10 @@ async function main(): Promise<void> {
   const reader = new ContractEventStreamReader(wsRoot, cfg.contractHash, cfg.csprCloudToken, seedSubs);
   reader.start();
 
-  // Suppress the unused-import warning until CsprCloudStateReader is fully retired.
-  void CsprCloudStateReader;
-
   const matcher = new Matcher(cfg, reader);
   await matcher.start();
+  // Poll the registry contract-events connection into the /metrics gauge.
+  setInterval(() => matcher.setContractEventsConnected(reader.connected), 5_000);
 
   // Optional: stream external DeFi/RWA contract events through the predicate
   // engine. Enable with SLUICE_WATCH_CONTRACTS=<pkg-hash>[,<pkg-hash>...].

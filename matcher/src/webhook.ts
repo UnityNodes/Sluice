@@ -4,10 +4,18 @@
  * loopback ranges.
  *
  * Delivery is at-least-once. Subscriber dedupes by the Idempotency-Key header.
+ *
+ * The SSRF guard resolves the hostname once, validates the IP, then pins the
+ * connection to that exact address so a DNS-rebinding attacker cannot swap in
+ * an internal IP between validation and the actual request. Resolutions are
+ * cached briefly so a hot delivery path does not re-query DNS per event.
  */
 
 import { createHash, createHmac } from 'node:crypto';
 import { lookup as dnsLookup } from 'node:dns/promises';
+import http from 'node:http';
+import https from 'node:https';
+import type { LookupFunction } from 'node:net';
 import { URL } from 'node:url';
 import axios, { AxiosError } from 'axios';
 import ipaddr from 'ipaddr.js';
@@ -25,6 +33,7 @@ export interface WebhookResult {
 const BACKOFF_MS = [1_000, 4_000, 16_000] as const; // 3 retries
 const REQUEST_TIMEOUT_MS = 10_000;
 const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
+const DNS_CACHE_TTL_MS = 30_000;
 
 export class SsrfError extends Error {
   constructor(message: string) {
@@ -33,7 +42,43 @@ export class SsrfError extends Error {
   }
 }
 
-/** Throws SsrfError on disallowed URL. Otherwise returns the resolved IP for logging. */
+// hostname -> { validated public IP, expiry }. Only allowed IPs are cached.
+const dnsCache = new Map<string, { ip: string; expiresAt: number }>();
+
+// ipaddr.js range names that we explicitly block.
+const BLOCKED_RANGES: ReadonlySet<string> = new Set([
+  'unspecified',     // 0.0.0.0, ::
+  'broadcast',       // 255.255.255.255
+  'multicast',
+  'linkLocal',       // 169.254.0.0/16, fe80::/10
+  'loopback',        // 127.0.0.0/8, ::1
+  'uniqueLocal',     // fc00::/7
+  'ipv4Mapped',
+  'rfc6145',
+  'rfc6052',
+  '6to4',
+  'teredo',
+  'reserved',
+  'benchmarking',
+  'amt',
+  'as112',
+  'deprecated',
+  'orchid2',
+  'droneRemoteIdProtocolEntityTags',
+  'private',         // 10/8, 172.16/12, 192.168/16
+  'carrierGradeNat', // 100.64/10
+]);
+
+/** Throws SsrfError if the IP is in a blocked range. */
+function assertAllowedIp(hostIp: string): void {
+  if (!ipaddr.isValid(hostIp)) throw new SsrfError(`invalid resolved IP: ${hostIp}`);
+  const range = ipaddr.parse(hostIp).range();
+  if (BLOCKED_RANGES.has(range)) {
+    throw new SsrfError(`destination IP ${hostIp} is in blocked range "${range}"`);
+  }
+}
+
+/** Throws SsrfError on disallowed URL. Otherwise returns the resolved IP the request must pin to. */
 export async function validateWebhookUrl(rawUrl: string): Promise<string> {
   let url: URL;
   try { url = new URL(rawUrl); }
@@ -44,62 +89,72 @@ export async function validateWebhookUrl(rawUrl: string): Promise<string> {
   }
   if (!url.hostname) throw new SsrfError('missing hostname');
 
-  let hostIp: string;
+  // IP literal: validate directly, nothing to resolve or pin.
   if (ipaddr.isValid(url.hostname)) {
-    hostIp = url.hostname;
-  } else {
-    try {
-      const { address } = await dnsLookup(url.hostname);
-      hostIp = address;
-    } catch (e) {
-      throw new SsrfError(`DNS lookup failed for ${url.hostname}: ${(e as Error).message}`);
-    }
+    assertAllowedIp(url.hostname);
+    return url.hostname;
   }
 
-  if (!ipaddr.isValid(hostIp)) {
-    throw new SsrfError(`invalid resolved IP: ${hostIp}`);
+  const cached = dnsCache.get(url.hostname);
+  if (cached && cached.expiresAt > Date.now()) return cached.ip;
+
+  let hostIp: string;
+  try {
+    const { address } = await dnsLookup(url.hostname);
+    hostIp = address;
+  } catch (e) {
+    throw new SsrfError(`DNS lookup failed for ${url.hostname}: ${(e as Error).message}`);
   }
-  const parsed = ipaddr.parse(hostIp);
-  const range = parsed.range();
-
-  // ipaddr.js range names that we explicitly block.
-  const BLOCKED: ReadonlySet<string> = new Set([
-    'unspecified',     // 0.0.0.0, ::
-    'broadcast',       // 255.255.255.255
-    'multicast',
-    'linkLocal',       // 169.254.0.0/16, fe80::/10
-    'loopback',        // 127.0.0.0/8, ::1
-    'uniqueLocal',     // fc00::/7
-    'ipv4Mapped',
-    'rfc6145',
-    'rfc6052',
-    '6to4',
-    'teredo',
-    'reserved',
-    'benchmarking',
-    'amt',
-    'as112',
-    'deprecated',
-    'orchid2',
-    'droneRemoteIdProtocolEntityTags',
-    'private',         // 10/8, 172.16/12, 192.168/16
-    'carrierGradeNat', // 100.64/10
-  ]);
-
-  if (BLOCKED.has(range)) {
-    throw new SsrfError(`destination IP ${hostIp} is in blocked range "${range}"`);
-  }
-
+  assertAllowedIp(hostIp);
+  dnsCache.set(url.hostname, { ip: hostIp, expiresAt: Date.now() + DNS_CACHE_TTL_MS });
   return hostIp;
 }
 
+/** An http/https agent whose DNS resolution is pinned to an already-validated IP. */
+function pinnedAgent(ip: string, protocol: string): http.Agent | https.Agent {
+  const family = ipaddr.parse(ip).kind() === 'ipv6' ? 6 : 4;
+  // Node calls lookup with either { all: false } (expects address, family) or
+  // { all: true } (expects [{ address, family }]); support both or the socket
+  // silently hangs.
+  const lookup = ((_hostname: string, options: { all?: boolean } | undefined, cb: (err: NodeJS.ErrnoException | null, address: string | Array<{ address: string; family: number }>, family?: number) => void) => {
+    if (options && options.all) cb(null, [{ address: ip, family }]);
+    else cb(null, ip, family);
+  }) as unknown as LookupFunction;
+  return protocol === 'https:' ? new https.Agent({ lookup }) : new http.Agent({ lookup });
+}
+
 /**
- * Deterministic idempotency key, same event → same key, regardless of how
- * many times the matcher retries. Subscriber dedupes by this header.
+ * Stable stringify (sorted keys) so the idempotency seed does not depend on
+ * object key order.
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  const keys = Object.keys(value as Record<string, unknown>).sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${stableStringify((value as Record<string, unknown>)[k])}`).join(',')}}`;
+}
+
+/**
+ * Deterministic idempotency key, same event -> same key, regardless of how
+ * many times the matcher retries. Distinct events always produce distinct
+ * keys: native Transfers key on deploy/index/amount/recipient, while contract
+ * events (which carry none of those) key on name, package, block, and a stable
+ * hash of the event data, so two events in one deploy do not collide.
  */
 export function computeIdempotencyKey(event: TransferEvent): string {
-  const seed = `${event.deploy_hash}|${event.transfer_index ?? event.id ?? ''}|${event.amount}|${event.to_account_hash ?? ''}`;
-  return createHash('sha256').update(seed).digest('hex');
+  const e = event as unknown as Record<string, unknown>;
+  const parts = [
+    e.deploy_hash ?? '',
+    e.block_height ?? '',
+    e.event_type ?? 'transfer',
+    e.name ?? '',
+    e.contract_package_hash ?? '',
+    e.transfer_index ?? e.id ?? '',
+    e.amount ?? '',
+    e.to_account_hash ?? '',
+    e.data !== undefined ? stableStringify(e.data) : '',
+  ];
+  return createHash('sha256').update(parts.join('|')).digest('hex');
 }
 
 interface DispatchOptions {
@@ -129,18 +184,22 @@ export async function dispatchWebhook(
 ): Promise<WebhookResult> {
   const idempotencyKey = computeIdempotencyKey(event);
 
+  let pinnedIp: string | undefined;
   if (!opts.skipGuard) {
-    await validateWebhookUrl(webhookUrl);
+    pinnedIp = await validateWebhookUrl(webhookUrl);
   }
 
   const body = {
     subscription_id: subscriptionId,
+    event_hash: idempotencyKey,
     event,
     matched_at: new Date().toISOString(),
   };
   const headers: Record<string, string> = {
     'content-type': 'application/json',
     'idempotency-key': idempotencyKey,
+    'x-sluice-idempotency-key': idempotencyKey,
+    'x-sluice-sub-id': String(subscriptionId),
     'user-agent': 'sluice-matcher/0.1',
   };
   if (opts.webhookSecret) {
@@ -149,7 +208,15 @@ export async function dispatchWebhook(
 
   const backoff = opts.backoffMs ?? BACKOFF_MS;
   const poster = opts.poster ?? (async (url, b, h) => {
-    const resp = await axios.post(url, b, { headers: h, timeout: REQUEST_TIMEOUT_MS, validateStatus: () => true });
+    const u = new URL(url);
+    const cfg: Parameters<typeof axios.post>[2] = { headers: h, timeout: REQUEST_TIMEOUT_MS, validateStatus: () => true };
+    // Pin the connection to the IP we validated so a rebind cannot redirect it
+    // to an internal address between the guard and the request.
+    if (pinnedIp && !ipaddr.isValid(u.hostname)) {
+      const agent = pinnedAgent(pinnedIp, u.protocol);
+      if (u.protocol === 'https:') cfg.httpsAgent = agent; else cfg.httpAgent = agent;
+    }
+    const resp = await axios.post(url, b, cfg);
     return { status: resp.status };
   });
 

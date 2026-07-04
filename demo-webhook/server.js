@@ -35,7 +35,11 @@ app.post('/', (req, res) => {
 
   const idem = req.header('idempotency-key') || '(none)';
   const dupe = seen.has(idem);
-  if (!dupe) seen.set(idem, new Date().toISOString());
+  if (!dupe) {
+    // Cap the dedup map so a long-running receiver does not grow without bound.
+    if (seen.size >= 10_000) seen.delete(seen.keys().next().value);
+    seen.set(idem, new Date().toISOString());
+  }
 
   const body = JSON.parse(req.body.toString('utf8'));
   const e = body.event;

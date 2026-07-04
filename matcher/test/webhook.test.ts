@@ -49,6 +49,17 @@ describe('computeIdempotencyKey', () => {
     const b = computeIdempotencyKey({ ...sampleEvent, deploy_hash: '0xdef' });
     expect(a).not.toBe(b);
   });
+  it('distinguishes two contract events sharing one deploy hash', () => {
+    const base = { event_type: 'contract', deploy_hash: 'DEP', block_height: 10 };
+    const swap = { ...base, name: 'Swap', data: { amount_in: 100 } } as unknown as TransferEvent;
+    const mint = { ...base, name: 'Mint', data: { amount_in: 5 } } as unknown as TransferEvent;
+    expect(computeIdempotencyKey(swap)).not.toBe(computeIdempotencyKey(mint));
+  });
+  it('distinguishes two contract events with a null deploy hash', () => {
+    const a = { event_type: 'contract', deploy_hash: null, name: 'Transfer', data: { id: 1 } } as unknown as TransferEvent;
+    const b = { event_type: 'contract', deploy_hash: null, name: 'Transfer', data: { id: 2 } } as unknown as TransferEvent;
+    expect(computeIdempotencyKey(a)).not.toBe(computeIdempotencyKey(b));
+  });
 });
 
 describe('dispatchWebhook', () => {

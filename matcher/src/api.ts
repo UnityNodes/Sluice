@@ -542,7 +542,9 @@ function buildIcs(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscrip
   const lines: string[] = [];
   const now = new Date();
   const motesPerCspr = 1_000_000_000;
-  const balanceCspr = Number(BigInt(sub.balance) / BigInt(motesPerCspr));
+  // Float division: integer BigInt division truncated sub-1-CSPR balances to 0,
+  // which skipped the runway reminder for exactly the subs that need it.
+  const balanceCspr = Number(sub.balance) / motesPerCspr;
   const perDeliveryMotes = Number(process.env.SLUICE_PER_DELIVERY_MOTES ?? 500_000_000); // 0.5 CSPR
   const perDeliveryCspr = perDeliveryMotes / motesPerCspr;
   const explorer = chain === 'casper-test' ? 'https://testnet.cspr.live' : 'https://cspr.live';
@@ -770,6 +772,28 @@ class StreamHub {
   remove(client: StreamClient): void { this.clients.delete(client); }
 }
 
+// Fixed-window per-IP rate limiter for state-changing POST routes. The dashboard
+// is intentionally usable without a login, so this bounds abuse (spam replay /
+// sandbox dispatch, outbound-webhook amplification) rather than locking out
+// legitimate users.
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = Number(process.env.SLUICE_API_RATE_LIMIT ?? 60);
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  if (rateBuckets.size > 5_000) {
+    for (const [k, v] of rateBuckets) if (v.resetAt <= now) rateBuckets.delete(k);
+  }
+  const b = rateBuckets.get(ip);
+  if (!b || b.resetAt <= now) { rateBuckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS }); return false; }
+  b.count++;
+  return b.count > RATE_MAX;
+}
+function clientIp(req: { headers: Record<string, unknown>; socket: { remoteAddress?: string } }): string {
+  const fwd = String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim();
+  return fwd || req.socket.remoteAddress || 'unknown';
+}
+
 export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } {
   const hub = new StreamHub();
   const server = createServer(async (req, res) => {
@@ -901,6 +925,7 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
       }
 
       if (req.method !== 'POST') { respond(res, 405, { error: 'method not allowed' }); return; }
+      if (rateLimited(clientIp(req))) { respond(res, 429, { error: 'rate limit exceeded, slow down' }); return; }
       const route = rawRoute;
       const body = await readJson(req) as Record<string, unknown>;
       log(`${req.method} ${route}`);

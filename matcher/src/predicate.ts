@@ -24,10 +24,20 @@ const MAX_CONDITIONS_TOTAL = 32;
 
 export class PredicateError extends Error {}
 
-/** Type guards for the nested grammar. */
-export function isCondition(n: unknown): n is Condition {
-  return !!n && typeof n === 'object' && typeof (n as Condition).field === 'string' && typeof (n as Condition).op === 'string';
+const MAX_REGEX_LEN = 200;
+
+/**
+ * Heuristic guard against catastrophic-backtracking regexes (star height >= 2),
+ * e.g. (a+)+, (a*)*, (\d+){2,}. Predicates are attacker-controlled (anyone can
+ * create a subscription), so a pathological pattern would otherwise stall the
+ * single-threaded matcher on the first matching event. Not exhaustive, but it
+ * blocks the classic ReDoS forms; the length cap bounds the rest.
+ */
+function looksCatastrophicRegex(src: string): boolean {
+  return /[+*}]\)[+*{]/.test(src);
 }
+
+/** Type guards for the nested grammar. */
 function isAndGroup(n: unknown): n is { and: PredicateNode[] } {
   return !!n && typeof n === 'object' && Array.isArray((n as { and?: unknown }).and);
 }
@@ -129,6 +139,12 @@ function validateNode(node: unknown, depth: number, path: string, counter: { n: 
   if (cc.value === undefined || cc.value === null) throw new PredicateError(`${path}.value missing`);
   if ((cc.op === 'in' || cc.op === 'not_in') && !Array.isArray(cc.value)) {
     throw new PredicateError(`${path}.value must be an array for op=${cc.op}`);
+  }
+  if (cc.op === 'regex') {
+    const src = String(cc.value);
+    if (src.length > MAX_REGEX_LEN) throw new PredicateError(`${path}.value regex too long (max ${MAX_REGEX_LEN} chars)`);
+    if (looksCatastrophicRegex(src)) throw new PredicateError(`${path}.value regex rejected: nested quantifier risks catastrophic backtracking`);
+    try { new RegExp(src); } catch (e) { throw new PredicateError(`${path}.value invalid regex: ${(e as Error).message}`); }
   }
   counter.n++;
 }

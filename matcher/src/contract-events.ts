@@ -35,10 +35,21 @@ interface ContractEventEnvelope {
 
 const log = (...a: unknown[]) => console.log('[contract-events]', new Date().toISOString(), ...a);
 
+// The registry flips a subscription inactive once its balance drops below the
+// per-delivery cost (registry.rs record_delivery), not at exactly zero. Mirror
+// that threshold so the matcher's view matches the chain. Configurable to match
+// whatever delivery_unit_cost the registry was deployed with (1 CSPR default).
+const DELIVERY_UNIT_COST = BigInt(process.env.SLUICE_DELIVERY_UNIT_COST ?? '1000000000');
+// Cap the in-memory subscription map so a long-running matcher watching a busy
+// registry does not grow unboundedly; oldest inactive entries are pruned first.
+const MAX_TRACKED_SUBS = Number(process.env.SLUICE_MAX_TRACKED_SUBS ?? 2000);
+
 export class ContractEventStreamReader implements ContractStateReader {
   private subs = new Map<number, Subscription>();
   private ws: WebSocket | null = null;
   private reconnectDelay = 1_000;
+  /** True while the registry contract-events socket is open (polled into /metrics). */
+  connected = false;
 
   constructor(
     private readonly wsUrl: string,
@@ -62,6 +73,7 @@ export class ContractEventStreamReader implements ContractStateReader {
     ws.on('open', () => {
       log('open');
       this.reconnectDelay = 1_000;
+      this.connected = true;
     });
 
     ws.on('message', (raw: Buffer) => {
@@ -75,6 +87,7 @@ export class ContractEventStreamReader implements ContractStateReader {
 
     ws.on('error', (e) => log('ws error:', (e as Error).message));
     ws.on('close', (code) => {
+      this.connected = false;
       log(`ws close (${code}), reconnecting in ${this.reconnectDelay}ms`);
       const delay = this.reconnectDelay;
       this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30_000);
@@ -119,6 +132,7 @@ export class ContractEventStreamReader implements ContractStateReader {
         created_at: env.extra.block_height ?? 0,
       };
       this.subs.set(id, sub);
+      this.pruneInactive();
       log(`SubscriptionCreated id=${id} balance=${balance} webhook=${webhook_url}`);
     } catch (e) {
       log(`SubscriptionCreated parse error: ${(e as Error).message}`, JSON.stringify(d).slice(0, 200));
@@ -131,19 +145,28 @@ export class ContractEventStreamReader implements ContractStateReader {
     if (!sub) return;
     sub.balance = String(d.new_balance ?? sub.balance);
     sub.deliveries += 1;
-    // Contract auto-flips active=false when balance < unit_cost. We can't see
-    // unit_cost from the event, but we can derive activity from balance==0.
-    if (sub.balance === '0') sub.active = false;
-    log(`DeliveryRecorded id=${id} new_balance=${sub.balance} deliveries=${sub.deliveries}`);
+    // Mirror the contract: it flips active=false once balance < unit_cost, not
+    // only at exactly zero, so a non-multiple deposit deactivates correctly.
+    try { if (BigInt(sub.balance) < DELIVERY_UNIT_COST) sub.active = false; }
+    catch { if (sub.balance === '0') sub.active = false; }
+    log(`DeliveryRecorded id=${id} new_balance=${sub.balance} deliveries=${sub.deliveries} active=${sub.active}`);
   }
 
   private onCancelled(d: Record<string, unknown>, _env: ContractEventEnvelope): void {
     const id = num(d.id);
-    const sub = this.subs.get(id);
-    if (!sub) return;
-    sub.active = false;
-    sub.balance = '0';
-    log(`SubscriptionCancelled id=${id}`);
+    if (!this.subs.has(id)) return;
+    // Cancelled subscriptions are terminal, drop them so the map stays bounded.
+    this.subs.delete(id);
+    log(`SubscriptionCancelled id=${id} (removed)`);
+  }
+
+  /** Keep the map bounded by evicting the oldest inactive subscriptions. */
+  private pruneInactive(): void {
+    if (this.subs.size <= MAX_TRACKED_SUBS) return;
+    for (const [id, s] of this.subs) {
+      if (this.subs.size <= MAX_TRACKED_SUBS) break;
+      if (!s.active) this.subs.delete(id);
+    }
   }
 
   private onToppedUp(d: Record<string, unknown>, _env: ContractEventEnvelope): void {

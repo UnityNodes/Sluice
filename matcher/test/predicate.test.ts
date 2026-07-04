@@ -99,3 +99,18 @@ describe('evaluate, missing field is non-match', () => {
     expect(evaluate(p, sampleEvent)).toBe(false);
   });
 });
+
+describe('validatePredicate, regex safety', () => {
+  it('rejects a catastrophic-backtracking regex', () => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value: '(a+)+$' }] };
+    expect(() => validatePredicate(p)).toThrow(PredicateError);
+  });
+  it('rejects an over-long regex', () => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value: 'a'.repeat(300) }] };
+    expect(() => validatePredicate(p)).toThrow(PredicateError);
+  });
+  it('accepts a simple regex', () => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value: '^ab[0-9]+$' }] };
+    expect(() => validatePredicate(p)).not.toThrow();
+  });
+});

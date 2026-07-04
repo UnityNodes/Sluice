@@ -5,8 +5,8 @@
  * is `{ action, data, timestamp, extra? }`. The fields inside `data` are what
  * the predicate engine actually sees.
  *
- * Field set here is provisional, verify against a real WS dump on Day 0
- * (examples/transfer-event.json) before relying on it.
+ * The field set tracks the CSPR.cloud transfer envelope and is validated
+ * against a real WS capture in examples/transfer-event.json.
  */
 
 export type Operator = 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte'

@@ -36,6 +36,11 @@ function parseAmount(token: string): bigint | null {
     }
     return null;
   }
+  // Plain integer (no k/m/b suffix, no decimal point): parse exactly via BigInt
+  // so thresholds above Number.MAX_SAFE_INTEGER keep full precision.
+  if (!m[2] && !m[1].includes('.')) {
+    try { return BigInt(m[1]); } catch { return null; }
+  }
   const n = Number(m[1]);
   if (!Number.isFinite(n)) return null;
   const mult = m[2] ? ({ k: 1e3, K: 1e3, m: 1e6, M: 1e6, b: 1e9, B: 1e9 } as Record<string, number>)[m[2]] : 1;

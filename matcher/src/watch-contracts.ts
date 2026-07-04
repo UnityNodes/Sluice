@@ -55,6 +55,7 @@ const log = (...a: unknown[]) => console.log('[watch-contracts]', new Date().toI
 
 export class WatchContractsReader {
   private sockets: WebSocket[] = [];
+  private openSockets = new Set<WebSocket>();
   private reconnectDelay = new Map<string, number>();
   private stopped = false;
 
@@ -82,6 +83,8 @@ export class WatchContractsReader {
     this.stopped = true;
     for (const ws of this.sockets) { try { ws.close(); } catch { /* ignore */ } }
     this.sockets = [];
+    this.openSockets.clear();
+    this.connected = false;
   }
 
   private connectOne(packageHash: string): void {
@@ -94,6 +97,7 @@ export class WatchContractsReader {
     ws.on('open', () => {
       log('open', packageHash.slice(0, 10) + '…');
       this.reconnectDelay.set(packageHash, 1_000);
+      this.openSockets.add(ws);
       this.connected = true;
     });
 
@@ -113,9 +117,10 @@ export class WatchContractsReader {
     ws.on('error', (e) => log('ws error:', (e as Error).message));
 
     ws.on('close', (code) => {
-      // Drop this socket from the list.
+      // Drop this socket from both the pending list and the open set.
       this.sockets = this.sockets.filter((s) => s !== ws);
-      this.connected = this.sockets.length > 0;
+      this.openSockets.delete(ws);
+      this.connected = this.openSockets.size > 0;
       if (this.stopped) return;
       const delay = this.reconnectDelay.get(packageHash) ?? 1_000;
       this.reconnectDelay.set(packageHash, Math.min(delay * 2, 30_000));
