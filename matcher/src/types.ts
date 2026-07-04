@@ -96,4 +96,10 @@ export interface MatcherConfig {
    * does not know about.
    */
   demoSubs?: Set<number>;
+  /**
+   * Subscription ids billed via x402 pay-per-delivery. A match for one of these
+   * is queued rather than pushed, and delivered only when an agent pays an x402
+   * micropayment to pull it.
+   */
+  x402Subs?: Set<number>;
 }

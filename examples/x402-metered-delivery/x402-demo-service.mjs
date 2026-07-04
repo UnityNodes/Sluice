@@ -26,6 +26,8 @@ const {
   PRICE_AMOUNT = "100000000",
   CLIENT_PRIVATE_KEY_PATH,
   CLIENT_KEY_ALGO = "ed25519",
+  MATCHER_URL = "http://localhost:7799",
+  X402_SUB_ID = "200",
 } = process.env;
 
 for (const [k, v] of Object.entries({ PAYEE_ADDRESS, FACILITATOR_API_KEY, ASSET_PACKAGE, CLIENT_PRIVATE_KEY_PATH })) {
@@ -68,8 +70,18 @@ app.use(paymentMiddleware(
   new x402ResourceServer(facilitatorClient).register(chainID, serverScheme),
 ));
 
-app.get("/event", (_req, res) => {
-  res.json({ subscription_id: 42, event: { event_type: "contract", name: "Swap", contract_package_hash: "65bedddde0…", data: { amount_in: "150000000000000" } }, matched_at: new Date().toISOString() });
+// The paid resource: a REAL event that Sluice matched for the x402-billed
+// subscription, pulled from the live matcher's queue once the payment settled.
+app.get("/event", async (_req, res) => {
+  try {
+    const r = await fetch(`${MATCHER_URL}/x402/claim`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ subscription_id: Number(X402_SUB_ID) }),
+    });
+    if (r.ok) { res.json(await r.json()); return; }
+  } catch { /* fall through */ }
+  res.json({ subscription_id: Number(X402_SUB_ID), pending: false, note: "no matched event queued yet; this subscription watches live DemoDex swaps", matched_at: new Date().toISOString() });
 });
 
 // The button target: fire ONE real x402 payment and return the settlement tx.
@@ -81,7 +93,7 @@ app.post("/pay", async (req, res) => {
   try {
     await ensurePayer();
     const r = await fetchWithPayment(`${selfBase}/event`, { method: "GET" });
-    const delivery = await r.json();
+    const event = await r.json();
     const settle = new x402HTTPClient(payClient).getPaymentSettleResponse(n => r.headers.get(n));
     const tx = settle && settle.transaction;
     res.json({
@@ -91,7 +103,7 @@ app.post("/pay", async (req, res) => {
       payer: (settle && settle.payer) || null,
       network: (settle && settle.network) || chainID,
       amount: `0.1 ${ASSET_SYMBOL}`,
-      delivery,
+      event,
     });
   } catch (e) {
     res.status(500).json({ ok: false, error: (e && e.message) || String(e) });

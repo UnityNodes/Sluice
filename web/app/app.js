@@ -724,7 +724,13 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         const r = await fetch('/api/x402/pay', { method: 'POST' });
         const j = await r.json();
         if (j && j.ok && j.tx) {
-          out.innerHTML = 'Settled · 0.1 SLX paid · <a href="' + j.explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + j.tx.slice(0, 10) + '…' + j.tx.slice(-6) + ' on cspr.live</a>';
+          const ev = j.event || {};
+          const d = (ev.event && ev.event.data) || {};
+          let evText = ev.description || 'matched event';
+          if (d.token_in && d.amount_in) {
+            evText = 'Swap ' + (Number(d.amount_in) / 1e9).toLocaleString('en-US') + ' ' + d.token_in + ' → ' + (d.token_out || '');
+          }
+          out.innerHTML = 'Paid 0.1 SLX, delivered: ' + evText + ' · <a href="' + j.explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + j.tx.slice(0, 10) + '…' + j.tx.slice(-6) + ' on cspr.live</a>';
         } else {
           out.textContent = (j && j.error) ? j.error : 'payment failed, try again in a moment';
         }

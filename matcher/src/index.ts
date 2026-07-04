@@ -59,6 +59,15 @@ function loadConfig(): MatcherConfig {
         .map((s) => Number(s.trim()))
         .filter((n) => Number.isFinite(n) && n > 0),
     ),
+    // Subscription ids billed via x402 pay-per-delivery instead of push+escrow.
+    // For these, a match is not webhooked; it is queued and delivered only when
+    // an agent pays an x402 micropayment to pull it (see claimX402Event).
+    x402Subs: new Set(
+      (process.env.SLUICE_X402_SUBS ?? '')
+        .split(',')
+        .map((s) => Number(s.trim()))
+        .filter((n) => Number.isFinite(n) && n > 0),
+    ),
   };
 }
 
@@ -167,6 +176,12 @@ export class Matcher {
   // matched events cannot fork an unbounded number of signing processes.
   private recordSlots = Number(process.env.SLUICE_MAX_RECORD_DELIVERY_CONCURRENCY ?? 4);
   private recordWaiters: Array<() => void> = [];
+  // x402 pay-per-delivery: matched events for x402-billed subs wait here until an
+  // agent pays an x402 micropayment to pull one. x402Last keeps the most recent
+  // match per sub so a drained queue still serves a real event.
+  private x402Pending = new Map<number, RecentEvent[]>();
+  private x402Last = new Map<number, RecentEvent>();
+  static MAX_X402_PENDING = 100;
 
   private counters: MatcherCounters = {
     startedAtMs: Date.now(),
@@ -328,6 +343,7 @@ export class Matcher {
     // Dispatch matched subscriptions concurrently: a slow or failing webhook for
     // one subscriber must not delay delivery to the others for the same event.
     await Promise.all(matches.map((sub) => {
+      if (this.cfg.x402Subs?.has(sub.id)) { this.enqueueX402(sub, event); return Promise.resolve(); }
       log(`match sub=${sub.id} deploy_hash=${event.deploy_hash} amount=${event.amount}`);
       return this.dispatch(sub, event).catch((e) => log(`dispatch error sub=${sub.id}:`, (e as Error).message));
     }));
@@ -349,6 +365,7 @@ export class Matcher {
     const event = ev as unknown as TransferEvent;
     const matches = this.active.filter((sub) => sub.active && this.safeMatch(sub, event));
     await Promise.all(matches.map((sub) => {
+      if (this.cfg.x402Subs?.has(sub.id)) { this.enqueueX402(sub, event); return Promise.resolve(); }
       log(`contract-event match sub=${sub.id} name=${ev.name} pkg=${ev.contract_package_hash.slice(0, 8)}…`);
       return this.dispatch(sub, event).catch((e) => log(`dispatch error sub=${sub.id}:`, (e as Error).message));
     }));
@@ -370,23 +387,61 @@ export class Matcher {
     else this.recordSlots++;
   }
 
-  private async dispatch(sub: Subscription, event: TransferEvent): Promise<void> {
-    const t0 = Date.now();
-    const idempotencyKey = computeIdempotencyKey(event);
-    // Contract events (DeFi/RWA) and native transfers get different one-liners.
-    let description: string;
+  /** Human one-liner for an event, shared by the webhook feed and x402 queue. */
+  private describeEvent(event: TransferEvent): string {
     if ((event as { event_type?: string }).event_type === 'contract') {
       const ce = event as unknown as NormalizedContractEvent;
       const pkgShort = ce.contract_package_hash ? `${ce.contract_package_hash.slice(0, 6)}…` : '…';
-      description = `Contract · ${ce.name} @ ${pkgShort}`;
-    } else {
-      const csprStr = (() => {
-        try { const m = BigInt(String(event.amount)); const c = m / 1_000_000_000n; return c >= 1n ? `${c.toLocaleString('en-US')} CSPR` : `${event.amount} motes`; }
-        catch { return `${event.amount} motes`; }
-      })();
-      const toShort = event.to_account_hash ? `${event.to_account_hash.slice(0, 6)}…${event.to_account_hash.slice(-4)}` : '…';
-      description = `Transfer · ${csprStr} → ${toShort}`;
+      return `Contract · ${ce.name} @ ${pkgShort}`;
     }
+    const csprStr = (() => {
+      try { const m = BigInt(String(event.amount)); const c = m / 1_000_000_000n; return c >= 1n ? `${c.toLocaleString('en-US')} CSPR` : `${event.amount} motes`; }
+      catch { return `${event.amount} motes`; }
+    })();
+    const toShort = event.to_account_hash ? `${event.to_account_hash.slice(0, 6)}…${event.to_account_hash.slice(-4)}` : '…';
+    return `Transfer · ${csprStr} → ${toShort}`;
+  }
+
+  /** Queue a match for an x402-billed sub instead of pushing it. */
+  private enqueueX402(sub: Subscription, event: TransferEvent): void {
+    const row: RecentEvent = {
+      subscription_id: sub.id,
+      event_hash: computeIdempotencyKey(event),
+      description: this.describeEvent(event),
+      status: 402,
+      attempts: 0,
+      latency_ms: 0,
+      timestamp: new Date().toISOString(),
+      event,
+      webhook_url: '',
+    };
+    const q = this.x402Pending.get(sub.id) ?? [];
+    q.push(row);
+    while (q.length > Matcher.MAX_X402_PENDING) q.shift();
+    this.x402Pending.set(sub.id, q);
+    this.x402Last.set(sub.id, row);
+    log(`x402 queued sub=${sub.id} pending=${q.length} ${row.description}`);
+  }
+
+  /**
+   * Pull the next paid delivery for an x402-billed sub, called after an on-chain
+   * x402 settlement. Returns the oldest queued match, or the most recent match
+   * if the queue is drained, or null if the sub has never matched.
+   */
+  claimX402Event(subId: number, txHash?: string): RecentEvent | null {
+    const q = this.x402Pending.get(subId);
+    const row = (q && q.length) ? q.shift() : this.x402Last.get(subId);
+    if (!row) return null;
+    const delivered: RecentEvent = { ...row, status: 200, ...(txHash ? { tx_hash: txHash } : {}) };
+    this.counters.deliveriesTotal++;
+    this.pushEvent(delivered);
+    return delivered;
+  }
+
+  private async dispatch(sub: Subscription, event: TransferEvent): Promise<void> {
+    const t0 = Date.now();
+    const idempotencyKey = computeIdempotencyKey(event);
+    const description = this.describeEvent(event);
 
     const webhookSecret = process.env.SLUICE_WEBHOOK_SECRET;
     const webhookResult = await dispatchWebhook(sub.webhook_url, event, sub.id, webhookSecret ? { webhookSecret } : undefined);
@@ -730,6 +785,7 @@ async function main(): Promise<void> {
     validatePredicate: (predicateJson) => matcher.validatePredicateAgainstRecent(predicateJson),
     getSubscription: (id) => matcher.getActiveSubscription(id),
     getDeliveryRate: (id) => matcher.getRecentDeliveryRate(id),
+    claimX402: (subId, txHash) => matcher.claimX402Event(subId, txHash),
     getMetricsSnapshot: () => matcher.getMetricsSnapshot(),
     latencyBucketsMs: LATENCY_BUCKETS_MS as unknown as number[],
   });

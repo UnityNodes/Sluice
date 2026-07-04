@@ -73,6 +73,8 @@ export interface ApiConfig {
   } | null;
   /** Optional delivery-rate calc for /sub/:id.ics balance-runout projection. */
   getDeliveryRate?: (id: number) => { count: number; window_seconds: number; per_day: number };
+  /** Optional: claim the next paid delivery for an x402-billed sub (internal, called by the x402 service after settlement). */
+  claimX402?: (subId: number, txHash?: string) => unknown | null;
   /** Optional Prometheus metrics snapshot. */
   getMetricsSnapshot?: () => {
     startedAtMs: number;
@@ -968,6 +970,13 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
         const { subscription_id } = body as { subscription_id?: number };
         if (typeof subscription_id !== 'number') throw new Error('subscription_id (number) required');
         const r = await cfg.testWebhook(subscription_id);
+        respond(res, 200, r);
+      } else if (route === '/x402/claim') {
+        if (!cfg.claimX402) { respond(res, 501, { error: 'x402 claim not wired' }); return; }
+        const { subscription_id, tx_hash } = body as { subscription_id?: number; tx_hash?: string };
+        if (typeof subscription_id !== 'number') throw new Error('subscription_id (number) required');
+        const r = cfg.claimX402(subscription_id, typeof tx_hash === 'string' ? tx_hash : undefined);
+        if (!r) { respond(res, 404, { error: 'no matched event pending for this subscription yet' }); return; }
         respond(res, 200, r);
       } else if (route === '/predicate/validate') {
         if (!cfg.validatePredicate) { respond(res, 501, { error: 'validate not wired' }); return; }

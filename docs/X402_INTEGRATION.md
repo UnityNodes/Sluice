@@ -91,7 +91,7 @@ half-autonomous, and vice-versa. Pairing them unlocks self-directed workflows:
 |---|---|---|
 | **1, Shape** | ✅ done | 402 challenge → pay → retry flow, nonce/replay handling, ledger, escrow-vs-x402 model. Signing + verification **stubbed**. See the example dir. |
 | **2, Facilitator wiring** | ✅ done | `x402-receiver.mjs` + `x402-payer.mjs` use the `@make-software/casper-x402` SDK against the live hosted facilitator. A paid Sluice delivery settled on testnet: [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5). Payment is a CEP-18 x402 token (SLX, `220ed4c8…db88b`); the facilitator's fee-payer covers gas. |
-| **3, Native Sluice option** | planned | `x402` as a first-class billing mode on a Sluice subscription, alongside escrow, pick per subscription. |
+| **3, Native Sluice option** | ✅ done | `x402` is a live billing mode on the matcher (`SLUICE_X402_SUBS`). An x402-billed subscription is not pushed: the matcher queues each real match, and an agent pulls one by paying an x402 micropayment (`POST /api/x402/pay` on the dashboard). The delivered payload is the actual on-chain event Sluice matched, not a sample. Escrow (push) and x402 (pull) now run side by side on the same event stream. |
 | **4, Price discovery** | planned | Publishers advertise per-feed pricing; agents negotiate escrow vs x402 automatically based on projected volume. |
 
 Everything except phases 2+ is already in the runnable example. Search
