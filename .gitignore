@@ -49,3 +49,6 @@ deployments/*.json
 *.tgz
 .playwright-mcp/
 examples/**/node_modules/
+
+# Demo video (large; deployed via rsync, not committed)
+web/demo/*.mp4

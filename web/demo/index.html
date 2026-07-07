@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sluice · Watch the demo</title>
+<meta name="description" content="A three minute demo of Sluice: describe a Casper event, and it delivers every match to your webhook or AI agent the moment the block lands. Live on testnet, with a real x402 payment settled on-chain.">
+<meta property="og:title" content="Sluice · Watch the demo">
+<meta property="og:description" content="Casper events, the moment they land. A short product demo, self-hosted, with clickable chapters.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356044f833870fa154e_CasperSans-Light.woff2') format('woff2'); font-weight: 300; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356e52d55b6d0c78fce_CasperSans-Regular.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  ::selection { background: #bcfc07; color: #000; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+
+  /* Player */
+  .stage { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 24px; align-items: start; }
+  .player { position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: 14px; overflow: hidden; background: #000;
+            box-shadow: 0 0 0 1px #bcfc07, 0 24px 70px rgba(188,252,7,.16), 0 10px 40px rgba(0,0,0,.5); }
+  .player video { width: 100%; height: 100%; display: block; object-fit: cover; background: #000; }
+  .play-btn { position: absolute; inset: 0; margin: auto; width: 88px; height: 88px; border-radius: 50%; border: none; cursor: pointer;
+              background: #bcfc07; display: flex; align-items: center; justify-content: center;
+              box-shadow: 0 0 0 8px rgba(188,252,7,.16), 0 0 44px rgba(188,252,7,.55); transition: transform .18s ease, box-shadow .18s ease; }
+  .play-btn:hover, .play-btn:focus-visible { transform: scale(1.09); box-shadow: 0 0 0 10px rgba(188,252,7,.22), 0 0 60px rgba(188,252,7,.7); outline: none; }
+  .play-btn svg { margin-left: 5px; }
+  .chapters { border: 1px solid #262626; border-radius: 12px; background: #0d0d0d; overflow: hidden; }
+  .chapters h3 { margin: 0; padding: 16px 18px; font: 500 11px 'JetBrains Mono'; letter-spacing: .16em; text-transform: uppercase; color: #888; border-bottom: 1px solid #1f1f1f; }
+  .ch { display: block; width: 100%; text-align: left; background: transparent; border: none; border-bottom: 1px solid #1a1a1a; padding: 14px 18px 14px 16px; cursor: pointer; border-left: 3px solid transparent; transition: background .15s; }
+  .ch:last-child { border-bottom: none; }
+  .ch:hover { background: #151515; }
+  .ch:focus-visible { outline: 2px solid #bcfc07; outline-offset: -2px; }
+  .ch .t { font: 500 12px 'JetBrains Mono'; color: #bcfc07; }
+  .ch .ct { margin-top: 4px; font: 500 15px/1.25 'Casper Sans',Inter; color: #ddd; }
+  .ch .cn { margin-top: 3px; font: 400 12.5px/1.45 'Casper Sans',Inter; color: #888; }
+  .ch.active { background: #16210a; border-left-color: #bcfc07; }
+  .ch.active .ct { color: #fff; }
+  .ch.active .cn { color: #b7d98a; }
+  .btn { text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font: 500 14px 'Casper Sans',Inter; padding: 12px 20px; border: 1px solid; cursor: pointer; }
+  .btn-lime { background: #bcfc07; color: #000; border-color: #bcfc07; }
+  .btn-ghost { background: transparent; color: #fff; border-color: #444; }
+  .btn-ghost:hover { border-color: #bcfc07; color: #bcfc07; }
+
+  /* Try-it cards */
+  .cards { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  .card { display: flex; flex-direction: column; gap: 12px; background: #fff; border: 1px solid #000; padding: 26px 24px; text-decoration: none; color: #000; transition: transform .18s, box-shadow .18s; }
+  .card:hover { transform: translateY(-3px); box-shadow: 6px 6px 0 #bcfc07; }
+  .card.dark { background: #000; color: #fff; }
+  .card.dark:hover { box-shadow: 6px 6px 0 #bcfc07; }
+  .tile { width: 40px; height: 40px; background: #000; color: #bcfc07; display: flex; align-items: center; justify-content: center; }
+  .card.dark .tile { background: #bcfc07; color: #000; }
+  .tile svg { width: 20px; height: 20px; }
+
+  @media (min-width: 760px) { .cards { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+  @media (max-width: 900px) {
+    .stage { grid-template-columns: minmax(0,1fr); }
+    .wrap { padding: 0 16px; }
+    nav .wrap { padding: 10px 16px !important; }
+  }
+</style>
+</head>
+<body>
+<h1 class="sr-only">Sluice product demo video with chapters</h1>
+
+<!-- NAV -->
+<nav style="background:#f4f4f4;border-bottom:1px solid #000;position:sticky;top:0;z-index:30">
+  <div class="wrap" style="display:flex;align-items:center;gap:28px;height:64px">
+    <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#000">
+      <span style="display:inline-flex;width:24px;height:24px;background:#000;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:6px solid #bcfc07;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span></span>
+      <span style="font:500 22px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
+    </a>
+    <div style="display:flex;gap:2px;font:400 14px 'Casper Sans',Inter;flex-wrap:wrap">
+      <a href="/#how" style="text-decoration:none;padding:8px 14px">How it works</a>
+      <a href="/#recipes" style="text-decoration:none;padding:8px 14px">Recipes</a>
+      <a href="/demo" style="text-decoration:none;padding:8px 14px;border-bottom:2px solid #bcfc07">Demo</a>
+      <a href="/roadmap" style="text-decoration:none;padding:8px 14px">Roadmap</a>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:6px 10px;letter-spacing:.04em">
+      <span style="width:6px;height:6px;background:#000;border-radius:50%"></span>V0.1 · TESTNET
+    </div>
+    <a href="/app" style="text-decoration:none;background:#000;color:#fff;padding:11px 20px;font:500 14px 'Casper Sans',Inter;display:flex;align-items:center;gap:8px">Open app <span style="font-size:16px;line-height:1">→</span></a>
+  </div>
+</nav>
+
+<!-- HERO + PLAYER (cinematic black) -->
+<section style="background:#000;color:#fff;border-bottom:1px solid #000">
+  <div class="wrap" style="padding:64px 32px 72px">
+    <div style="display:inline-flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.14em;text-transform:uppercase">
+      <span style="width:7px;height:7px;background:#3edc64;border-radius:50%;box-shadow:0 0 0 3px rgba(62,220,100,.2)"></span>Demo · Casper testnet
+    </div>
+    <h2 style="margin:16px 0 0;font:500 clamp(38px,5.4vw,68px)/1.03 'Casper Sans',Inter;letter-spacing:-.03em;max-width:900px">Sluice, in under three minutes.</h2>
+    <p style="margin:16px 0 0;font:400 clamp(16px,2vw,19px)/1.55 'Casper Sans',Inter;color:#bbb;max-width:640px">Describe a Casper event, and Sluice delivers every match to your webhook or AI agent the moment the block lands. Watch a real subscription, a real x402 payment, and the on-chain proof.</p>
+    <div style="margin-top:22px;display:flex;flex-wrap:wrap;gap:8px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em;color:#bcfc07">
+      <span style="border:1px solid #333;padding:6px 10px">CASPER TESTNET</span>
+      <span style="border:1px solid #333;padding:6px 10px">x402 PAY-PER-EVENT</span>
+      <span style="border:1px solid #333;padding:6px 10px">HOSTED MCP</span>
+      <span style="border:1px solid #333;padding:6px 10px">SELF-HOSTED VIDEO</span>
+    </div>
+
+    <div class="stage" style="margin-top:40px">
+      <div>
+        <div class="player">
+          <video id="v" playsinline preload="metadata" poster="/demo/demo-poster.jpg">
+            <source src="/demo/demo.mp4" type="video/mp4">
+            Your browser does not support the video tag. <a href="/demo/demo.mp4" style="color:#bcfc07">Download the mp4</a> instead.
+          </video>
+          <button id="playBtn" class="play-btn" aria-label="Play the Sluice demo video">
+            <svg width="30" height="34" viewBox="0 0 30 34" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0L30 17L0 34V0Z" fill="#000"/></svg>
+          </button>
+        </div>
+        <div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          <a class="btn btn-lime" href="/demo/demo.mp4" download="sluice-demo.mp4" aria-label="Download the demo video">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+            Download mp4
+          </a>
+          <a class="btn btn-ghost" href="/app">Open the app <span style="font-size:15px">→</span></a>
+          <a class="btn btn-ghost" href="/app">Fire a live x402 payment <span style="font-size:15px">→</span></a>
+        </div>
+      </div>
+
+      <div class="chapters" aria-label="Video chapters">
+        <h3>Chapters</h3>
+        <div id="chapterList"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- THEN TRY IT YOURSELF (light) -->
+<section style="background:#f4f4f4;border-bottom:1px solid #000">
+  <div class="wrap" style="padding:88px 32px">
+    <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">Then try it yourself</div>
+    <h2 style="margin:16px 0 0;font:500 clamp(32px,4.2vw,52px)/1.04 'Casper Sans',Inter;letter-spacing:-.03em;max-width:760px">Everything in the video is live on testnet.</h2>
+    <p style="margin:16px 0 0;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:560px">No wallet, no signup. Open the workspace, fire a real x402 micropayment, or hand the hosted MCP to your own agent.</p>
+
+    <div class="cards" style="margin-top:36px">
+      <a class="card" href="/app">
+        <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18"/></svg></span>
+        <div style="font:500 20px 'Casper Sans',Inter">Open the workspace</div>
+        <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#666;flex:1">Live subscriptions, a plain-English builder, a no-CSPR sandbox that fires real webhooks, and a rolling activity feed.</div>
+        <div style="font:500 12px 'JetBrains Mono';border-bottom:1px solid #000;align-self:flex-start;padding-bottom:2px">Open /app →</div>
+      </a>
+      <a class="card dark" href="/app">
+        <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 10h4.5a1.5 1.5 0 010 3H9"/></svg></span>
+        <div style="font:500 20px 'Casper Sans',Inter">Fire a live x402 payment</div>
+        <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#bbb;flex:1">One click settles a real 0.1 SLX micropayment through the official Casper facilitator and delivers a real matched event.</div>
+        <div style="font:500 12px 'JetBrains Mono';color:#bcfc07;border-bottom:1px solid #bcfc07;align-self:flex-start;padding-bottom:2px">Try it on /app →</div>
+      </a>
+      <a class="card" href="/#mcp-demo">
+        <span class="tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span>
+        <div style="font:500 20px 'Casper Sans',Inter">Add the hosted MCP</div>
+        <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#666;flex:1">One URL, zero install. Works with Claude, Cursor, Windsurf, and any MCP client. Events arrive as tool calls.</div>
+        <div style="font:500 12px 'JetBrains Mono';border-bottom:1px solid #000;align-self:flex-start;padding-bottom:2px">sluice.unitynodes.com/mcp →</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:#000;color:#fff">
+  <div class="wrap" style="padding:48px 32px;display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="display:inline-flex;width:22px;height:22px;background:#bcfc07;align-items:center;justify-content:center"><span style="display:block;width:0;height:0;border-left:6px solid #000;border-top:5px solid transparent;border-bottom:5px solid transparent;margin-left:2px"></span></span>
+      <span style="font:500 18px 'Casper Sans',Inter">sluice</span>
+      <span style="font:400 13px 'Casper Sans',Inter;color:#888;margin-left:8px">Casper events, the moment they land.</span>
+    </div>
+    <div style="display:flex;gap:20px;font:500 13px 'Casper Sans',Inter">
+      <a href="/app" style="color:#fff;text-decoration:none">App</a>
+      <a href="/roadmap" style="color:#fff;text-decoration:none">Roadmap</a>
+      <a href="https://github.com/UnityNodes/Sluice" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:none">GitHub ↗</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var video = document.getElementById('v');
+  var playBtn = document.getElementById('playBtn');
+  var list = document.getElementById('chapterList');
+
+  var chapters = [
+    { t: 0,   title: 'The polling problem',        note: 'Alchemy on Ethereum, Helius on Solana. On Casper you polled or ran your own indexer.' },
+    { t: 18,  title: 'The missing primitive: react', note: 'Read, act, and pay already existed. React was the gap. Sluice fills it, as a hosted MCP.' },
+    { t: 36,  title: 'Describe it in plain English', note: 'Type what you care about; the parser turns it into a JSON predicate and dry-runs it.' },
+    { t: 60,  title: 'Real Casper contracts',       note: 'Live subscriptions on real testnet contracts other teams deployed, a stablecoin and an RWA fund.' },
+    { t: 72,  title: 'Pay per event with x402',     note: 'This subscription is billed by x402, not escrow. One click pays and pulls a matched event.' },
+    { t: 112, title: 'Real tokens moved, on-chain', note: 'The official Casper facilitator settles it. Real tokens move, proven on cspr.live.' },
+    { t: 126, title: 'Any agent, one MCP URL',      note: 'Claude, Cursor, Windsurf. It subscribes, and matched events arrive as tool calls.' },
+    { t: 144, title: 'Verifiable, and honest',      note: 'Every delivery is an on-chain receipt. Signed, retried, and honest about what is not in v0.1.' }
+  ];
+
+  function mmss(s) {
+    s = Math.max(0, Math.floor(s));
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  var els = chapters.map(function (c, i) {
+    var b = document.createElement('button');
+    b.className = 'ch';
+    b.type = 'button';
+    b.setAttribute('aria-label', 'Jump to ' + mmss(c.t) + ', ' + c.title);
+    b.innerHTML = '<span class="t">' + mmss(c.t) + '</span><div class="ct">' + c.title + '</div><div class="cn">' + c.note + '</div>';
+    b.addEventListener('click', function () {
+      hideOverlay();
+      try { video.currentTime = c.t; } catch (e) {}
+      video.controls = true;
+      video.play();
+      setActive(i);
+    });
+    list.appendChild(b);
+    return b;
+  });
+
+  function setActive(i) {
+    for (var k = 0; k < els.length; k++) els[k].classList.toggle('active', k === i);
+  }
+
+  function currentChapter(time) {
+    var idx = 0;
+    for (var i = 0; i < chapters.length; i++) { if (chapters[i].t <= time) idx = i; else break; }
+    return idx;
+  }
+
+  function hideOverlay() { playBtn.style.display = 'none'; }
+
+  playBtn.addEventListener('click', function () {
+    hideOverlay();
+    video.controls = true;
+    video.play();
+  });
+
+  video.addEventListener('timeupdate', function () {
+    setActive(currentChapter(video.currentTime));
+  });
+  video.addEventListener('play', hideOverlay);
+
+  setActive(0);
+})();
+</script>
+</body>
+</html>
