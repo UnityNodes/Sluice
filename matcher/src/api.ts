@@ -824,6 +824,22 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
         return;
       }
 
+      // Snapshot JSON, so an MCP client or the CLI can read matcher state via
+      // the same API base it uses for everything else (the reverse proxy also
+      // serves this file statically, but a direct-to-matcher base needs a route).
+      if ((rawRoute === '/snapshot.json' || rawRoute === '/snapshot') && req.method === 'GET') {
+        const p = process.env.SLUICE_SNAPSHOT_PATH;
+        if (p) {
+          try {
+            const body = readFileSync(p, 'utf8');
+            respondText(res, 200, 'application/json; charset=utf-8', body, 5);
+            return;
+          } catch { /* fall through to 404 */ }
+        }
+        respond(res, 404, { error: 'snapshot not available' });
+        return;
+      }
+
       // Embed widget for a subscription, a 320x120 self-contained HTML page
       // for iframe embedding in blogs, Notion, dashboards, etc. JS polls
       // /api/snapshot.json every 5s; no extra deps.
