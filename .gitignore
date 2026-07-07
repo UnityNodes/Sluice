@@ -51,4 +51,5 @@ deployments/*.json
 examples/**/node_modules/
 
 # Demo video (large; deployed via rsync, not committed)
+web/demo.mp4
 web/demo/*.mp4
