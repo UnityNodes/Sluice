@@ -166,7 +166,8 @@ function hookGc(): void {
 }
 setInterval(hookGc, 60_000).unref?.();
 
-const log = (...a: unknown[]) => console.log('[api]', new Date().toISOString(), ...a);
+const oneLine = (v: unknown) => (typeof v === 'string' ? v.replace(/[\r\n]/g, ' ') : v);
+const log = (...a: unknown[]) => console.log('[api]', new Date().toISOString(), ...a.map(oneLine));
 
 interface BuildBody {
   initiator: string;

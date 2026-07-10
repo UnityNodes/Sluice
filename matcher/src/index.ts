@@ -32,7 +32,8 @@ import WebSocket from 'ws';
 
 const RECORD_DELIVERY_SH = resolve(__dirname, '..', '..', 'scripts', 'record-delivery.sh');
 
-const log = (...a: unknown[]) => console.log('[matcher]', new Date().toISOString(), ...a);
+const oneLine = (v: unknown) => (typeof v === 'string' ? v.replace(/[\r\n]/g, ' ') : v);
+const log = (...a: unknown[]) => console.log('[matcher]', new Date().toISOString(), ...a.map(oneLine));
 
 function loadConfig(): MatcherConfig {
   const need = (k: string): string => {
