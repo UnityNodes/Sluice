@@ -42,7 +42,6 @@
       if (k === 'class') n.className = v;
       else if (k === 'style') n.style.cssText = v;
       else if (k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
-      else if (k === 'html') n.innerHTML = v;
       else if (v !== false && v != null) n.setAttribute(k, v);
     }
     for (const c of children) {
@@ -99,12 +98,23 @@
     '0d5ae3015928b0070f03b9a377cf09fa86c63f3ce86f24b357f570977b786d8d': 'Meridian RWA',
     'ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7': 'DemoDex (Sluice)',
   };
-  const FIELD_ICON = {
-    amount: '<svg class="pi"><use href="#icon-amount"/></svg>',
-    to_account_hash: '<svg class="pi"><use href="#icon-recipient"/></svg>',
-    initiator_account_hash: '<svg class="pi"><use href="#icon-sender"/></svg>',
-    block_height: '<svg class="pi"><use href="#icon-block"/></svg>',
-    timestamp: '<svg class="pi"><use href="#icon-time"/></svg>',
+  const FIELD_ICON_ID = {
+    amount: 'icon-amount',
+    to_account_hash: 'icon-recipient',
+    initiator_account_hash: 'icon-sender',
+    block_height: 'icon-block',
+    timestamp: 'icon-time',
+  };
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const iconNode = (field) => {
+    const id = FIELD_ICON_ID[field];
+    if (!id) return document.createTextNode('·');
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'pi');
+    const use = document.createElementNS(SVG_NS, 'use');
+    use.setAttribute('href', '#' + id);
+    svg.appendChild(use);
+    return svg;
   };
   const OP_LABEL = {
     eq:          { word: 'is',           sym: '=' },
@@ -124,31 +134,52 @@
     if (Array.isArray(v)) return `${v.length} addresses`;
     const s = String(v ?? '');
     if (field === 'amount' && /^\d{10,}$/.test(s)) return `${motesToCspr(s).toLocaleString('en-US')} CSPR`;
-    if (field === 'timestamp' && /^\d{4}-\d{2}-\d{2}/.test(s)) return escHtml(s.slice(0, 16).replace('T', ' '));
+    if (field === 'timestamp' && /^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 16).replace('T', ' ');
     if (KNOWN_CONTRACTS[s.toLowerCase()]) return KNOWN_CONTRACTS[s.toLowerCase()];
     if (/^[0-9a-f]{64}$/i.test(s)) return truncHash(s, 6, 4);
-    return escHtml(s.length > 32 ? truncHash(s, 14, 10) : s);
+    return s.length > 32 ? truncHash(s, 14, 10) : s;
   };
   /**
-   * Friendly one-liner for a single condition node. The result is inserted as
-   * HTML so the field icons render, which means every value taken from the
-   * predicate has to be escaped first. Only the icon lookup is trusted markup.
+   * Build a single condition as DOM nodes. Predicate values are attacker
+   * controlled, so they only ever become text nodes; the sole markup is the
+   * trusted icon sprite reference. Nothing here is parsed as HTML.
    */
-  const humanizeCond = (c) => {
-    const icon = FIELD_ICON[c.field] || '·';
-    const label = escHtml(FIELD_LABEL[c.field] || c.field);
+  const condNode = (c) => {
+    const frag = document.createDocumentFragment();
     const op = OP_LABEL[c.op] || { word: c.op, sym: c.op };
-    return `${icon} ${label} ${escHtml(op.sym)} ${humanizeValue(c.field, c.value)}`;
+    frag.appendChild(iconNode(c.field));
+    frag.appendChild(document.createTextNode(
+      ` ${FIELD_LABEL[c.field] || c.field} ${op.sym} ${humanizeValue(c.field, c.value)}`,
+    ));
+    return frag;
   };
-  /** Recursive humanizer for AND/OR groups + plain conditions. */
-  const humanizeNode = (node) => {
-    if (node && Array.isArray(node.or))  return '(' + node.or.map(humanizeNode).join(' OR ')  + ')';
-    if (node && Array.isArray(node.and)) return '(' + node.and.map(humanizeNode).join(' AND ') + ')';
-    return humanizeCond(node);
+  /** Recursive node builder for AND/OR groups + plain conditions. */
+  const nodeSummary = (node) => {
+    const frag = document.createDocumentFragment();
+    const group = (arr, joiner) => {
+      frag.appendChild(document.createTextNode('('));
+      arr.forEach((n, i) => {
+        if (i) frag.appendChild(document.createTextNode(joiner));
+        frag.appendChild(nodeSummary(n));
+      });
+      frag.appendChild(document.createTextNode(')'));
+    };
+    if (node && Array.isArray(node.or))  { group(node.or, ' OR '); return frag; }
+    if (node && Array.isArray(node.and)) { group(node.and, ' AND '); return frag; }
+    frag.appendChild(condNode(node));
+    return frag;
   };
-  const predicateSummary = (pred) => {
-    if (!pred || !Array.isArray(pred.and)) return escHtml(JSON.stringify(pred ?? {}));
-    return pred.and.map(humanizeNode).join(' AND ');
+  const predicateSummaryNode = (pred) => {
+    const frag = document.createDocumentFragment();
+    if (!pred || !Array.isArray(pred.and)) {
+      frag.appendChild(document.createTextNode(JSON.stringify(pred ?? {})));
+      return frag;
+    }
+    pred.and.forEach((n, i) => {
+      if (i) frag.appendChild(document.createTextNode(' AND '));
+      frag.appendChild(nodeSummary(n));
+    });
+    return frag;
   };
   const toast = (msg, kind = 'info') => {
     const c = $('#toasts') || document.body.appendChild(el('div', { id: 'toasts', style: 'position:fixed;right:24px;bottom:24px;z-index:1000;display:flex;flex-direction:column;gap:8px' }));
@@ -313,7 +344,7 @@
     },
       el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' }, `sub_${String(s.id).padStart(4, '0')}`),
       el('div', {},
-        el('div', { html: predicateSummary(s.predicate) }),
+        el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' }, predicateSummaryNode(s.predicate)),
         el('div', { style: 'margin-top:6px;font:500 11px JetBrains Mono;color:#666;letter-spacing:.04em' },
           `${s.deliveries} delivered · owner ${truncHash(s.owner)}${isMine ? ' · YOU' : ''}`,
         ),
@@ -1377,8 +1408,9 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           </div>`;
         }).join('');
         const slugMatch = fullUrl.match(/\/api\/hooks\/([a-z0-9-]+)/i);
-        const peekLink = slugMatch
-          ? `<div style="margin-top:8px;color:#bcfc07;font:500 11px 'JetBrains Mono';letter-spacing:.04em">↳ peek the requests: <a href="/h/${slugMatch[1]}" target="_blank" style="color:#bcfc07;text-decoration:underline">/h/${slugMatch[1]}</a></div>`
+        const slug = slugMatch ? escHtml(slugMatch[1]) : '';
+        const peekLink = slug
+          ? `<div style="margin-top:8px;color:#bcfc07;font:500 11px 'JetBrains Mono';letter-spacing:.04em">↳ peek the requests: <a href="/h/${slug}" target="_blank" style="color:#bcfc07;text-decoration:underline">/h/${slug}</a></div>`
           : '';
         out.innerHTML = `<div style="color:#bcfc07;font:500 12px 'JetBrains Mono';margin-bottom:10px">${Number(j.delivered) || 0}/${Number(j.requested) || 0} delivered · ${Number(j.matched_in_buffer) || 0} matched buffer · ${j.used_synthetic ? 'synthetic top-up used' : 'all real events'}</div>${rows}${peekLink}<div style="margin-top:12px;color:#666;font:500 11px 'JetBrains Mono';letter-spacing:.06em">NO CSPR SPENT · NO ON-CHAIN RECORD · SUB ID = 0</div>`;
       } catch (e) {
