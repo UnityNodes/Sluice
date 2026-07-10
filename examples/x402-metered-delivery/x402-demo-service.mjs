@@ -63,7 +63,7 @@ async function ensurePayer() {
 const lastPay = new Map();
 
 const app = express();
-app.use(cors({ origin: "*", methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Accept", "Authorization", "Content-Type", "Origin", "Payment-Signature"], exposedHeaders: ["PAYMENT-REQUIRED", "PAYMENT-RESPONSE"] }));
+app.use(cors({ origin: ["https://sluice.unitynodes.com", "http://localhost:4021", "http://localhost:7788"], methods: ["GET", "POST", "OPTIONS"], allowedHeaders: ["Accept", "Authorization", "Content-Type", "Origin", "Payment-Signature"], exposedHeaders: ["PAYMENT-REQUIRED", "PAYMENT-RESPONSE"] }));
 
 app.use(paymentMiddleware(
   { "GET /event": { accepts: [{ scheme: "exact", price: "$0.001", network: chainID, payTo: PAYEE_ADDRESS }], description: "One premium Sluice event delivery", mimeType: "application/json" } },

@@ -45,7 +45,7 @@ const casperScheme = new ExactCasperScheme()
 
 const app = express();
 app.use(cors({
-  origin: "*",
+  origin: ["https://sluice.unitynodes.com", "http://localhost:4021", "http://localhost:7788"],
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Accept", "Authorization", "Content-Type", "Origin", "Payment-Signature"],
   exposedHeaders: ["PAYMENT-REQUIRED", "PAYMENT-RESPONSE"],
