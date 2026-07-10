@@ -42,7 +42,7 @@ paths:
   /badge.svg:
     get:
       summary: Status badge (SVG)
-      description: Shields-style badge, "sluice: N delivered · M active".
+      description: 'Shields-style badge, "sluice: N delivered · M active".'
       responses:
         '200':
           description: Static SVG.
@@ -350,6 +350,19 @@ paths:
               schema: { type: string }
 
   /health:
+    get:
+      summary: Liveness probe
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:       { type: boolean }
+                  contract: { type: string }
+                  chain:    { type: string }
     post:
       summary: Liveness probe
       requestBody:

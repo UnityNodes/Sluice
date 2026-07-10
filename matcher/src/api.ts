@@ -840,6 +840,14 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
         return;
       }
 
+      // Liveness probe. POST is the documented form (see docs/openapi.yaml) and
+      // is what the docker healthcheck and the TypeScript client use. Uptime
+      // monitors and humans reach for GET, so answer both with the same body.
+      if (rawRoute === '/health' && req.method === 'GET') {
+        respond(res, 200, { ok: true, contract: cfg.contractHash, chain: cfg.chainName });
+        return;
+      }
+
       // Embed widget for a subscription, a 320x120 self-contained HTML page
       // for iframe embedding in blogs, Notion, dashboards, etc. JS polls
       // /api/snapshot.json every 5s; no extra deps.
