@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
-    "casper-js-sdk": "5.0.0-rc6",
+    "casper-js-sdk": "5.0.12",
     "commander": "^12.1.0",
     "ipaddr.js": "^2.2.0",
     "re2": "^1.21.0",
