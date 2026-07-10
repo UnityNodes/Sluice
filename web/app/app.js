@@ -1025,6 +1025,24 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     if (pbState.advanced) return pbState.advanced;
     return { and: pbState.rows.map(r => ({ field: r.field, op: r.op, value: pbCoerceValue(r.op, r.value) })) };
   }
+  // Rebuild a predicate from an untrusted source (the ?p= query seed) using only
+  // allowlisted fields and operators, coercing every value to a bounded string.
+  // Returns a fresh object so no attacker-controlled reference survives, or null.
+  function pbSanitizePredicate(input) {
+    if (!input || !Array.isArray(input.and)) return null;
+    const okOp = new Set(Object.keys(OP_LABEL));
+    const and = [];
+    for (const c of input.and) {
+      if (!c || !PB_FIELDS.includes(String(c.field)) || !okOp.has(String(c.op))) continue;
+      const field = String(c.field);
+      const op = String(c.op);
+      const value = Array.isArray(c.value)
+        ? c.value.slice(0, 64).map((v) => String(v).slice(0, 256))
+        : String(c.value ?? '').slice(0, 256);
+      and.push({ field, op, value });
+    }
+    return and.length ? { and } : null;
+  }
   function pbAdoptPredicate(predicate, opts) {
     if (pbHasNested(predicate)) {
       pbState.advanced = predicate;
@@ -1248,13 +1266,15 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
   }
   function pbBind() {
     if (!document.getElementById('pb-rows')) return;
-    // Hydrate from ?p=base64 if present.
+    // Hydrate from ?p=base64 if present. The query string is attacker
+    // controlled, so the decoded predicate is rebuilt field by field from the
+    // known field and operator sets; anything not on the allowlist is dropped.
     try {
       const seed = new URLSearchParams(location.search).get('p');
       if (seed) {
-        const decoded = JSON.parse(atob(decodeURIComponent(seed)));
-        if (Array.isArray(decoded.and) && decoded.and.length) {
-          pbAdoptPredicate(decoded);
+        const clean = pbSanitizePredicate(JSON.parse(atob(decodeURIComponent(seed))));
+        if (clean && clean.and.length) {
+          pbAdoptPredicate(clean);
           selectTab('build');
         }
       }
