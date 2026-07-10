@@ -5,8 +5,6 @@ const express = require('express');
 const rateLimit = require('express-rate-limit');
 const crypto = require('node:crypto');
 
-const oneLine = (v) => String(v).replace(/[\r\n]/g, ' ');
-
 const PORT = Number(process.env.PORT || 8787);
 const SECRET = process.env.SLUICE_WEBHOOK_SECRET || '';
 
@@ -34,7 +32,7 @@ app.post('/', (req, res) => {
   const sigHeader = req.header('x-sluice-signature');
   const verdict = verify(req.body, sigHeader);
   if (!verdict.ok) {
-    console.log(`[${new Date().toISOString()}] REJECT, ${oneLine(verdict.reason)}, header=${oneLine(sigHeader || '(none)')}`);
+    console.log(`[${new Date().toISOString()}] REJECT, ${verdict.reason}, header=${sigHeader || '(none)'}`.replace(/\n|\r/g, ''));
     return res.status(401).json({ error: verdict.reason });
   }
 
@@ -50,8 +48,8 @@ app.post('/', (req, res) => {
   const e = body.event;
   const sub = body.subscription_id;
   console.log(
-    `[${new Date().toISOString()}] sub=${oneLine(sub)} amount=${oneLine(e?.amount)} to=${oneLine(e?.to_account_hash)}` +
-    `  deploy=${oneLine(e?.deploy_hash)}  idem=${oneLine(idem.substring(0, 16))}...  sig=${oneLine(verdict.reason)}  ${dupe ? '(duplicate, deduped)' : ''}`,
+    (`[${new Date().toISOString()}] sub=${sub} amount=${e?.amount} to=${e?.to_account_hash}` +
+    `  deploy=${e?.deploy_hash}  idem=${idem.substring(0, 16)}...  sig=${verdict.reason}  ${dupe ? '(duplicate, deduped)' : ''}`).replace(/\n|\r/g, ''),
   );
   res.status(200).json({ received: true, duplicate: dupe, signature: verdict.reason });
 });

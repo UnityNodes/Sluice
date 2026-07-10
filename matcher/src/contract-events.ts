@@ -33,8 +33,10 @@ interface ContractEventEnvelope {
   timestamp: string;
 }
 
-const oneLine = (v: unknown) => (typeof v === 'string' ? v.replace(/[\r\n]/g, ' ') : v);
-const log = (...a: unknown[]) => console.log('[contract-events]', new Date().toISOString(), ...a.map(oneLine));
+const log = (...a: unknown[]) => {
+  const line = a.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))).join(' ').replace(/\n|\r/g, '');
+  console.log('[contract-events]', new Date().toISOString(), line);
+};
 
 // The registry flips a subscription inactive once its balance drops below the
 // per-delivery cost (registry.rs record_delivery), not at exactly zero. Mirror

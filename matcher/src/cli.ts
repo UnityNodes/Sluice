@@ -725,20 +725,19 @@ async function tailDeliveries(opts: { apiUrl: string; sub?: string; json: boolea
       const ws = new WSClient(wsUrl);
       ws.on('open', () => { backoff = 1_000; console.log(c('32', `▶ stream open${opts.sub ? ` · filtering sub_${opts.sub}` : ''}`)); });
       ws.on('message', (raw) => {
-        // Stream frames are network controlled; strip newlines so a crafted
-        // payload cannot forge extra log lines.
-        const oneLine = (v: string) => v.replace(/[\r\n]/g, ' ');
-        const text = raw.toString();
-        if (opts.json) { console.log(oneLine(text)); return; }
+        // Stream frames are network controlled; strip newlines inline at each
+        // log call so a crafted payload cannot forge extra log lines.
+        const text = raw.toString().replace(/\n|\r/g, '');
+        if (opts.json) { console.log(text); return; }
         let env: { type?: string; data?: { subscription_id?: number; event_hash?: string; description?: string; status?: number; attempts?: number; latency_ms?: number; tx_hash?: string }; ts?: string };
-        try { env = JSON.parse(text); } catch { console.log(oneLine(text)); return; }
+        try { env = JSON.parse(text); } catch { console.log(text); return; }
         const ts = (env.ts || '').substr(11, 8);
         switch (env.type) {
           case 'hello':
-            console.log(oneLine(c('2', `  ↳ hello ${JSON.stringify(env.data)}`)));
+            console.log(c('2', `  ↳ hello ${JSON.stringify(env.data)}`.replace(/\n|\r/g, '')));
             break;
           case 'subs.reload':
-            console.log(oneLine(`${c('2', ts)}  ${c('33', '↻ subs.reload')}  ${JSON.stringify(env.data)}`));
+            console.log(`${c('2', ts)}  ${c('33', '↻ subs.reload')}  ${JSON.stringify(env.data).replace(/\n|\r/g, '')}`);
             break;
           case 'delivery': {
             const d = env.data || {};
@@ -749,11 +748,12 @@ async function tailDeliveries(opts: { apiUrl: string; sub?: string; json: boolea
               c('31', String(s));
             const tx = d.tx_hash ? c('36', d.tx_hash.slice(0, 14) + '…') : c('2', '…');
             const subStr = c('1', `sub_${d.subscription_id ?? '?'}`);
-            console.log(oneLine(`${c('2', ts)}  ${subStr}  ${statusFmt.padEnd(15)}  ${(d.latency_ms || 0) + 'ms'}  ${tx}  ${c('2', d.description || '')}`));
+            const desc = String(d.description || '').replace(/\n|\r/g, '');
+            console.log(`${c('2', ts)}  ${subStr}  ${statusFmt.padEnd(15)}  ${(d.latency_ms || 0) + 'ms'}  ${tx}  ${c('2', desc)}`);
             break;
           }
           default:
-            console.log(oneLine(text));
+            console.log(text);
         }
       });
       ws.on('close', () => { console.log(c('31', `✗ stream closed, reconnecting in ${backoff}ms`)); setTimeout(resolve, backoff); backoff = Math.min(backoff * 2, 15_000); });

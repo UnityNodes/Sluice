@@ -51,8 +51,10 @@ interface RawContractEnvelope {
   timestamp?: string;
 }
 
-const oneLine = (v: unknown) => (typeof v === 'string' ? v.replace(/[\r\n]/g, ' ') : v);
-const log = (...a: unknown[]) => console.log('[watch-contracts]', new Date().toISOString(), ...a.map(oneLine));
+const log = (...a: unknown[]) => {
+  const line = a.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))).join(' ').replace(/\n|\r/g, '');
+  console.log('[watch-contracts]', new Date().toISOString(), line);
+};
 
 export class WatchContractsReader {
   private sockets: WebSocket[] = [];
