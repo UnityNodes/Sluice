@@ -234,8 +234,13 @@ function respondText(res: ServerResponse, status: number, contentType: string, b
 /** Prometheus exposition format (text/plain; version=0.0.4). */
 function renderPromMetrics(snap: NonNullable<ReturnType<NonNullable<ApiConfig['getMetricsSnapshot']>>>, buckets: number[]): string {
   const out: string[] = [];
+  // Prometheus label values escape the backslash first, then the quote and the
+  // newline. Escaping only the quote lets a value close its own label and
+  // inject a metric line.
+  const escLabel = (v: unknown) =>
+    String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
   const line = (k: string, v: number | string, lbl?: Record<string, string>) => {
-    const labels = lbl ? '{' + Object.entries(lbl).map(([k, v]) => `${k}="${String(v).replace(/"/g, '\\"')}"`).join(',') + '}' : '';
+    const labels = lbl ? '{' + Object.entries(lbl).map(([k, v]) => `${k}="${escLabel(v)}"`).join(',') + '}' : '';
     out.push(`${k}${labels} ${v}`);
   };
   const uptime = (Date.now() - snap.startedAtMs) / 1000;

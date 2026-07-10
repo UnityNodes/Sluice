@@ -134,10 +134,15 @@ async function runSluiceCancel(args: z.infer<typeof CancelArgs>): Promise<string
 }
 
 async function runSluiceSubscribe(args: z.infer<typeof SubscribeArgs>): Promise<string> {
-  // Write the predicate to a temp file because the CLI expects a path.
-  const tmpFile = `/tmp/sluice-mcp-predicate-${process.pid}-${Date.now()}.json`;
+  // Write the predicate to a temp file because the CLI expects a path. A
+  // predictable name in a shared /tmp lets another user pre-create it as a
+  // symlink, so own the directory and keep the predicate private.
   const fs = await import('node:fs/promises');
-  await fs.writeFile(tmpFile, args.predicate_json, 'utf8');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  const tmpDir = await fs.mkdtemp(join(tmpdir(), 'sluice-mcp-'));
+  const tmpFile = join(tmpDir, 'predicate.json');
+  await fs.writeFile(tmpFile, args.predicate_json, { encoding: 'utf8', mode: 0o600 });
 
   const child = spawn(
     process.env.SLUICE_CLI_BIN ?? 'sluice',
@@ -155,7 +160,7 @@ async function runSluiceSubscribe(args: z.infer<typeof SubscribeArgs>): Promise<
     child.stdout.on('data', (d) => { stdout += d.toString(); });
     child.stderr.on('data', (d) => { stderr += d.toString(); });
     child.on('close', (code) => {
-      fs.unlink(tmpFile).catch(() => undefined);
+      fs.rm(tmpDir, { recursive: true, force: true }).catch(() => undefined);
       if (code === 0) resolve(stdout);
       else reject(new Error(`sluice subscribe failed (exit ${code}): ${stderr || stdout}`));
     });

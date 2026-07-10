@@ -249,9 +249,14 @@ async function applyParsedPredicate(
   if (!opts.amount) throw new Error('--apply needs --amount <cspr>');
   if (!opts.key && !process.env.SLUICE_KEY) throw new Error('--apply needs --key <pem> (or SLUICE_KEY env)');
   if (!opts.contractHash && !process.env.SLUICE_CONTRACT_HASH) throw new Error('--apply needs --contract-hash (or SLUICE_CONTRACT_HASH env)');
-  const { writeFileSync, unlinkSync } = await import('node:fs');
-  const tmp = `/tmp/sluice-ai-predicate-${process.pid}-${Date.now()}.json`;
-  writeFileSync(tmp, JSON.stringify(predicate, null, 2), 'utf8');
+  const { writeFileSync, unlinkSync, mkdtempSync, rmSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const { tmpdir } = await import('node:os');
+  // A predictable path in a shared /tmp lets another user pre-create the name
+  // as a symlink. Own the directory instead, and keep the predicate private.
+  const dir = mkdtempSync(join(tmpdir(), 'sluice-ai-'));
+  const tmp = join(dir, 'predicate.json');
+  writeFileSync(tmp, JSON.stringify(predicate, null, 2), { encoding: 'utf8', mode: 0o600 });
   try {
     await subscribe({
       predicate: tmp,
@@ -267,6 +272,7 @@ async function applyParsedPredicate(
     });
   } finally {
     try { unlinkSync(tmp); } catch { /* fine */ }
+    try { rmSync(dir, { recursive: true, force: true }); } catch { /* fine */ }
   }
 }
 
