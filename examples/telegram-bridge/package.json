@@ -5,7 +5,7 @@
   "description": "Minimal Sluice webhook → Telegram chat bridge.",
   "main": "server.js",
   "scripts": { "start": "node server.js" },
-  "dependencies": { "express": "^4.19.2" },
+  "dependencies": { "express": "^4.19.2", "express-rate-limit": "^7.4.0" },
   "engines": { "node": ">=20" },
   "license": "MIT"
 }

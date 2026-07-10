@@ -44,6 +44,7 @@
 'use strict';
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { createHmac, timingSafeEqual } = require('node:crypto');
 const Anthropic = require('@anthropic-ai/sdk');
 
@@ -352,6 +353,8 @@ async function decideRebalance(event) {
  * open while the (potentially slow) MCP work runs. */
 
 const app = express();
+const limiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false });
+app.use(limiter);
 
 app.post('/webhook', express.raw({ type: '*/*' }), async (req, res) => {
   const raw = req.body instanceof Buffer ? req.body : Buffer.from(req.body || '');

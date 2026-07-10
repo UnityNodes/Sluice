@@ -11,6 +11,7 @@
 //   sluice subscribe --webhook https://<your-host>:8788/sluice ...
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const crypto = require('node:crypto');
 
 const PORT = Number(process.env.PORT || 8788);
@@ -20,6 +21,8 @@ const DISCORD_URL = process.env.DISCORD_WEBHOOK_URL || '';
 if (!DISCORD_URL) { console.error('DISCORD_WEBHOOK_URL is required'); process.exit(1); }
 
 const app = express();
+const limiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+app.use(limiter);
 app.use('/sluice', express.raw({ type: 'application/json', limit: '256kb' }));
 
 // One-hour idempotency window.

@@ -5,6 +5,7 @@
 //   SLUICE_WEBHOOK_SECRET=<shared> PORT=8789 node server.js
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const crypto = require('node:crypto');
 
 const PORT = Number(process.env.PORT || 8789);
@@ -15,6 +16,8 @@ const CHAT = process.env.TELEGRAM_CHAT_ID || '';
 if (!TOKEN || !CHAT) { console.error('TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID required'); process.exit(1); }
 
 const app = express();
+const limiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+app.use(limiter);
 app.use('/sluice', express.raw({ type: 'application/json', limit: '256kb' }));
 
 const seen = new Map();

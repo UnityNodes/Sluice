@@ -2,12 +2,15 @@
 // Used by the buildathon demo video to show end-to-end delivery.
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const crypto = require('node:crypto');
 
 const PORT = Number(process.env.PORT || 8787);
 const SECRET = process.env.SLUICE_WEBHOOK_SECRET || '';
 
 const app = express();
+const limiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+app.use(limiter);
 // We want the RAW body to verify HMAC, then parse JSON ourselves.
 app.use(express.raw({ type: 'application/json', limit: '256kb' }));
 

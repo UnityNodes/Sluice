@@ -9,6 +9,7 @@
 // `repository_dispatch` events of type "sluice-match".
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const crypto = require('node:crypto');
 
 const PORT = Number(process.env.PORT || 8790);
@@ -19,6 +20,8 @@ const REPO = process.env.GITHUB_REPO || '';
 if (!TOKEN || !REPO) { console.error('GITHUB_TOKEN + GITHUB_REPO required'); process.exit(1); }
 
 const app = express();
+const limiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false });
+app.use(limiter);
 app.use('/sluice', express.raw({ type: 'application/json', limit: '256kb' }));
 
 function verify(body, header) {
