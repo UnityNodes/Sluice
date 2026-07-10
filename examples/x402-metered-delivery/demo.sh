@@ -29,7 +29,7 @@ fi
 # start the receiver in the background
 # ---------------------------------------------------------------------------
 echo "==> starting x402-metered receiver on ${BASE_URL} ..."
-node receiver.js &
+node receiver.cjs &
 RECEIVER_PID=$!
 trap 'kill "${RECEIVER_PID}" 2>/dev/null || true' EXIT
 
@@ -55,12 +55,12 @@ echo "challenge body:"
 cat /tmp/x402-unpaid-body.json; echo
 
 # ---------------------------------------------------------------------------
-# 2) PAID request -> expect 200  (payer.js drives the full challenge->pay->retry)
+# 2) PAID request -> expect 200  (payer.cjs drives the full challenge->pay->retry)
 # ---------------------------------------------------------------------------
 sep
-echo "STEP 2  PAID request via payer.js  (challenge -> sign -> retry, expect 200)"
+echo "STEP 2  PAID request via payer.cjs  (challenge -> sign -> retry, expect 200)"
 sep
-node payer.js
+node payer.cjs
 
 # ---------------------------------------------------------------------------
 # 3) ledger of paid deliveries

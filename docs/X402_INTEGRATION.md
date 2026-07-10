@@ -21,7 +21,7 @@ micropayment per delivery, and reacts, end to end, machine to machine.
 > live payment through the hosted facilitator. Proof on testnet:
 > [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5)
 > (a paid Sluice event delivery, settled on-chain). The dependency-free
-> `receiver.js` / `payer.js` remain as a stubbed protocol walkthrough.
+> `receiver.cjs` / `payer.cjs` remain as a stubbed protocol walkthrough.
 
 ## How the two primitives compose
 

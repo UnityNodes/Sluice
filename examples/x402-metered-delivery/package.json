@@ -8,8 +8,8 @@
   "scripts": {
     "start": "node x402-receiver.mjs",
     "pay": "node x402-payer.mjs",
-    "stub-receiver": "node receiver.js",
-    "stub-payer": "node payer.js",
+    "stub-receiver": "node receiver.cjs",
+    "stub-payer": "node payer.cjs",
     "demo": "./demo.sh"
   },
   "dependencies": {
@@ -19,7 +19,8 @@
     "@x402/fetch": "^2.17.0",
     "casper-js-sdk": "^5.0.0",
     "cors": "^2.8.5",
-    "express": "^4.19.0"
+    "express": "^4.19.0",
+    "express-rate-limit": "^7.4.0"
   },
   "engines": { "node": ">=20" }
 }

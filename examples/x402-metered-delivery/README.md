@@ -25,11 +25,11 @@ the payment on-chain**. Proof on testnet:
 
 Run it yourself: `npm install`, copy `.env.sample` to `.env`, fill in your
 CSPR.cloud token and a key holding SLX, then `npm start` (receiver) and
-`npm run pay` (payer). The `receiver.js` / `payer.js` files below are the
+`npm run pay` (payer). The `receiver.cjs` / `payer.cjs` files below are the
 dependency-free **protocol illustration**; the `.mjs` files are the real thing.
 
 ```text
-   payer.js                                 receiver.js  (POST /hook)
+   payer.cjs                                receiver.cjs  (POST /hook)
  ┌──────────┐                              ┌────────────────────────┐
  │  agent / │  1. POST /hook  (no payment) │  x402-metered Sluice   │
  │  Sluice  │ ───────────────────────────▶ │        receiver        │
@@ -50,7 +50,7 @@ dependency-free **protocol illustration**; the `.mjs` files are the real thing.
  └──────────┘                              └────────────────────────┘
 ```
 
-> **Note.** The ASCII flow and the `payer.js` / `receiver.js` files below are a
+> **Note.** The ASCII flow and the `payer.cjs` / `receiver.cjs` files below are a
 > dependency-free illustration of the raw x402 protocol, with the signing and
 > verification shown as labeled STUBS so you can read the shape without any SDK.
 > The **real** integration lives in `x402-receiver.mjs` / `x402-payer.mjs`: it
@@ -66,7 +66,7 @@ npm install
 ```
 
 `demo.sh` starts the receiver, makes one **unpaid** request (you'll see `402`
-with a challenge body), then runs `payer.js` to do the full
+with a challenge body), then runs `payer.cjs` to do the full
 challenge → sign → retry loop (you'll see `200`), and finally prints the ledger
 of paid deliveries.
 
@@ -74,8 +74,8 @@ Run the pieces by hand:
 
 ```bash
 npm start                 # terminal 1: receiver on http://localhost:4021
-node payer.js             # terminal 2: pays for one delivery -> 200
-node payer.js --unpaid    # terminal 2: only step 1, shows the 402 challenge
+node payer.cjs             # terminal 2: pays for one delivery -> 200
+node payer.cjs --unpaid    # terminal 2: only step 1, shows the 402 challenge
 curl localhost:4021/ledger
 ```
 
@@ -168,7 +168,7 @@ been paid for?"*, the HMAC answers *"did Sluice really send this body?"*.
 When the Casper x402 facilitator ships (when it ships, see
 <https://www.casper.network/ai>), replace the two stubs:
 
-1. **Receiver, `verifyPaymentStub()` in `receiver.js`.** Swap the structural
+1. **Receiver, `verifyPaymentStub()` in `receiver.cjs`.** Swap the structural
    check for a facilitator call that verifies the signed payment against the
    chain and settles it:
 
@@ -181,7 +181,7 @@ When the Casper x402 facilitator ships (when it ships, see
    The facilitator confirms `maxAmountRequired` motes actually moved to `payTo`
    and returns a real settlement receipt / tx hash.
 
-2. **Payer, `signPayment()` in `payer.js`.** Replace the HMAC placeholder with
+2. **Payer, `signPayment()` in `payer.cjs`.** Replace the HMAC placeholder with
    a real Casper signature over the canonical payload using the agent's key
    pair (via the CSPR SDK or the facilitator's client library).
 

@@ -13,14 +13,15 @@
  *   3. Payer signs a payment payload and retries with the X-Payment header.
  *   4. Receiver verifies (STUB), records the payment, processes the event, 200.
  *
- * Run:  node receiver.js         (listens on PORT, default 4021)
- * Pay:  node payer.js            (drives the full challenge -> pay -> retry loop)
+ * Run:  node receiver.cjs         (listens on PORT, default 4021)
+ * Pay:  node payer.cjs            (drives the full challenge -> pay -> retry loop)
  */
 
 'use strict';
 
 const crypto = require('crypto');
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 
 // ---------------------------------------------------------------------------
 // Config
@@ -209,6 +210,8 @@ function verifySluiceSignature(rawBody, header) {
 // Server
 // ---------------------------------------------------------------------------
 const app = express();
+const limiter = rateLimit({ windowMs: 60_000, max: 120, standardHeaders: true, legacyHeaders: false });
+app.use(limiter);
 
 // Keep the raw body so we can HMAC-verify the Sluice signature byte-for-byte.
 app.use(
@@ -323,7 +326,7 @@ function short(h) {
   return h.length > 20 ? h.slice(0, 12) + '…' : h;
 }
 
-// Export config + helpers so payer.js can reuse them in-process if desired.
+// Export config + helpers so payer.cjs can reuse them in-process if desired.
 module.exports = { app, PRICE_MOTES, PAY_TO, X402_SCHEME, X402_NETWORK };
 
 if (require.main === module) {

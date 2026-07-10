@@ -11,9 +11,9 @@
  *   4. Retry POST /hook with the X-Payment header  -> expect 200.
  *
  * Usage:
- *   node payer.js                      # pays for one delivery against localhost
- *   node payer.js --unpaid             # only does step 1 (shows the 402)
- *   BASE_URL=http://host:4021 node payer.js
+ *   node payer.cjs                      # pays for one delivery against localhost
+ *   node payer.cjs --unpaid             # only does step 1 (shows the 402)
+ *   BASE_URL=http://host:4021 node payer.cjs
  */
 
 'use strict';
@@ -91,11 +91,14 @@ async function postHook(headers, body) {
     headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   });
+  // Read the body once. res.json() consumes it, so falling back to res.text()
+  // in the catch throws "Body has already been read" instead of the real error.
+  const raw = await res.text();
   let json;
   try {
-    json = await res.json();
+    json = JSON.parse(raw);
   } catch (_e) {
-    json = { raw: await res.text() };
+    json = { raw };
   }
   return { status: res.status, json };
 }
