@@ -16,6 +16,7 @@
  * `field` supports dot.notation for nested access.
  */
 
+import RE2 from 're2';
 import type { Condition, Operator, Predicate, PredicateNode, TransferEvent } from './types';
 
 const ALLOWED_OPS: Operator[] = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'contains', 'starts_with', 'ends_with', 'in', 'not_in', 'regex'];
@@ -125,7 +126,9 @@ function compare(left: unknown, op: Operator, right: unknown): boolean {
       const src = String(right ?? '');
       if (src.length > MAX_REGEX_LEN || looksCatastrophicRegex(src)) return false;
       if (ls.length > MAX_REGEX_SUBJECT_LEN) return false;
-      try { return new RegExp(src).test(ls); }
+      // RE2 is a linear-time engine, so a subscriber-supplied pattern cannot
+      // trigger catastrophic backtracking on the matcher's event loop.
+      try { return new RE2(src).test(ls); }
       catch { return false; }
     }
     case 'in':
@@ -190,7 +193,7 @@ function validateNode(node: unknown, depth: number, path: string, counter: { n: 
     const src = String(cc.value);
     if (src.length > MAX_REGEX_LEN) throw new PredicateError(`${path}.value regex too long (max ${MAX_REGEX_LEN} chars)`);
     if (looksCatastrophicRegex(src)) throw new PredicateError(`${path}.value regex rejected: nested quantifier risks catastrophic backtracking`);
-    try { new RegExp(src); } catch (e) { throw new PredicateError(`${path}.value invalid regex: ${(e as Error).message}`); }
+    try { new RE2(src); } catch (e) { throw new PredicateError(`${path}.value invalid regex: ${(e as Error).message}`); }
   }
   counter.n++;
 }
