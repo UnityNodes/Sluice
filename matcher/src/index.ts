@@ -387,12 +387,22 @@ export class Matcher {
     else this.recordSlots++;
   }
 
+  /**
+   * A CES event name is chosen by whoever deployed the contract, and we watch
+   * third-party contracts. Keep it to identifier characters so the name cannot
+   * smuggle markup into any consumer that renders the description.
+   */
+  private safeEventName(name: unknown): string {
+    const s = String(name ?? '').replace(/[^A-Za-z0-9_.-]/g, '');
+    return s.slice(0, 64) || 'event';
+  }
+
   /** Human one-liner for an event, shared by the webhook feed and x402 queue. */
   private describeEvent(event: TransferEvent): string {
     if ((event as { event_type?: string }).event_type === 'contract') {
       const ce = event as unknown as NormalizedContractEvent;
       const pkgShort = ce.contract_package_hash ? `${ce.contract_package_hash.slice(0, 6)}…` : '…';
-      return `Contract · ${ce.name} @ ${pkgShort}`;
+      return `Contract · ${this.safeEventName(ce.name)} @ ${pkgShort}`;
     }
     const csprStr = (() => {
       try { const m = BigInt(String(event.amount)); const c = m / 1_000_000_000n; return c >= 1n ? `${c.toLocaleString('en-US')} CSPR` : `${event.amount} motes`; }

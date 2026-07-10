@@ -124,17 +124,21 @@
     if (Array.isArray(v)) return `${v.length} addresses`;
     const s = String(v ?? '');
     if (field === 'amount' && /^\d{10,}$/.test(s)) return `${motesToCspr(s).toLocaleString('en-US')} CSPR`;
-    if (field === 'timestamp' && /^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 16).replace('T', ' ');
+    if (field === 'timestamp' && /^\d{4}-\d{2}-\d{2}/.test(s)) return escHtml(s.slice(0, 16).replace('T', ' '));
     if (KNOWN_CONTRACTS[s.toLowerCase()]) return KNOWN_CONTRACTS[s.toLowerCase()];
     if (/^[0-9a-f]{64}$/i.test(s)) return truncHash(s, 6, 4);
-    return s.length > 32 ? truncHash(s, 14, 10) : s;
+    return escHtml(s.length > 32 ? truncHash(s, 14, 10) : s);
   };
-  /** Friendly one-liner for a single condition node. */
+  /**
+   * Friendly one-liner for a single condition node. The result is inserted as
+   * HTML so the field icons render, which means every value taken from the
+   * predicate has to be escaped first. Only the icon lookup is trusted markup.
+   */
   const humanizeCond = (c) => {
     const icon = FIELD_ICON[c.field] || '·';
-    const label = FIELD_LABEL[c.field] || c.field;
+    const label = escHtml(FIELD_LABEL[c.field] || c.field);
     const op = OP_LABEL[c.op] || { word: c.op, sym: c.op };
-    return `${icon} ${label} ${op.sym} ${humanizeValue(c.field, c.value)}`;
+    return `${icon} ${label} ${escHtml(op.sym)} ${humanizeValue(c.field, c.value)}`;
   };
   /** Recursive humanizer for AND/OR groups + plain conditions. */
   const humanizeNode = (node) => {
@@ -143,7 +147,7 @@
     return humanizeCond(node);
   };
   const predicateSummary = (pred) => {
-    if (!pred || !Array.isArray(pred.and)) return JSON.stringify(pred ?? {});
+    if (!pred || !Array.isArray(pred.and)) return escHtml(JSON.stringify(pred ?? {}));
     return pred.and.map(humanizeNode).join(' AND ');
   };
   const toast = (msg, kind = 'info') => {
@@ -726,11 +730,15 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         if (j && j.ok && j.tx) {
           const ev = j.event || {};
           const d = (ev.event && ev.event.data) || {};
-          let evText = ev.description || 'matched event';
+          let evText = escHtml(ev.description || 'matched event');
           if (d.token_in && d.amount_in) {
-            evText = 'Swap ' + (Number(d.amount_in) / 1e9).toLocaleString('en-US') + ' ' + d.token_in + ' → ' + (d.token_out || '');
+            evText = 'Swap ' + escHtml((Number(d.amount_in) / 1e9).toLocaleString('en-US')) + ' ' + escHtml(d.token_in) + ' → ' + escHtml(d.token_out || '');
           }
-          out.innerHTML = 'Paid 0.1 SLX, delivered: ' + evText + ' · <a href="' + j.explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + j.tx.slice(0, 10) + '…' + j.tx.slice(-6) + ' on cspr.live</a>';
+          const tx = safeHash(j.tx);
+          const explorer = 'https://testnet.cspr.live/transaction/' + tx;
+          out.innerHTML = 'Paid 0.1 SLX, delivered: ' + evText + (tx
+            ? ' · <a href="' + explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + tx.slice(0, 10) + '…' + tx.slice(-6) + ' on cspr.live</a>'
+            : '');
         } else {
           out.textContent = (j && j.error) ? j.error : 'payment failed, try again in a moment';
         }
@@ -1276,7 +1284,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
             <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.06em">${rate}</div>
           </div>${samples ? '<div style="margin-top:10px;border-top:1px dashed #ccc;padding-top:8px">' + samples + '</div>' : ''}`;
       } catch (e) {
-        out.innerHTML = `<div style="color:#ff2d2e">dry-run failed: ${e.message || e}</div>`;
+        out.innerHTML = `<div style="color:#ff2d2e">dry-run failed: ${escHtml(e.message || e)}</div>`;
       }
     });
     // ✨ AI input
@@ -1360,20 +1368,21 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
         const rows = (j.results || []).map((r, i) => {
           const color = r.ok ? '#3edc64' : '#ff8a65';
+          const evHash = safeHash(r.event_hash);
           return `<div style="display:grid;grid-template-columns:32px 80px 90px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid #1a1a1a">
             <span style="color:#666">#${i+1}</span>
-            <span style="color:${color};font-weight:500">${r.statusCode ?? 'no-resp'}</span>
-            <span style="color:#fff">${r.latency_ms}ms</span>
-            <span style="color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.event_hash}">${r.event_hash.slice(0,16)}…</span>
+            <span style="color:${color};font-weight:500">${Number(r.statusCode) || 'no-resp'}</span>
+            <span style="color:#fff">${Number(r.latency_ms) || 0}ms</span>
+            <span style="color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${evHash}">${evHash.slice(0,16)}…</span>
           </div>`;
         }).join('');
         const slugMatch = fullUrl.match(/\/api\/hooks\/([a-z0-9-]+)/i);
         const peekLink = slugMatch
           ? `<div style="margin-top:8px;color:#bcfc07;font:500 11px 'JetBrains Mono';letter-spacing:.04em">↳ peek the requests: <a href="/h/${slugMatch[1]}" target="_blank" style="color:#bcfc07;text-decoration:underline">/h/${slugMatch[1]}</a></div>`
           : '';
-        out.innerHTML = `<div style="color:#bcfc07;font:500 12px 'JetBrains Mono';margin-bottom:10px">${j.delivered}/${j.requested} delivered · ${j.matched_in_buffer} matched buffer · ${j.used_synthetic ? 'synthetic top-up used' : 'all real events'}</div>${rows}${peekLink}<div style="margin-top:12px;color:#666;font:500 11px 'JetBrains Mono';letter-spacing:.06em">NO CSPR SPENT · NO ON-CHAIN RECORD · SUB ID = 0</div>`;
+        out.innerHTML = `<div style="color:#bcfc07;font:500 12px 'JetBrains Mono';margin-bottom:10px">${Number(j.delivered) || 0}/${Number(j.requested) || 0} delivered · ${Number(j.matched_in_buffer) || 0} matched buffer · ${j.used_synthetic ? 'synthetic top-up used' : 'all real events'}</div>${rows}${peekLink}<div style="margin-top:12px;color:#666;font:500 11px 'JetBrains Mono';letter-spacing:.06em">NO CSPR SPENT · NO ON-CHAIN RECORD · SUB ID = 0</div>`;
       } catch (e) {
-        out.innerHTML = `<div style="color:#ff2d2e">sandbox failed: ${e.message || e}</div>`;
+        out.innerHTML = `<div style="color:#ff2d2e">sandbox failed: ${escHtml(e.message || e)}</div>`;
       } finally {
         fire.disabled = false; fire.textContent = prev;
       }
@@ -1392,16 +1401,18 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       return;
     }
     list.innerHTML = events.map((e, i) => {
-      const status = e.status === 0 ? `<span style="background:#ffb347;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">PENDING</span>`
-        : e.status >= 200 && e.status < 300 ? `<span style="background:#3edc64;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${e.status}</span>`
-        : `<span style="background:#ff2d2e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${e.status}</span>`;
-      const tx = e.tx_hash ? `<a href="https://testnet.cspr.live/deploy/${e.tx_hash}" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none" onclick="event.stopPropagation()">${e.tx_hash.slice(0,16)}…</a>` : '<span style="color:#999">…</span>';
+      const code = Number(e.status) || 0;
+      const status = code === 0 ? `<span style="background:#ffb347;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">PENDING</span>`
+        : code >= 200 && code < 300 ? `<span style="background:#3edc64;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`
+        : `<span style="background:#ff2d2e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`;
+      const hash = safeHash(e.tx_hash);
+      const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#999">…</span>';
       return `<div data-act-idx="${i}" class="act-row" title="Click to see condition-by-condition why this matched" style="display:grid;grid-template-columns:130px 70px 70px 80px 1fr 220px;gap:14px;padding:14px 22px;border-bottom:1px solid #eee;align-items:center;font:400 12.5px 'JetBrains Mono';cursor:pointer">
-        <span style="color:#666">${(e.timestamp||'').substr(11,8)} <span style="color:#999">UTC</span></span>
-        <span style="color:#000;font-weight:500">sub_${e.subscription_id}</span>
+        <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#999">UTC</span></span>
+        <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}</span>
         ${status}
-        <span style="color:#000">${e.latency_ms || 0}ms</span>
-        <span style="color:#333">${(e.description || '').slice(0,80)}</span>
+        <span style="color:#000">${Number(e.latency_ms) || 0}ms</span>
+        <span style="color:#333">${escHtml(String(e.description || '').slice(0,80))}</span>
         <span>${tx}</span>
       </div>`;
     }).join('');
@@ -1419,6 +1430,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
 
   /* ─────────────────── explain modal ─────────────────── */
   function escHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+  function safeHash(h) { const s = String(h ?? ''); return /^[0-9a-f]{64}$/i.test(s) ? s : ''; }
   function fmtVal(v, field) {
     if (Array.isArray(v)) return `[${v.length} addresses]`;
     if (v == null) return '<missing>';
@@ -1449,7 +1461,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     modal.innerHTML = `<div style="background:#fff;border:1px solid #000;box-shadow:8px 8px 0 #bcfc07;max-width:1080px;width:100%;margin-top:32px;display:grid;grid-template-columns:1fr 280px">
       <div style="grid-column:1/-1;padding:18px 24px;border-bottom:1px solid #000;display:flex;align-items:center;gap:14px">
         <div style="font:500 11px 'JetBrains Mono';color:#bcfc07;background:#000;padding:4px 10px;letter-spacing:.1em">EXPLAIN</div>
-        <div style="font:500 16px 'Casper Sans',Inter;color:#000">Why sub_${evt.subscription_id} matched this event</div>
+        <div style="font:500 16px 'Casper Sans',Inter;color:#000">Why sub_${Number(evt.subscription_id) || 0} matched this event</div>
         <div style="flex:1"></div>
         <button type="button" id="explain-close" aria-label="close" style="background:#000;color:#fff;border:1px solid #000;width:32px;height:32px;font:500 18px 'JetBrains Mono';cursor:pointer">×</button>
       </div>
@@ -1459,26 +1471,26 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">amount: ${fmtVal(evt.event?.amount, 'amount')}</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">to: ${fmtVal(evt.event?.to_account_hash)}</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">from: ${fmtVal(evt.event?.initiator_account_hash)}</div>
-          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">block: ${evt.event?.block_height ?? '…'}</div>
+          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">block: ${Number.isFinite(Number(evt.event?.block_height)) ? Number(evt.event.block_height) : '…'}</div>
         </div>
         <div>
           <div style="font:500 10.5px 'JetBrains Mono';color:#666;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">DELIVERY</div>
-          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">status: ${evt.status || 'pending'}</div>
-          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">latency: ${evt.latency_ms ?? 0} ms</div>
-          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">attempts: ${evt.attempts ?? 1}</div>
-          ${evt.tx_hash ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/deploy/${evt.tx_hash}" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">${evt.tx_hash.slice(0,16)}…</a></div>` : ''}
+          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">status: ${Number(evt.status) || 'pending'}</div>
+          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">latency: ${Number(evt.latency_ms) || 0} ms</div>
+          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">attempts: ${Number(evt.attempts) || 1}</div>
+          ${safeHash(evt.tx_hash) ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/deploy/${safeHash(evt.tx_hash)}" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">${safeHash(evt.tx_hash).slice(0,16)}…</a></div>` : ''}
         </div>
       </div>
       <div id="explain-body" style="padding:24px;min-height:240px;font:400 14px 'Casper Sans',Inter;color:#666;border-right:1px solid #ddd">running predicate/explain…</div>
       <aside id="explain-live" style="padding:18px;background:#fafafa;min-height:240px;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;gap:8px"><span id="explain-live-dot" style="width:8px;height:8px;background:#999;border-radius:50%"></span><span style="font:500 10.5px 'JetBrains Mono';color:#000;letter-spacing:.1em">MORE LIKE THIS · LIVE</span></div>
-        <div style="font:400 11px/1.4 'JetBrains Mono';color:#666">New deliveries to sub_${evt.subscription_id} appear here as the matcher dispatches them.</div>
+        <div style="font:400 11px/1.4 'JetBrains Mono';color:#666">New deliveries to sub_${Number(evt.subscription_id) || 0} appear here as the matcher dispatches them.</div>
         <div id="explain-live-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px;flex:1"></div>
       </aside>
     </div>`;
     document.getElementById('explain-close').addEventListener('click', closeAll);
     if (!sub || !sub.predicate) {
-      document.getElementById('explain-body').innerHTML = '<div style="color:#ff2d2e;font:500 12px \'JetBrains Mono\'">subscription ' + evt.subscription_id + ' no longer in matcher view, cannot resolve predicate</div>';
+      document.getElementById('explain-body').innerHTML = '<div style="color:#ff2d2e;font:500 12px \'JetBrains Mono\'">subscription ' + (Number(evt.subscription_id) || 0) + ' no longer in matcher view, cannot resolve predicate</div>';
       return;
     }
     fetch('/api/predicate/explain', {
@@ -1516,8 +1528,9 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         const ago = e.timestamp ? (() => { const dt = Math.max(0, Date.now() - new Date(e.timestamp).getTime()); if (dt < 5000) return 'just now'; if (dt < 60000) return Math.floor(dt/1000)+'s ago'; return Math.floor(dt/60000)+'m ago'; })() : '';
         const card = document.createElement('div');
         card.style.cssText = "background:#fff;border:1px solid #000;padding:8px 10px;font:500 11px/1.45 'JetBrains Mono';color:#000;cursor:pointer";
-        const status = e.status >= 200 && e.status < 300 ? '#3edc64' : e.status === 0 ? '#ffb347' : '#ff2d2e';
-        card.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:${status};color:#000;padding:1px 5px;font-size:9.5px;letter-spacing:.06em">${e.status || 'PEND'}</span><span style="flex:1;color:#666">${escHtml(ago)}</span><span style="color:#666">${e.latency_ms || 0}ms</span></div>` +
+        const code = Number(e.status) || 0;
+        const status = code >= 200 && code < 300 ? '#3edc64' : code === 0 ? '#ffb347' : '#ff2d2e';
+        card.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:${status};color:#000;padding:1px 5px;font-size:9.5px;letter-spacing:.06em">${code || 'PEND'}</span><span style="flex:1;color:#666">${escHtml(ago)}</span><span style="color:#666">${Number(e.latency_ms) || 0}ms</span></div>` +
           `<div style="color:#000">${amt}</div>` +
           `<div style="color:#999;font-size:10px;margin-top:2px">→ ${fmtVal(e.event?.to_account_hash)}</div>`;
         card.addEventListener('click', () => { closeAll(); setTimeout(() => openExplain(e), 50); });
