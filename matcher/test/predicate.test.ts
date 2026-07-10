@@ -113,4 +113,45 @@ describe('validatePredicate, regex safety', () => {
     const p = { and: [{ field: 'to_account_hash', op: 'regex', value: '^ab[0-9]+$' }] };
     expect(() => validatePredicate(p)).not.toThrow();
   });
+
+  // The old guard only looked for a quantifier on either side of `)`, so it let
+  // overlapping alternations and quantifiers behind an escape slip through.
+  it.each([
+    ['(a|a)+$'],
+    ['(a|ab)*c'],
+    ['([a-z]+)*$'],
+    ['(\\s*\\w)+$'],
+    ['(x+x+)+y'],
+    ['(.*)*$'],
+    ['(a+)+{2,}'],
+  ])('rejects the catastrophic pattern %s', (value) => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value }] };
+    expect(() => validatePredicate(p)).toThrow(PredicateError);
+  });
+
+  it.each([
+    ['^[0-9a-f]{64}$'],
+    ['^(0x)?[0-9a-f]+$'],
+    ['\\d{4}-\\d{2}-\\d{2}'],
+    ['^Swap$'],
+    ['[ab]+'],
+    ['(\\d{4})+'],
+  ])('still accepts the legitimate pattern %s', (value) => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value }] };
+    expect(() => validatePredicate(p)).not.toThrow();
+  });
+
+  it('does not evaluate a catastrophic regex even if it bypasses validation', () => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value: '(a|a)+$' }] } as never;
+    const event = { to_account_hash: 'a'.repeat(40) + 'b' } as never;
+    const started = Date.now();
+    expect(evaluate(p, event)).toBe(false);
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
+  it('does not evaluate a regex against an oversized subject', () => {
+    const p = { and: [{ field: 'to_account_hash', op: 'regex', value: '^a+$' }] } as never;
+    const event = { to_account_hash: 'a'.repeat(5000) } as never;
+    expect(evaluate(p, event)).toBe(false);
+  });
 });

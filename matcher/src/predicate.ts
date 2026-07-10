@@ -26,15 +26,57 @@ export class PredicateError extends Error {}
 
 const MAX_REGEX_LEN = 200;
 
+/** No event field worth matching is longer than this, and it bounds backtracking. */
+const MAX_REGEX_SUBJECT_LEN = 4096;
+
+/** True for `*`, `+` and `{n,}`, the quantifiers that admit unbounded repetition. */
+function unboundedQuantifierAt(src: string, i: number): boolean {
+  const c = src[i];
+  if (c === '*' || c === '+') return true;
+  if (c !== '{') return false;
+  const close = src.indexOf('}', i);
+  if (close === -1) return false;
+  return /^\d+,$/.test(src.slice(i + 1, close));
+}
+
 /**
- * Heuristic guard against catastrophic-backtracking regexes (star height >= 2),
- * e.g. (a+)+, (a*)*, (\d+){2,}. Predicates are attacker-controlled (anyone can
- * create a subscription), so a pathological pattern would otherwise stall the
- * single-threaded matcher on the first matching event. Not exhaustive, but it
- * blocks the classic ReDoS forms; the length cap bounds the rest.
+ * Guard against catastrophic-backtracking regexes. Predicates are
+ * attacker-controlled (anyone can create a subscription), so a pathological
+ * pattern would otherwise stall the single-threaded matcher on the first
+ * matching event.
+ *
+ * Rejects a group under an unbounded quantifier when the group itself contains
+ * an unbounded quantifier (star height >= 2, e.g. `(a+)+`, `([a-z]+)*`) or an
+ * alternation whose branches may overlap (e.g. `(a|a)+`, `(a|ab)*`). Both are
+ * the shapes that make matching exponential. Disjoint alternations such as
+ * `(a|b)+` are rejected too: express them as a character class `[ab]+`.
  */
 function looksCatastrophicRegex(src: string): boolean {
-  return /[+*}]\)[+*{]/.test(src);
+  type Frame = { quant: boolean; alt: boolean };
+  const stack: Frame[] = [];
+  let top: Frame = { quant: false, alt: false };
+
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (c === '\\') { i++; continue; }
+    if (c === '[') {
+      i++;
+      while (i < src.length && src[i] !== ']') { if (src[i] === '\\') i++; i++; }
+      continue;
+    }
+    if (c === '(') { stack.push(top); top = { quant: false, alt: false }; continue; }
+    if (c === '|') { top.alt = true; continue; }
+    if (c === ')') {
+      const closed = top;
+      top = stack.pop() ?? { quant: false, alt: false };
+      const quantified = unboundedQuantifierAt(src, i + 1);
+      if (quantified && (closed.quant || closed.alt)) return true;
+      top.quant = top.quant || closed.quant || quantified;
+      continue;
+    }
+    if (unboundedQuantifierAt(src, i)) top.quant = true;
+  }
+  return false;
 }
 
 /** Type guards for the nested grammar. */
@@ -79,9 +121,13 @@ function compare(left: unknown, op: Operator, right: unknown): boolean {
     case 'contains':    return ls.includes(String(right ?? ''));
     case 'starts_with': return ls.startsWith(String(right ?? ''));
     case 'ends_with':   return ls.endsWith(String(right ?? ''));
-    case 'regex':
-      try { return new RegExp(String(right ?? '')).test(ls); }
+    case 'regex': {
+      const src = String(right ?? '');
+      if (src.length > MAX_REGEX_LEN || looksCatastrophicRegex(src)) return false;
+      if (ls.length > MAX_REGEX_SUBJECT_LEN) return false;
+      try { return new RegExp(src).test(ls); }
       catch { return false; }
+    }
     case 'in':
     case 'not_in': {
       if (!Array.isArray(right)) return false;
