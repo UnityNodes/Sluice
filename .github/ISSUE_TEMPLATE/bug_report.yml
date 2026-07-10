@@ -1,0 +1,75 @@
+name: Bug report
+description: Something in Sluice does not behave the way it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Security issues do not belong here: please use
+        [private vulnerability reporting](https://github.com/UnityNodes/Sluice/security/advisories/new).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: predicate
+    attributes:
+      label: Subscription predicate
+      description: The JSON rule, or the plain English you typed.
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: event
+    attributes:
+      label: The event
+      description: The on-chain event you expected to match, or the delivered payload.
+      render: json
+    validations:
+      required: false
+
+  - type: input
+    id: idempotency-key
+    attributes:
+      label: Idempotency key
+      description: The `x-sluice-idempotency-key` header, if this involved a live delivery.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Matcher (predicate engine)
+        - Matcher (webhook delivery)
+        - Matcher (HTTP API)
+        - MCP server
+        - Contract (SubscriptionRegistry)
+        - Web dashboard
+        - Examples / agents
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Steps, or a command we can run.
+    validations:
+      required: true
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit or version
+      description: The commit hash you were running.
+    validations:
+      required: false

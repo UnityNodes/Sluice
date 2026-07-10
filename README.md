@@ -1,6 +1,6 @@
 # Sluice
 
-[![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-74%2F74%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
+[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-74%2F74%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
 > Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
@@ -304,9 +304,15 @@ open http://localhost:3001    # admin / admin
 - Postman collection: [docs/sluice.postman_collection.json](docs/sluice.postman_collection.json).
 - Predicate JSON Schema: [`web/schema/predicate-v1.json`](web/schema/predicate-v1.json). Served at [sluice.unitynodes.com/schema/predicate-v1.json](https://sluice.unitynodes.com/schema/predicate-v1.json).
 
+## Verify it yourself
+
+Step-by-step instructions to check that Sluice does what this README claims, against the live testnet deployment and against the test suite, are in [`docs/TESTING.md`](docs/TESTING.md). The deployed contract package hashes and sample testnet transactions are listed there too.
+
 ## Contributing
 
 Issues and PRs welcome. Please open an issue first for anything larger than a small bug fix so we can align on the direction. Follow conventional commits (`type(scope): description`).
+
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to set up, what checks to run, and what we look for in a change. Participation is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). To report a vulnerability, follow [`SECURITY.md`](SECURITY.md) rather than opening a public issue.
 
 ## Ecosystem
 

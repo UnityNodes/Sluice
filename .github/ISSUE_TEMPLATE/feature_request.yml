@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest an event type, an operator, a delivery channel, or anything else
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What can you not do today? Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: How would you want it to work? A sample predicate or payload helps.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Predicate engine (new operator or field)
+        - Delivery channel (webhook, MCP, WebSocket)
+        - Billing (escrow or x402)
+        - Contract-event matching
+        - MCP tools and resources
+        - Dashboard
+        - Docs
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+    validations:
+      required: false

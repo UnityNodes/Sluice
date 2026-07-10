@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/UnityNodes/Sluice/security/advisories/new
+    about: Report privately. Do not open a public issue.
+  - name: Casper Developers on Telegram
+    url: https://t.me/CSPRDevelopers
+    about: Questions about building on Casper.
+  - name: Casper Discord
+    url: https://discord.com/invite/caspernetwork
+    about: The wider Casper community.
+  - name: Try the live testnet demo
+    url: https://sluice.unitynodes.com/app
+    about: See matching and delivery running before you file anything.
