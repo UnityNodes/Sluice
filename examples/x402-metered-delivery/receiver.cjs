@@ -23,6 +23,8 @@ const crypto = require('crypto');
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 
+const oneLine = (v) => String(v).replace(/[\r\n]/g, ' ');
+
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
@@ -284,9 +286,9 @@ app.post('/hook', (req, res) => {
   // >>> This is where real Sluice-side business logic goes: enqueue the
   //     transfer for a trading agent, forward to Discord, update a DB, etc.
   console.log(
-    `[receiver] paid delivery #${record.seq}, ` +
-    `${event.amount ?? '?'} motes to ${short(event.to_account_hash)} ` +
-    `(stub settle ${result.payment.settlementTxHash})`
+    `[receiver] paid delivery #${oneLine(record.seq)}, ` +
+    `${oneLine(event.amount ?? '?')} motes to ${oneLine(short(event.to_account_hash))} ` +
+    `(stub settle ${oneLine(result.payment.settlementTxHash)})`
   );
 
   return res.status(200).json({

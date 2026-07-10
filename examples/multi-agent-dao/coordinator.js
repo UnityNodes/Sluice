@@ -32,6 +32,8 @@ const express = require('express');
 const { createHmac, timingSafeEqual } = require('node:crypto');
 const Anthropic = require('@anthropic-ai/sdk');
 
+const oneLine = (v) => String(v).replace(/[\r\n]/g, ' ');
+
 const SLUICE_WEBHOOK_SECRET = process.env.SLUICE_WEBHOOK_SECRET; // optional but recommended
 const PORT = Number(process.env.PORT || 8790);
 const QUORUM = Number(process.env.QUORUM || 2); // approve votes required to pass
@@ -334,7 +336,7 @@ async function deliberate(proposal) {
  * to enact the DAO decision. Left as a log to avoid any accidental spend.
  */
 async function execute(proposal, result) {
-  console.log(`  ↳ EXECUTE: enacting proposal ${proposal.deployHash}, would submit on-chain deploy here (stubbed).`);
+  console.log(`  ↳ EXECUTE: enacting proposal ${oneLine(proposal.deployHash)}, would submit on-chain deploy here (stubbed).`);
 }
 
 /** Pretty-print the whole deliberation so a judge sees the swarm think. */
@@ -343,8 +345,8 @@ function logTranscript(proposal, result, ctx) {
   console.log(`\n╔${line}╗`);
   console.log(`  GOVERNANCE TRIGGER received from Sluice ${ctx.verified ? '🔒 verified' : '⚠️  unsigned'}`);
   console.log(`  proposal: ${proposal.cspr} CSPR treasury movement`);
-  console.log(`    from ${short(proposal.from)}  →  to ${short(proposal.to)}`);
-  console.log(`    deploy ${short(proposal.deployHash)}  block ${proposal.blockHeight ?? '?'}  sub_${proposal.subscriptionId ?? '?'}`);
+  console.log(`    from ${oneLine(short(proposal.from))}  →  to ${oneLine(short(proposal.to))}`);
+  console.log(`    deploy ${oneLine(short(proposal.deployHash))}  block ${oneLine(proposal.blockHeight ?? '?')}  sub_${oneLine(proposal.subscriptionId ?? '?')}`);
   console.log(`  ${line}`);
   const via = result.opinions.every((o) => o.decidedBy === 'heuristic')
     ? 'heuristic'
