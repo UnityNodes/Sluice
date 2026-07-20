@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn create_subscription_locks_balance_and_returns_id() {
-        let (mut registry, subscriber, _) = setup();
+        let (registry, subscriber, _) = setup();
         let env = registry.env().clone();
         env.set_caller(subscriber);
 
