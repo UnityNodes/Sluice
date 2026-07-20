@@ -37,6 +37,10 @@
   #filter-pills > [data-filter]:first-child { border-left:none }
   #filter-pills > [data-filter].active { background:#000; color:#fff }
   button { font-family: inherit }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible,
+  input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 3px solid #bcfc07 !important; outline-offset: 2px;
+  }
   /* App tabs */
   .app-tabs { display:flex; gap:0; border:1px solid #000; background:#fff; margin-bottom:24px; }
   .app-tab { background:#fff; color:#000; border:none; border-right:1px solid #000; padding:14px 22px; font:500 14px 'Casper Sans',Inter; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
@@ -284,7 +288,7 @@
           <div style="flex:1"></div>
           <div style="display:flex;align-items:center;gap:8px;border:1px solid #000;padding:6px 12px;background:#f4f4f4;font:400 12.5px 'Casper Sans',Inter;color:#666;min-width:240px">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#000" stroke-width="1.5"><circle cx="5" cy="5" r="3.5"/><path d="M8 8l3 3"/></svg>
-            <input id="search-input" placeholder="search by address, amount, or webhook URL…" style="border:none;background:transparent;outline:none;flex:1;color:#000;font:inherit">
+            <input id="search-input" aria-label="Search subscriptions" placeholder="search by address, amount, or webhook URL…" style="border:none;background:transparent;outline:none;flex:1;color:#000;font:inherit">
           </div>
           <button id="csv-btn" style="background:#fff;border:1px solid #000;color:#000;padding:6px 12px;font:500 12px 'JetBrains Mono';cursor:pointer;letter-spacing:.06em">⇣ CSV</button>
         </div>

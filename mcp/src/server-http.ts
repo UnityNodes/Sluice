@@ -136,6 +136,14 @@ const httpServer = http.createServer(async (req, res) => {
     res.end(JSON.stringify({ ok: true, name: 'sluice-mcp-http', version: '0.2.0' }));
     return;
   }
+  // Stateless transport: a GET normally opens the server->client SSE stream for a
+  // session, but there are no sessions here, so handleRequest would hang the
+  // client. Answer 405 promptly and point at POST.
+  if ((url.pathname === '/mcp' || url.pathname === '/' || url.pathname === '/mcp/') && req.method === 'GET') {
+    res.writeHead(405, { 'content-type': 'application/json', allow: 'POST, OPTIONS' });
+    res.end(JSON.stringify({ error: 'this MCP endpoint is stateless; use POST for JSON-RPC (initialize, tools/list, ...)' }));
+    return;
+  }
   if (url.pathname === '/' || url.pathname === '/mcp/') {
     res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
     res.end(

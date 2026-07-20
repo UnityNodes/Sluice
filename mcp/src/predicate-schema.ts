@@ -22,7 +22,7 @@ export const PREDICATE_SCHEMA = {
     "and": {
       "type": "array",
       "minItems": 1,
-      "maxItems": 16,
+      "maxItems": 32,
       "description": "Every condition must match. OR semantics are not yet supported in v1, file an issue at github.com/UnityNodes/Sluice if you need them.",
       "items": {
         "$ref": "#/$defs/condition"
@@ -60,7 +60,7 @@ export const PREDICATE_SCHEMA = {
             },
             {
               "type": "array",
-              "maxItems": 64,
+              "maxItems": 32,
               "items": {
                 "type": [
                   "string",

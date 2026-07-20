@@ -647,13 +647,41 @@ function buildIcs(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscrip
   return lines.join('\r\n') + '\r\n';
 }
 
+// Bound how many casper-client subprocesses the API can fork at once. The
+// /tx/build/* and /tx/submit routes are unauthenticated, so without a gate a
+// burst of requests could exhaust processes / file descriptors and take the
+// matcher down. Excess calls queue rather than spawn.
+const CC_MAX = Number(process.env.SLUICE_MAX_TX_SUBPROCESS ?? 4);
+let ccActive = 0;
+const ccWaiters: Array<() => void> = [];
+async function ccAcquire(): Promise<void> {
+  if (ccActive < CC_MAX) { ccActive++; return; }
+  await new Promise<void>((r) => ccWaiters.push(r));
+  ccActive++;
+}
+function ccRelease(): void {
+  ccActive--;
+  const next = ccWaiters.shift();
+  if (next) next();
+}
+
 function spawnCC(bin: string, args: string[]): Promise<{ stdout: string; stderr: string; code: number }> {
-  return new Promise((resolve) => {
-    const child = spawn(bin, args, { env: process.env });
-    let stdout = ''; let stderr = '';
-    child.stdout.on('data', (d) => { stdout += d.toString(); });
-    child.stderr.on('data', (d) => { stderr += d.toString(); });
-    child.on('close', (code) => resolve({ stdout, stderr, code: code ?? -1 }));
+  return new Promise((resolve, reject) => {
+    void ccAcquire().then(() => {
+      let settled = false;
+      const done = (v: { stdout: string; stderr: string; code: number }) => { if (!settled) { settled = true; ccRelease(); resolve(v); } };
+      let child;
+      try {
+        child = spawn(bin, args, { env: process.env });
+      } catch (e) {
+        ccRelease(); reject(e as Error); return;
+      }
+      let stdout = ''; let stderr = '';
+      child.stdout.on('data', (d) => { stdout += d.toString(); });
+      child.stderr.on('data', (d) => { stderr += d.toString(); });
+      child.on('error', (e) => { if (!settled) { settled = true; ccRelease(); reject(e); } });
+      child.on('close', (code) => done({ stdout, stderr, code: code ?? -1 }));
+    });
   });
 }
 

@@ -82,10 +82,10 @@ export const SANDBOX_TOOL = {
   inputSchema: {
     type: 'object',
     properties: {
-      webhook_url: { type: 'string', description: 'HTTP/HTTPS URL to POST synthetic events to' },
+      webhook_url: { type: 'string', format: 'uri', description: 'HTTP/HTTPS URL to POST synthetic events to' },
       predicate_json: { type: 'string', description: 'Optional JSON predicate to filter buffer events first' },
-      count: { type: 'number', description: 'How many events to send (1..10, default 3)' },
-      api_url: { type: 'string', description: 'Sluice matcher API base URL (default https://sluice.unitynodes.com/api or env SLUICE_API_URL)' },
+      count: { type: 'integer', minimum: 1, maximum: 10, default: 3, description: 'How many events to send (1..10, default 3)' },
+      api_url: { type: 'string', format: 'uri', description: 'Ignored on the hosted endpoint (pinned to the operator env for safety); on the local stdio server, the Sluice matcher API base URL (default env SLUICE_API_URL)' },
     },
     required: ['webhook_url'],
   },
@@ -419,7 +419,15 @@ async function main(): Promise<void> {
           const fs = await import('node:fs/promises');
           try {
             const raw = await fs.readFile(snapshotPath, 'utf8');
-            return { content: [{ type: 'text', text: raw }] };
+            // Return just the subscriptions, not the entire snapshot (which also
+            // carries the contract hash and the recent-deliveries buffer). The
+            // tool is named list_subscriptions, so a model should get exactly that.
+            let text = raw;
+            try {
+              const snap = JSON.parse(raw) as { subscriptions?: unknown };
+              if (snap && Array.isArray(snap.subscriptions)) text = JSON.stringify(snap.subscriptions, null, 2);
+            } catch { /* if the snapshot is not parseable, fall back to raw */ }
+            return { content: [{ type: 'text', text }] };
           } catch (e) {
             return {
               content: [{ type: 'text', text: `Snapshot not available at ${snapshotPath}: ${(e as Error).message}. Is sluice-matcher running with SLUICE_SNAPSHOT_PATH set?` }],
