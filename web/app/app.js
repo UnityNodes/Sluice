@@ -771,7 +771,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           }
           const tx = safeHash(j.tx);
           const explorer = 'https://testnet.cspr.live/transaction/' + tx;
-          out.innerHTML = 'Paid 0.1 SLX, delivered: ' + evText + (tx
+          out.innerHTML = 'Paid 0.1 WCSPR, delivered: ' + evText + (tx
             ? ' · <a href="' + explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + tx.slice(0, 10) + '…' + tx.slice(-6) + ' on cspr.live</a>'
             : '');
         } else {

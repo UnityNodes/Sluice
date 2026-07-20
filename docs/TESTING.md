@@ -145,7 +145,7 @@ being finalized.
 |---|---|---|
 | `SubscriptionRegistry` | `f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971` | Holds each subscription and its CSPR escrow. `record_delivery(id, event_hash)` decrements the escrow once per delivery. |
 | `DemoDex` | `ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7` | A minimal DeFi contract whose non-payable `swap` emits a CES `Swap` event. Used to generate real contract events on demand. |
-| `SLX` (CEP-18) | `220ed4c8e5368063ec167d738d1b96d5760833366af4a1194264312a766db88b` | The x402 payment token, deployed from `Cep18X402.wasm`, the reference contract shipped in [make-software/casper-x402](https://github.com/make-software/casper-x402) for exactly this purpose. Supports `transfer_with_authorization`, so the facilitator can settle a signed payment. The canonical asset is Wrapped CSPR (`3d80df21…847c1e`), which we verified exposes the same entry point; switching is one env var (`ASSET_PACKAGE`). |
+| `WCSPR` (CEP-18) | `3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e` | Wrapped CSPR, the canonical wrapped-native asset on testnet and the token x402 payments settle in. Contract v8 (`032706ae…5f4a`) exposes `transfer_with_authorization`, `receive_with_authorization`, `authorization_state` and `cancel_authorization`, the full surface the exact scheme needs. Because WCSPR is 1:1 with native CSPR, the 0.1 per-delivery price is a real CSPR price. |
 
 ## Third-party contracts Sluice watches on testnet
 
@@ -163,7 +163,7 @@ DeFi and RWA contracts, not only our own.
 
 | Transaction | What it shows |
 |---|---|
-| [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5) | An x402 micropayment settled on-chain through the hosted facilitator. 0.1 SLX moved from the paying agent to the feed publisher, and the facilitator paid the gas. This is the payment that buys one matched event delivery. |
+| [`37d55534…1eb0`](https://testnet.cspr.live/transaction/37d5553425a1a2290be0b6e0b17843cc8f53a74bc77abe1ecd9b6ae975ab1eb0) | An x402 micropayment settled on-chain through the hosted facilitator. 0.1 WCSPR moved from the paying agent to the feed publisher, and the facilitator paid the gas. This is the payment that buys one matched event delivery. |
 | [`3fb89280…939efd`](https://testnet.cspr.live/transaction/3fb8928092af0f0a01716c497795ff1950a8d3eae517ddee4b3cc08eeb939efd) | A `swap` call on DemoDex at block 8453751. It emitted the CES `Swap` event (520,000 CSPR in, 518,700 CSPRX out) that Sluice matched and delivered to a webhook in 117 ms. |
 | [`f665f4f7…14b419`](https://testnet.cspr.live/transaction/f665f4f7dd5acf719ff1cb9b5763ffd80a950c7bae94a5bdb4c88e1f0414b419) | Another DemoDex `swap`, matched and delivered on the next cycle. |
 | [`67a87d6b…089b0e`](https://testnet.cspr.live/transaction/67a87d6bcd35ffb32fb1c7271a0441efef306a127dd8a178f9395f1591089b0e) | `create_subscription` for subscription 4, locking 300 CSPR of escrow. This is the subscription behind every `CONFIRMED` row on the live feed. |

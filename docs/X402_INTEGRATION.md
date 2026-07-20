@@ -19,8 +19,8 @@ micropayment per delivery, and reacts, end to end, machine to machine.
 > example in [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/)
 > is **wired to it for real**: `x402-receiver.mjs` and `x402-payer.mjs` settle a
 > live payment through the hosted facilitator. Proof on testnet:
-> [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5)
-> (a paid Sluice event delivery, settled on-chain). The dependency-free
+> [`37d55534…1eb0`](https://testnet.cspr.live/transaction/37d5553425a1a2290be0b6e0b17843cc8f53a74bc77abe1ecd9b6ae975ab1eb0)
+> (a paid Sluice event delivery, settled on-chain in Wrapped CSPR). The dependency-free
 > `receiver.cjs` / `payer.cjs` remain as a stubbed protocol walkthrough.
 
 ## How the two primitives compose
@@ -90,7 +90,7 @@ half-autonomous, and vice-versa. Pairing them unlocks self-directed workflows:
 | Phase | State | What lands |
 |---|---|---|
 | **1, Shape** | ✅ done | 402 challenge → pay → retry flow, nonce/replay handling, ledger, escrow-vs-x402 model. Signing + verification **stubbed**. See the example dir. |
-| **2, Facilitator wiring** | ✅ done | `x402-receiver.mjs` + `x402-payer.mjs` use the `@make-software/casper-x402` SDK against the live hosted facilitator. A paid Sluice delivery settled on testnet: [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5). Payment is a CEP-18 x402 token (SLX, `220ed4c8…db88b`); the facilitator's fee-payer covers gas. |
+| **2, Facilitator wiring** | ✅ done | `x402-receiver.mjs` + `x402-payer.mjs` use the `@make-software/casper-x402` SDK against the live hosted facilitator. A paid Sluice delivery settled on testnet: [`37d55534…1eb0`](https://testnet.cspr.live/transaction/37d5553425a1a2290be0b6e0b17843cc8f53a74bc77abe1ecd9b6ae975ab1eb0). Payment settles in Wrapped CSPR (`3d80df21…847c1e`); the facilitator's fee-payer covers gas. |
 | **3, Native Sluice option** | ✅ done | `x402` is a live billing mode on the matcher (`SLUICE_X402_SUBS`). An x402-billed subscription is not pushed: the matcher queues each real match, and an agent pulls one by paying an x402 micropayment (`POST /api/x402/pay` on the dashboard). The delivered payload is the actual on-chain event Sluice matched, not a sample. Escrow (push) and x402 (pull) now run side by side on the same event stream. |
 | **4, Price discovery** | planned | Publishers advertise per-feed pricing; agents negotiate escrow vs x402 automatically based on projected volume. |
 

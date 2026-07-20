@@ -19,34 +19,31 @@ SDK. A paying agent requests a gated event delivery, signs an EIP-712 payment
 authorization with its Casper key, and the facilitator verifies and **settles
 the payment on-chain**. Proof on testnet:
 
-- **Settlement transaction:** [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5) (success, block 8393413)
-- Payer signs, the facilitator's fee-payer pays gas, and 0.1 SLX moves from payer to payee, all from one HTTP 402 exchange.
-- Payment asset: `Sluice X402 Token (SLX)`, package `220ed4c8…db88b`.
+- **Settlement transaction:** [`37d55534…1eb0`](https://testnet.cspr.live/transaction/37d5553425a1a2290be0b6e0b17843cc8f53a74bc77abe1ecd9b6ae975ab1eb0) (success)
+- Payer signs, the facilitator's fee-payer pays gas, and 0.1 WCSPR moves from payer to payee, all from one HTTP 402 exchange.
+- Payment asset: **Wrapped CSPR (WCSPR)**, package
+  [`3d80df21…847c1e`](https://testnet.cspr.live/contract-package/3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e),
+  contract `032706ae…5f4a` (v8), 9 decimals.
 
-### Why a token we deployed, and what changes on mainnet
+### The payment asset
 
-x402 settles CEP-18 tokens that expose `transfer_with_authorization`. On
-testnet we deployed SLX from `Cep18X402.wasm`, the reference token contract
-shipped in [make-software/casper-x402](https://github.com/make-software/casper-x402)
-(`infra/local/deployer/`), which is exactly what that contract is there for:
-giving an integration a funded balance to settle against.
+x402 settles CEP-18 tokens that expose `transfer_with_authorization`. Sluice
+settles in **Wrapped CSPR**, the canonical wrapped-native asset on Casper
+testnet and the same package the reference integration uses. WCSPR v8 exposes
+the full authorization surface the scheme needs: `transfer_with_authorization`,
+`receive_with_authorization`, `authorization_state`, and `cancel_authorization`.
 
-The canonical asset is **Wrapped CSPR**, package
-`3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e` (the value
-used in the reference `.env.testnet`). We verified it exposes
-`transfer_with_authorization`, so switching is a one-line config change:
+Because WCSPR is 1:1 with native CSPR, the price a caller sees is a real CSPR
+price. `PRICE_AMOUNT=100000000` is 0.1 CSPR per delivery.
 
-```bash
-ASSET_PACKAGE=3d80df21ba4ee4d66a2a1f60c32570dd5685e4b279f6538162a5fd1314847c1e
-```
-
-Nothing else in the flow changes. We stayed on SLX for the demo because
-acquiring WCSPR means calling the wrapper's `deposit`, which needs a funded
-purse passed from a session contract, and that is a funding detail rather than
-anything the payment path depends on.
+Of the assets whitelisted on testnet, WCSPR is the only one that implements
+`transfer_with_authorization` today (Wrapped Tether, WETH and Staked CSPR do
+not), so it is both the correct choice and the only one. To settle in a
+different token, point `ASSET_PACKAGE` at any CEP-18 that implements the same
+entry points; nothing else in the flow changes.
 
 Run it yourself: `npm install`, copy `.env.sample` to `.env`, fill in your
-CSPR.cloud token and a key holding SLX, then `npm start` (receiver) and
+CSPR.cloud token and a key holding WCSPR, then `npm start` (receiver) and
 `npm run pay` (payer). The `receiver.cjs` / `payer.cjs` files below are the
 dependency-free **protocol illustration**; the `.mjs` files are the real thing.
 

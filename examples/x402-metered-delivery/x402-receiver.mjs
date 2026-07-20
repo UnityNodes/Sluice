@@ -13,8 +13,8 @@ const {
   FACILITATOR_API_KEY,
   CAIP2_CHAIN_ID = "casper:casper-test",
   ASSET_PACKAGE,
-  ASSET_NAME = "Sluice X402 Token",
-  ASSET_SYMBOL = "SLX",
+  ASSET_NAME = "Wrapped CSPR",
+  ASSET_SYMBOL = "WCSPR",
   PRICE_AMOUNT = "100000000", // 0.1 token @ 9 decimals
 } = process.env;
 
