@@ -28,6 +28,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import { spawn } from 'node:child_process';
+import { PREDICATE_SCHEMA } from './predicate-schema.js';
 
 const SUBSCRIBE_TOOL = {
   name: 'subscribe_to_events',
@@ -277,10 +278,14 @@ export async function readResource(uri: string): Promise<{ uri: string; mimeType
       return { uri, mimeType: 'application/json', text: JSON.stringify(j.recent_events ?? [], null, 2) };
     }
     case 'sluice://predicate-schema': {
-      const base = apiBase.replace(/\/api$/, '');
-      const r = await fetch(`${base}/schema/predicate-v1.json`);
-      if (!r.ok) throw new Error(`schema HTTP ${r.status}`);
-      return { uri, mimeType: 'application/schema+json', text: await r.text() };
+      // Served from the bundle rather than fetched: the hosted server talks to
+      // the matcher API, which has no static file route, so fetching returned
+      // 405. Embedding also makes the resource work offline over stdio.
+      return {
+        uri,
+        mimeType: 'application/schema+json',
+        text: JSON.stringify(PREDICATE_SCHEMA, null, 2),
+      };
     }
     default:
       throw new Error(`unknown resource uri: ${uri}`);
