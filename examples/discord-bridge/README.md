@@ -16,7 +16,7 @@ Expose it publicly (Cloudflare Tunnel, ngrok, fly.io) then point your subscripti
 
 ```bash
 sluice subscribe \
-  --predicate ./whale-transfers.json \
+  --predicate ../whale-transfers.json \
   --webhook https://your-host.example/sluice \
   --amount 10
 ```

@@ -26,14 +26,15 @@ Run the bridge somewhere reachable:
 GITHUB_TOKEN=ghp_…             # PAT with `repo` scope
 GITHUB_REPO=owner/repo
 SLUICE_WEBHOOK_SECRET=<shared with sluice matcher>
-node examples/github-action/dispatcher.js
+cd examples/github-action && npm install
+node dispatcher.js
 ```
 
 Then in Sluice:
 
 ```bash
 sluice subscribe \
-  --predicate ./treasury-inbox.json \
+  --predicate ../treasury-inbox.json \
   --webhook https://your-bridge.example/sluice \
   --amount 10
 ```

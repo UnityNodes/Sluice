@@ -19,7 +19,7 @@ Then in Sluice:
 
 ```bash
 sluice subscribe \
-  --predicate ./treasury-inbox.json \
+  --predicate ../treasury-inbox.json \
   --webhook https://your-host.example/sluice \
   --amount 10
 ```

@@ -1,0 +1,14 @@
+{
+  "and": [
+    {
+      "field": "to_account_hash",
+      "op": "eq",
+      "value": "ecf442b39a406ad04ee09cdf016d3a0659423d8054866b6fd4532696e46d7309"
+    },
+    {
+      "field": "amount",
+      "op": "gte",
+      "value": "2500000000"
+    }
+  ]
+}

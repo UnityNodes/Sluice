@@ -1,0 +1,18 @@
+{
+  "name": "sluice-github-action-dispatcher",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal Sluice webhook to GitHub repository_dispatch bridge. Verifies HMAC sig.",
+  "main": "dispatcher.js",
+  "scripts": {
+    "start": "node dispatcher.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
