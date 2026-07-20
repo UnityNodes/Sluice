@@ -20,7 +20,10 @@ set -euo pipefail
 
 PORT="${PORT:-8791}"
 SLUICE_API="${SLUICE_API:-https://sluice.unitynodes.com/api}"
-PUBLIC_WEBHOOK_URL="${PUBLIC_WEBHOOK_URL:-http://localhost:${PORT}/webhook}"
+# Left unset on purpose. Sluice's SSRF guard rejects loopback targets, so
+# defaulting this to localhost made every sandbox dispatch fail with 400 while
+# the demo still printed "complete". With no public URL we sign locally instead.
+LOCAL_URL="http://127.0.0.1:${PORT}/webhook"
 
 # A "large deposit" predicate: only push transfers >= 50,000 CSPR
 # (50000 * 1_000_000_000 = 50000000000000 motes) so the demo events are the
@@ -51,14 +54,46 @@ for _ in $(seq 1 20); do
   sleep 0.25
 done
 
-echo "▶ firing 3 sandbox events via ${SLUICE_API}/sandbox/dispatch → ${PUBLIC_WEBHOOK_URL}"
-echo "  (predicate: large deposits ≥ 50,000 CSPR)"
-curl -sf -X POST "${SLUICE_API}/sandbox/dispatch" \
-  -H 'content-type: application/json' \
-  -d "{\"webhook\":\"${PUBLIC_WEBHOOK_URL}\",\"predicate\":${PREDICATE},\"count\":3}" \
-  && echo || echo "⚠ sandbox dispatch failed, is PUBLIC_WEBHOOK_URL reachable from Sluice?"
+# hex HMAC-SHA256 over the body, matching the matcher's X-Sluice-Signature.
+sign() { printf '%s' "$1" | openssl dgst -sha256 -hmac "${SLUICE_WEBHOOK_SECRET:-}" -r | awk '{print $1}'; }
 
-echo "▶ watching for decisions (Ctrl-C to stop)…"
-# Give the sandbox deliveries time to land and be processed, then exit cleanly.
-sleep 5
+# One Sluice-shaped webhook envelope for a large deposit (motes).
+envelope() {
+  local motes="$1"
+  cat <<JSON
+{"subscription_id":42,"event":{"amount":"$motes","to_account_hash":"$POOL","initiator_account_hash":"$DEPOSITOR","deploy_hash":"deploy-$(date +%s)-$RANDOM","block_height":3500000,"timestamp":"$(date -u +%FT%TZ)"},"delivered_at":"$(date -u +%FT%TZ)"}
+JSON
+}
+
+fire_local() {
+  local body="$1" sig
+  sig="sha256=$(sign "$body")"
+  curl -s -o /dev/null -X POST "$LOCAL_URL" \
+    -H 'content-type: application/json' \
+    -H "X-Sluice-Signature: $sig" \
+    -H "X-Sluice-Idempotency-Key: demo-$RANDOM" \
+    -H 'X-Sluice-Sub-Id: 42' \
+    --data "$body"
+  sleep 1.2   # let the agent finish its verify -> decide -> log line
+}
+
+POOL="account-hash-yieldPool00000000000000000000000000000000000000000000000"
+DEPOSITOR="account-hash-whaleDepositor000000000000000000000000000000000000000"
+
+if [ -n "${PUBLIC_WEBHOOK_URL:-}" ]; then
+  echo "▶ firing 3 sandbox events via ${SLUICE_API}/sandbox/dispatch → ${PUBLIC_WEBHOOK_URL}"
+  echo "  (predicate: large deposits >= 50,000 CSPR)"
+  curl -sf -X POST "${SLUICE_API}/sandbox/dispatch" \
+    -H 'content-type: application/json' \
+    -d "{\"webhook\":\"${PUBLIC_WEBHOOK_URL}\",\"predicate\":${PREDICATE},\"count\":3}" \
+    && echo || echo "sandbox dispatch failed, is PUBLIC_WEBHOOK_URL reachable from Sluice?"
+  sleep 5
+else
+  echo "▶ no PUBLIC_WEBHOOK_URL set, posting 3 locally-signed deposit events"
+  echo "  (set PUBLIC_WEBHOOK_URL to a tunnelled /webhook URL to drive this through Sluice instead)"
+  fire_local "$(envelope 120000000000000)"    # 120k CSPR
+  fire_local "$(envelope 750000000000000)"    # 750k CSPR
+  fire_local "$(envelope 60000000000000)"     # 60k CSPR
+fi
+
 echo "▶ demo complete, scroll up to see each verify → decide → log line."
