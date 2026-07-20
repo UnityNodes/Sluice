@@ -4,19 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sluice · Casper events, the moment they land</title>
-<meta name="description" content="Sluice pushes every matching Casper event to your webhook, your AI agent (MCP), or your dashboard (WebSocket) in under a second, median ~830 ms on testnet. No polling. No indexer. No glue code.">
+<meta name="description" content="Sluice pushes every matching Casper event to your webhook, your AI agent (MCP), or your dashboard (WebSocket) in under a second, median ~140 ms on testnet. No polling. No indexer. No glue code.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sluice">
 <meta property="og:url" content="https://sluice.unitynodes.com/">
 <meta property="og:title" content="Sluice · Casper events, the moment they land">
-<meta property="og:description" content="Sluice pushes every matching Casper event to your webhook, your AI agent via MCP, or your dashboard via WebSocket. Median ~830 ms on testnet, typically under a second.">
+<meta property="og:description" content="Sluice pushes every matching Casper event to your webhook, your AI agent via MCP, or your dashboard via WebSocket. Median ~140 ms on testnet, typically under a second.">
 <meta property="og:image" content="https://sluice.unitynodes.com/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Sluice: Casper events, the moment they land. Push delivery to a webhook, an AI agent over MCP, or a dashboard, in a median of about 830 milliseconds on testnet.">
+<meta property="og:image:alt" content="Sluice: Casper events, the moment they land. Push delivery to a webhook, an AI agent over MCP, or a dashboard, in a median of about 140 milliseconds on testnet.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Sluice · Casper events, the moment they land">
-<meta name="twitter:description" content="Push delivery to your webhook, your AI agent over MCP, or your dashboard over WebSocket. Median ~830 ms on testnet. No polling, no indexer.">
+<meta name="twitter:description" content="Push delivery to your webhook, your AI agent over MCP, or your dashboard over WebSocket. Median ~140 ms on testnet. No polling, no indexer.">
 <meta name="twitter:image" content="https://sluice.unitynodes.com/og.jpg">
 <meta name="twitter:image:alt" content="Sluice: Casper events, the moment they land.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
@@ -357,6 +357,7 @@
         <a href="#recipes" style="text-decoration:none;padding:8px 14px">Recipes</a>
         <a href="#mcp-demo" style="text-decoration:none;padding:8px 14px">MCP</a>
         <a href="/status" style="text-decoration:none;padding:8px 14px">Status</a>
+        <a href="/demo" style="text-decoration:none;padding:8px 14px">Demo</a>
         <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="text-decoration:none;padding:8px 14px">Docs ↗</a>
       </div>
       <div style="flex:1"></div>
@@ -379,7 +380,7 @@
           <span style="white-space:nowrap">Casper events,</span><br/>
           the moment <span style="background:#bcfc07;padding:0 .12em;display:inline-block;line-height:.95">they land.</span>
         </h1>
-        <p style="margin:36px 0 0;font:400 20px/1.55 'Casper Sans',Inter;color:#333;max-width:600px">Pick what to watch on Casper by sender, recipient, or amount. Prepay once in CSPR. When something matches, Sluice pushes it three ways: a <b style="font-weight:500;color:#000">webhook</b> for your server, an <b style="font-weight:500;color:#000">MCP tool call</b> for your AI agent, or a <b style="font-weight:500;color:#000">live WebSocket</b> for your dashboard. Median end-to-end latency on testnet is <span style="color:#000">~&nbsp;830&nbsp;ms</span>, typically under a second. No polling, no indexer, no glue code.</p>
+        <p style="margin:36px 0 0;font:400 20px/1.55 'Casper Sans',Inter;color:#333;max-width:600px">Pick what to watch on Casper by sender, recipient, or amount. Prepay once in CSPR. When something matches, Sluice pushes it three ways: a <b style="font-weight:500;color:#000">webhook</b> for your server, an <b style="font-weight:500;color:#000">MCP tool call</b> for your AI agent, or a <b style="font-weight:500;color:#000">live WebSocket</b> for your dashboard. Median end-to-end latency on testnet is <span style="color:#000">~&nbsp;140&nbsp;ms</span>, typically under a second. No polling, no indexer, no glue code.</p>
         <div style="margin-top:44px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
           <a href="/app" style="text-decoration:none;background:#bcfc07;color:#000;padding:18px 28px;font:500 16px 'Casper Sans',Inter;display:inline-flex;align-items:center;gap:10px;border:1px solid #000">Open the app <span style="font-size:18px;line-height:1">→</span></a>
           <button id="tour-open" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:18px 24px;font:500 16px 'Casper Sans',Inter;cursor:pointer;display:inline-flex;align-items:center;gap:10px">▶ Watch a 30-second tour</button>
@@ -940,10 +941,11 @@
           </div>
           <div style="margin-top:20px;font:500 clamp(30px,3.6vw,44px)/1.05 'Casper Sans',Inter;letter-spacing:-.02em;color:#000">Every delivery is a deploy on&nbsp;Casper.</div>
           <p style="margin:22px 0 0;font:400 16px/1.65 'Casper Sans',Inter;color:#666">When Sluice POSTs to your webhook and gets a 2xx, it calls <span style="font-family:'JetBrains Mono';color:#000;background:#f4f4f4;padding:2px 6px">record_delivery</span> on the escrow contract. Your bill is a sequence of on-chain receipts, not a number we made up at month-end. Pull it from cspr.live yourself if you want.</p>
+          <p style="margin:14px 0 0;font:400 14px/1.6 'Casper Sans',Inter;color:#888">Rows marked <span style="font-family:'JetBrains Mono';color:#666">DELIVERED</span> are demo lanes we run for the public feed: the delivery is real, but there is no escrow to bill, so no receipt is written. Rows marked <span style="font-family:'JetBrains Mono';color:#3edc64">CONFIRMED</span> are escrow-backed and carry a real transaction hash.</p>
           <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971" target="_blank" rel="noopener" style="margin-top:30px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:500 15px 'Casper Sans',Inter;color:#000;border-bottom:1px solid #000;padding-bottom:3px">See the escrow contract on cspr.live →</a>
         </div>
         <div style="background:#fafafa;padding:36px 44px">
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">Last 5 record_delivery deploys</div>
+          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">Last 5 deliveries</div>
           <div id="live-deploys" style="margin-top:20px">
             <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
               <div style="font:500 12px 'JetBrains Mono';color:#666">JUST NOW</div>
@@ -1090,8 +1092,9 @@
         <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">PRODUCT</div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
           <a href="/app" style="text-decoration:none;color:inherit">App</a>
-          <a href="/app" style="text-decoration:none;color:inherit">Live feed</a>
-          <a href="/api/snapshot.json" target="_blank" style="text-decoration:none;color:inherit">Status</a>
+          <a href="/demo" style="text-decoration:none;color:inherit">Demo video</a>
+          <a href="/feed" style="text-decoration:none;color:inherit">Live feed</a>
+          <a href="/status" style="text-decoration:none;color:inherit">Status</a>
           <a href="/roadmap" style="text-decoration:none;color:inherit">Roadmap</a>
         </div>
       </div>

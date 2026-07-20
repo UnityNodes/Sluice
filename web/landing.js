@@ -211,14 +211,20 @@
       a.target = '_blank';
       a.rel = 'noopener';
       a.setAttribute('style', 'font:500 14px JetBrains Mono;color:#4589f6;text-decoration:none');
-      a.textContent = e.tx_hash ? trunc(e.tx_hash, 4, 4) : 'no record_delivery (webhook fail)';
+      a.textContent = e.tx_hash ? trunc(e.tx_hash, 4, 4) : 'demo lane, no escrow to bill';
       mid.appendChild(a);
       mid.appendChild(document.createTextNode(` · sub_${String(e.subscription_id).padStart(4, '0')}`));
       wrap.appendChild(mid);
-      const ok = e.status >= 200 && e.status < 300 && e.tx_hash;
+      // Three states, not two. A 2xx webhook with no receipt is a successful
+      // delivery on an off-chain demo lane, not a failure. Only a non-2xx
+      // response is a failure.
+      const delivered = e.status >= 200 && e.status < 300;
+      const onChain = delivered && !!e.tx_hash;
+      const colour = !delivered ? '#ff2d2e' : onChain ? '#3edc64' : '#666';
+      const label = !delivered ? '✕ FAILED' : onChain ? '✓ CONFIRMED' : '✓ DELIVERED';
       const status = document.createElement('div');
-      status.setAttribute('style', `text-align:right;font:500 11px JetBrains Mono;color:${ok ? '#3edc64' : '#ff2d2e'};letter-spacing:.04em`);
-      status.textContent = ok ? '✓ CONFIRMED' : '✕ FAILED';
+      status.setAttribute('style', `text-align:right;font:500 11px JetBrains Mono;color:${colour};letter-spacing:.04em`);
+      status.textContent = label;
       wrap.appendChild(status);
       root.appendChild(wrap);
     });
