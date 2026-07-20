@@ -2,7 +2,6 @@
 /target
 /contract/target
 /contract/wasm
-/contract/Cargo.lock
 **/*.rs.bk
 
 # Node
