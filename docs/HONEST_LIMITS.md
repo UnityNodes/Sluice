@@ -4,7 +4,7 @@ These limits are summarized in `README.md`. They exist because a payments-savvy 
 
 ---
 
-1. **Delivery semantics: at-most-once during the demo.** If the matcher dies, events that arrived while it was down are lost, CSPR.cloud Streaming is live-only. Production adds a checkpointed block-height cursor + JSON-RPC backfill via `state_get_block`. Out of buildathon scope.
+1. **Delivery semantics: at-most-once during the demo.** If the matcher dies, events that arrived while it was down are lost, CSPR.cloud Streaming is live-only. Production adds a checkpointed block-height cursor + JSON-RPC backfill via `state_get_block`. Out of buildathon scope. The per-subscription **delivery counter** for the seeded demo subs is reconciled against on-chain truth at each boot (`scripts/reconcile-demo-subs.mjs` counts the registry's `record_delivery` transactions and rewrites the seed), so the dashboard count matches the chain after a restart rather than resetting; the counter then tracks forward from live `DeliveryRecorded` events. The reconcile is best-effort and non-fatal: if CSPR.cloud is unreachable it writes nothing and the matcher still starts.
 
 2. **Operator-subsidised gas during the demo.** The matcher pays gas for every `record_delivery` it submits. Production deducts a `gas_reimbursement` field from the subscriber's escrow per delivery, so the matcher is fee-neutral.
 
