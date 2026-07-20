@@ -1,6 +1,6 @@
 //! Deploy + interaction CLI for SubscriptionRegistry.
 //!
-//! Build:    cargo build --bin contract_cli --features livenet  (auto-detected by Odra)
+//! Build:    cargo build --bin contract_cli
 //! Run:      ODRA_CASPER_LIVENET_SECRET_KEY_PATH=keys/matcher/secret_key.pem \
 //!           ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.cspr.cloud \
 //!           ODRA_CASPER_LIVENET_EVENTS_URL=https://node.testnet.cspr.cloud/events \

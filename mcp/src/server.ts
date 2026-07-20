@@ -364,7 +364,7 @@ export function buildPromptMessages(name: string, args: Record<string, string>):
               '',
               `Walk this in order:`,
               '',
-              `1. Read \`sluice://subs\` and find sub_${id}. Confirm it's \`active: true\` and has a non-zero \`balance\`. If it's inactive, suggest \`top_up\` via the dashboard or \`sluice top-up\` CLI.`,
+              `1. Read \`sluice://subs\` and find sub_${id}. Confirm it's \`active: true\` and has a non-zero \`balance\`. If it's inactive, the escrow ran dry: top it up from the dashboard, which builds the on-chain top-up transaction for your wallet to sign.`,
               '',
               '2. Pull `sluice://recent-events` and filter entries with that subscription_id. If the matcher has seen recent deliveries, the issue is on the receiver side (look at `status` codes). If there are none recent, the predicate may be too strict.',
               '',

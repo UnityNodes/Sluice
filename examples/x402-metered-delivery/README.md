@@ -89,14 +89,23 @@ with a challenge body), then runs `payer.cjs` to do the full
 challenge → sign → retry loop (you'll see `200`), and finally prints the ledger
 of paid deliveries.
 
-Run the pieces by hand:
+Run the pieces by hand. Two independent pairs live here, and they do not mix:
 
 ```bash
-npm start                 # terminal 1: receiver on http://localhost:4021
+# The real integration: settles on-chain through the hosted facilitator.
+# Needs a filled-in .env (PAYEE_ADDRESS, FACILITATOR_API_KEY, ASSET_PACKAGE).
+npm start                  # terminal 1: receiver, gates GET /event behind 402
+npm run pay                # terminal 2: pays for one delivery -> 200
+
+# The dependency-free protocol walkthrough: no keys, no chain, no money.
+npm run stub-receiver      # terminal 1: stub on http://localhost:4021
 node payer.cjs             # terminal 2: pays for one delivery -> 200
 node payer.cjs --unpaid    # terminal 2: only step 1, shows the 402 challenge
-curl localhost:4021/ledger
+curl localhost:4021/ledger # the stub's in-memory payment ledger
 ```
+
+`npm start` and `payer.cjs` are **not** a pair: the real receiver serves
+`GET /event`, while `payer.cjs` posts to the stub's `/hook`.
 
 ## What powers the button on the dashboard
 
@@ -135,8 +144,10 @@ is one Sluice actually matched, not a sample.
    }
    ```
 
-   `maxAmountRequired` is in **motes** (1 CSPR = 1e9 motes). Default price is
-   `1_000_000` motes = **0.001 CSPR per delivery**.
+   `maxAmountRequired` is in **motes** (1 CSPR = 1e9 motes). The stub defaults
+   to `X402_PRICE_MOTES=1_000_000` = **0.001 CSPR per delivery**; the real
+   integration uses `PRICE_AMOUNT=100_000_000` = **0.1 WCSPR per delivery**.
+   Two different files, two different variables.
 
 2. **Pay.** The payer signs a payload binding the server `nonce`, amount, and
    pay-to address with its Casper key, then base64-encodes the envelope. *(This
@@ -188,9 +199,28 @@ been paid for?"*, the HMAC answers *"did Sluice really send this body?"*.
 
 ## Configuration
 
+**The real integration** (`x402-receiver.mjs`, `x402-payer.mjs`,
+`x402-demo-service.mjs`, loaded from `.env`):
+
 | Env var | Default | Meaning |
 |---|---|---|
-| `PORT` | `4021` | Receiver listen port |
+| `PAYEE_ADDRESS` | *(required)* | Casper account that receives the payment |
+| `FACILITATOR_API_KEY` | *(required)* | CSPR.cloud token for the hosted facilitator |
+| `ASSET_PACKAGE` | *(required)* | CEP-18 package to settle in; Wrapped CSPR is `3d80df21…847c1e` |
+| `ASSET_NAME` / `ASSET_SYMBOL` | `Wrapped CSPR` / `WCSPR` | Must match the token, they form the EIP-712 domain |
+| `PRICE_AMOUNT` | `100000000` | Price per delivery, in base units (0.1 WCSPR) |
+| `CLIENT_PRIVATE_KEY_PATH` | *(required for paying)* | Key the paying agent signs with |
+| `FACILITATOR_URL` | `https://x402-facilitator.cspr.cloud` | Hosted facilitator |
+| `CAIP2_CHAIN_ID` | `casper:casper-test` | Chain the payment settles on |
+| `PORT` | `7788` (demo service) | Listen port |
+| `MATCHER_URL` | `http://localhost:7799` | Matcher the demo service claims events from |
+| `X402_SUB_ID` | `200` | Subscription billed by x402 rather than escrow |
+
+**The dependency-free stub** (`receiver.cjs`, `payer.cjs`):
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `PORT` | `4021` | Stub receiver listen port |
 | `X402_PRICE_MOTES` | `1000000` | Price per delivery, in motes (0.001 CSPR) |
 | `X402_PAY_TO` | `account-hash-0000…` | Casper account/purse that receives payment |
 | `X402_NETWORK` | `casper-testnet` | x402 network label |

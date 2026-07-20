@@ -78,6 +78,37 @@ const sluice = new SluiceClient({ baseUrl: 'http://localhost:8080/api' });
 
 Errors throw `SluiceApiError` with `status` and the parsed response body.
 
+## Webhook verification (`@sluice/client/middleware`)
+
+A second entry point verifies the `X-Sluice-Signature` HMAC on incoming
+deliveries, so a receiver only acts on events Sluice actually sent. It needs the
+**raw** body: mount it before any JSON body parser.
+
+```ts
+import express from 'express';
+import { sluiceExpress } from '@sluice/client/middleware';
+
+const app = express();
+app.use('/webhook', express.raw({ type: 'application/json' }));
+app.use('/webhook', sluiceExpress(process.env.SLUICE_WEBHOOK_SECRET));
+
+app.post('/webhook', (req, res) => {
+  // req.sluice: { verified, subscriptionId, idempotencyKey, event }
+  res.sendStatus(200);
+});
+```
+
+| Export | Purpose |
+|---|---|
+| `sluiceExpress(secret)` | Express middleware, populates `req.sluice`, 401s a bad signature |
+| `sluiceFastify(fastify, opts)` | The same guard as a Fastify plugin |
+| `verifyHmacSignature(rawBody, signature, secret)` | Standalone check, for any other framework |
+| `computeSignature(body, secret)` | Produces the `sha256=<hex>` header value |
+
+With no secret configured the middleware fails **open** and marks the request
+`verified: false` rather than rejecting it, so set a secret in production. Wire
+format and non-JS receivers are in [docs/HMAC_VERIFY.md](../../docs/HMAC_VERIFY.md).
+
 ## License
 
 MIT

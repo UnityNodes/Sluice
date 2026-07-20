@@ -21,4 +21,4 @@ echo "1/2  building contract wasm..."
 cargo odra build
 
 echo "2/2  deploying via odra-cli..."
-cargo run --bin contract_cli --features livenet -- deploy
+cargo run --bin contract_cli -- deploy

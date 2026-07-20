@@ -34,7 +34,15 @@ SLUICE_CONTRACT_HASH             # deployed SubscriptionRegistry contract hash (
 SLUICE_NODE_RPC_URL              # default https://node.testnet.cspr.cloud/rpc
 SLUICE_CSPR_CLOUD_TOKEN          # CSPR.cloud auth token
 SLUICE_CHAIN_NAME                # default casper-test
+SLUICE_API_URL                   # matcher API the read tools call
+SLUICE_CLI_BIN                   # path to the `sluice` binary, if not on PATH
+SLUICE_SNAPSHOT_PATH             # optional, read the snapshot from disk instead of HTTP
 ```
+
+> **Set `SLUICE_API_URL` when you self-host.** It defaults to
+> `https://sluice.unitynodes.com/api`, so a server started with only the five
+> vars above will silently read from, and dispatch sandbox events against, the
+> public production instance rather than your own matcher.
 
 ## Tools exposed
 

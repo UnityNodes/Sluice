@@ -21,7 +21,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 ### Added: HTTP API (matcher)
 - `POST /api/health`, liveness probe
 - `GET  /api/snapshot.json`, full subs + recent_events feed
-- `GET  /api/metrics`, Prometheus exposition (11 metric families, latency histogram, WS gauges)
+- `GET  /api/metrics`, Prometheus exposition (9 metric families, latency histogram, WS gauges)
 - `GET  /api/chain/head`, Casper testnet head, cached 3s, in-flight-collapsed
 - `GET  /api/openapi.yaml`, full OpenAPI 3.1 spec for codegen
 - `POST /api/predicate/validate`, dry-run a predicate against the last-1000 recent-events ring buffer
@@ -39,7 +39,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 - `*    /api/hooks/:slug{,/feed}`, hosted webhook receiver (50-deep ring, 1h TTL, named slugs)
 
 ### Added: UIs
-- Landing page (`/`) with 13 sections, predicate playground, recipe gallery with builder deep-links, MCP demo transcript, live block-height counter, animated SVG pipeline + screencast, 30-second guided tour modal, live demo subs gallery
+- Landing page (`/`) with 12 sections, predicate playground, recipe gallery with builder deep-links, MCP demo transcript, live block-height counter, animated SVG pipeline + screencast, 30-second guided tour modal, live demo subs gallery
 - Dashboard (`/app`), read-only Casper Wallet connect, filter pills, search, CSV export, per-sub action menu (view on cspr.live, copy webhook, copy predicate, send test webhook, top-up, cancel modals), activity feed with per-event RESEND buttons
 - Live feed (`/feed/`), rolling 20-delivery full-screen stream
 - Hosted receiver (`/h/<slug>`), named-slug picker, live request log, headers/body collapsibles, send test POST
@@ -52,7 +52,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 - JSON Schema for predicates at [/schema/predicate-v1.json](https://sluice.unitynodes.com/schema/predicate-v1.json) for IDE autocomplete
 
 ### Tests
-74 Jest tests across the predicate engine (12 operators × edge cases, regex ReDoS guard), contract-event matching, idempotency-key uniqueness, HMAC signing/verification, webhook retry semantics, and real-event regressions.
+101 Jest tests across the predicate engine (12 operators × edge cases, regex ReDoS guard), contract-event matching, idempotency-key uniqueness, HMAC signing/verification, webhook retry semantics, and real-event regressions.
 
 ### Known limits (v0.1)
 Documented honestly in [docs/HONEST_LIMITS.md](docs/HONEST_LIMITS.md):

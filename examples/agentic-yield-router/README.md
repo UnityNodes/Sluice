@@ -78,7 +78,9 @@ node agent.js --dry-run
 bash demo.sh
 ```
 
-`demo.sh` boots the agent in `--dry-run`, waits for `/health`, then calls Sluice's sandbox dispatch (`POST /api/sandbox/dispatch`) to fire **3 free demo events**, the real Sluice delivery path with **zero on-chain cost**. You watch the agent verify → decide → log for each one.
+`demo.sh` boots the agent in `--dry-run`, waits for `/health`, then fires **3 demo events** at it and you watch the agent verify → decide → log for each one.
+
+Which path it uses depends on reachability. Set `PUBLIC_WEBHOOK_URL` to a publicly reachable `/webhook` and it goes through Sluice's sandbox dispatch (`POST /api/sandbox/dispatch`), the real delivery path, at **zero on-chain cost**. Leave it unset and the script signs the same envelopes locally and posts them straight to the agent, because Sluice's SSRF guard correctly refuses to dispatch to loopback. Both paths exercise the same HMAC verification.
 
 > The sandbox has to be able to reach your `/webhook`. On a laptop, expose it first (`ngrok http 8791` or a Cloudflare Tunnel) and set `PUBLIC_WEBHOOK_URL=https://<your-tunnel>/webhook` before running `demo.sh`.
 

@@ -103,7 +103,7 @@ function buildServer(): Server {
           return { content: [{ type: 'text', text }] };
         }
         default:
-          return { content: [{ type: 'text', text: `tool "${name}" not available over hosted MCP (subscribe / cancel require a local key, install the stdio server: npm i -g @sluice/mcp).` }], isError: true };
+          return { content: [{ type: 'text', text: `tool "${name}" not available over hosted MCP (subscribe / cancel sign with a local Casper key). Build the stdio server from the repo: git clone https://github.com/UnityNodes/Sluice && cd Sluice/mcp && npm install && npm run build && npm link` }], isError: true };
       }
     } catch (e) {
       return { content: [{ type: 'text', text: `error: ${(e as Error).message}` }], isError: true };

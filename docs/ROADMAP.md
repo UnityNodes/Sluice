@@ -11,7 +11,7 @@ Live today on testnet:
 - `SubscriptionRegistry` smart contract (Rust + Odra 2.8). Entry points `create_subscription`, `record_delivery`, `top_up`, `cancel_subscription`. Events `SubscriptionCreated`, `DeliveryRecorded`, `ToppedUp`, `SubscriptionCancelled`.
 - Off-chain matcher (TypeScript, Node 20) reading the live CSPR.cloud stream.
 - Three delivery channels from one subscription: HMAC-signed webhook, MCP tool call, live WebSocket (`/api/stream`).
-- MCP stdio server (5 tools) and hosted Streamable-HTTP server (2 read-only tools; signing tools stay local). Both expose 4 resources and 2 prompts.
+- MCP stdio server (5 tools) and hosted Streamable-HTTP server (the 2 non-signing tools; signing tools stay local). Both expose 4 resources, 3 resource templates and 2 prompts.
 - Predicate language: JSON, AND-of-conditions with nested OR groups and parens, 12 operators, plain-English AI parser (rule-based, no LLM, under 5 ms).
 - On-chain billing: every successful delivery calls `record_delivery`. Median end-to-end ~140 ms on testnet (block timestamp to webhook delivery).
 - Web workspace, CLI, self-host installer, Docker stack, Prometheus + Grafana, TypeScript and Python client libraries.
@@ -39,7 +39,7 @@ Go to mainnet and make the economics real.
 - **Free tier for entry.** A no-cost daily allowance of deliveries so developers can build against mainnet before paying anything, the way Alchemy and Helius win adoption. Self-host stays free and open source; prepaid escrow is only the hosted, high-volume path.
 - **Volume pricing tiers.** Per-delivery escrow rate that steps down as monthly volume grows, so high-throughput protocols pay less per event.
 - **Dead-letter queue.** Failed deliveries after retry exhaustion land in a durable queue with a replay endpoint, so no match is silently lost.
-- **x402 metered tier.** An optional pay-per-delivery path via x402 for callers who prefer metered billing over prepaid CSPR escrow.
+- **x402 metered tier on mainnet.** The metered path already runs on testnet (see [X402_INTEGRATION.md](X402_INTEGRATION.md)); this is promoting it to mainnet alongside price discovery, so callers can choose metered billing over prepaid CSPR escrow.
 
 ---
 
@@ -47,7 +47,7 @@ Go to mainnet and make the economics real.
 
 Extend the predicate engine and the trust model.
 
-- **Cross-contract predicates.** Match on arbitrary contract events, not just transfers, so DeFi and RWA protocols can subscribe to their own domain events.
+- **Deeper contract predicates.** Contract-event matching already ships (`SLUICE_WATCH_CONTRACTS`, proven live against DemoDex). Next is matching across several contracts in one predicate and joining an event to the state it changed.
 - **Timelocked subscriptions.** Subscriptions that activate or expire at a block height or timestamp, for scheduled and campaign-bounded monitoring.
 
 ---
@@ -56,7 +56,7 @@ Extend the predicate engine and the trust model.
 
 - **Testnet: free.** No charge to try, subscribe, or self-host against testnet.
 - **Mainnet: per-delivery CSPR escrow.** Lock CSPR up front, each successful delivery deducts a small per-delivery fee via `record_delivery`. Transparent, auditable on cspr.live, and refundable on cancel. Volume tiers reduce the per-delivery rate as usage grows.
-- **Optional x402 metered tier.** Callers who prefer metered pay-per-delivery can route billing through x402 instead of prepaid escrow.
+- **Optional x402 metered tier.** Callers who prefer metered pay-per-delivery route billing through x402 instead of prepaid escrow. Live on testnet today, settling in Wrapped CSPR through the hosted CSPR.cloud facilitator.
 - **Self-host: free and open source.** The full stack is MIT-licensed. Operators can run their own matcher against the same contract. The contract is the source of truth, so a self-hosted matcher is a first-class citizen, not a downgrade.
 
 The hosted service earns per-delivery. Self-hosting keeps the ecosystem honest and gives large operators an escape hatch. Both paths generate on-chain `record_delivery` activity on Casper.
@@ -70,7 +70,7 @@ We are seeking a grant to fund the path from testnet v0.1 to a production mainne
 - **Milestone 1: Wallet-native subscribe (4-6 weeks).** Redesign the contract around `TransactionV1`, wire browser-wallet subscribe and top-up in `/app`, ship the flow to testnet with tests. Deliverable: a subscriber can create and fund a subscription end to end from a wallet, no CLI.
 - **Milestone 2: Durability and replay (3-4 weeks).** Historical replay from CSPR.cloud, matcher checkpointing so restarts don't drop history, and a dead-letter queue with a replay endpoint. Deliverable: no delivery is silently lost, and new subscriptions can be seeded against past events.
 - **Milestone 3: Mainnet launch (4-6 weeks).** Deploy `SubscriptionRegistry` to mainnet, ship volume pricing tiers, and stand up production hosting with monitoring and SLAs. Deliverable: a paying mainnet service with published uptime.
-- **Milestone 4: x402 metered tier and cross-contract predicates (5-7 weeks).** Optional x402 pay-per-delivery path and predicate matching on arbitrary contract events. Deliverable: DeFi and RWA protocols can subscribe to their own domain events and pay per delivery.
+- **Milestone 4: x402 metered tier on mainnet, multi-contract predicates (5-7 weeks).** Promote the metered path from testnet to mainnet and extend predicates across several contracts at once. Deliverable: DeFi and RWA protocols can subscribe to their own domain events and pay per delivery.
 
 Grant funds cover the contract redesign, production matcher hosting, and audit-readiness work.
 

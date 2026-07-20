@@ -1,7 +1,7 @@
 # Sluice, single-command self-host.
 #
 #   git clone https://github.com/UnityNodes/Sluice && cd Sluice
-#   cp .env.sample .env.testnet                 # paste your secret-key path + CSPR.cloud token
+#   cp .env.sample .env                          # paste your secret-key path + CSPR.cloud token
 #   docker compose up --build                    # ~10 min first build (cargo install casper-client)
 #
 # Then visit http://localhost:8080  →  landing, /app, /feed, /h/.

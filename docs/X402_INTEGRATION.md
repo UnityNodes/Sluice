@@ -94,7 +94,9 @@ half-autonomous, and vice-versa. Pairing them unlocks self-directed workflows:
 | **3, Native Sluice option** | ✅ done | `x402` is a live billing mode on the matcher (`SLUICE_X402_SUBS`). An x402-billed subscription is not pushed: the matcher queues each real match, and an agent pulls one by paying an x402 micropayment (`POST /api/x402/pay` on the dashboard). The delivered payload is the actual on-chain event Sluice matched, not a sample. Escrow (push) and x402 (pull) now run side by side on the same event stream. |
 | **4, Price discovery** | planned | Publishers advertise per-feed pricing; agents negotiate escrow vs x402 automatically based on projected volume. |
 
-Everything except phases 2+ is already in the runnable example. Search
+Phases 1 to 3 are live; only price discovery (phase 4) is still planned. The
+dependency-free stub kept alongside the real integration is a protocol
+walkthrough, not the shipping path. Search
 [`examples/x402-metered-delivery/`](../examples/x402-metered-delivery/) for
 `>>> STUB <<<` to find every spot that the real facilitator replaces.
 

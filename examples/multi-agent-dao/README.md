@@ -158,4 +158,3 @@ export ANTHROPIC_API_KEY=sk-ant-…
 - **Weighted / veto votes:** the Legal Agent could hard-veto (any `reject` from Legal fails the proposal) instead of contributing one vote, change the tally in `deliberate()`.
 - **Real execution:** in `execute()`, build a Casper deploy (via the CSPR SDK or a `@sluice/client` tx helper) to move funds, update a governance contract, or post the outcome back on-chain.
 - **Idempotency:** dedupe on `X-Sluice-Idempotency-Key` (exposed as `req.sluice.idempotencyKey`) so a redelivered event never triggers a second execution.
-```

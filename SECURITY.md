@@ -55,5 +55,7 @@ known and intentional, not a vulnerability.
 - Predicate regexes are length-capped and screened for catastrophic
   backtracking.
 - The HTTP API rate-limits writes per client IP.
-- Dependencies are monitored by Dependabot, and every push runs CodeQL and
-  `npm audit --audit-level=high`.
+- Dependency and security alerts are enabled on the repository, and every push
+  runs CodeQL plus `npm audit --audit-level=high` in CI. There is no
+  `dependabot.yml`: automated version-bump PRs are deliberately off, security
+  advisories are not.

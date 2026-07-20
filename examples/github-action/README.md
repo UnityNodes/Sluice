@@ -23,10 +23,11 @@ git add .github/workflows/sluice-watch.yml && git commit -m "watch Sluice matche
 Run the bridge somewhere reachable:
 
 ```bash
-GITHUB_TOKEN=ghp_…             # PAT with `repo` scope
-GITHUB_REPO=owner/repo
-SLUICE_WEBHOOK_SECRET=<shared with sluice matcher>
 cd examples/github-action && npm install
+
+export GITHUB_TOKEN=ghp_…             # PAT with `repo` scope
+export GITHUB_REPO=owner/repo
+export SLUICE_WEBHOOK_SECRET=<shared with sluice matcher>
 node dispatcher.js
 ```
 

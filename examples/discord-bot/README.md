@@ -47,7 +47,7 @@ npm install
 
 ## Recipes
 
-Edit [`recipes.js`](recipes.js) to add or rename presets. Each entry is a `{ label, predicate }` pair. The bot exposes labels as autocomplete options on the slash command.
+Edit [`recipes.js`](recipes.js) to add or rename presets. Each entry is a `{ label, predicate }` pair. The bot exposes labels as a preset choice list options on the slash command.
 
 ## Live vs sandbox
 

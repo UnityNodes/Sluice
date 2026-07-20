@@ -1,6 +1,6 @@
 # Sluice
 
-[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-95%2F95%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
+[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-107%2F107%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
 > Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
@@ -33,7 +33,7 @@ Casper's [AI Toolkit](https://www.casper.network/ai) already lets an agent **rea
 </p>
 
 1. **Write a rule.** JSON predicate. "Any transfer to my address over 5000 CSPR."
-2. **Prepay in CSPR.** Locked into the on-chain escrow contract. Each webhook delivery costs a fraction of a CSPR.
+2. **Prepay in CSPR.** Locked into the on-chain escrow contract. Each webhook delivery decrements the escrow by 1 CSPR, the flat per-delivery cost the registry was deployed with.
 3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in about 140 ms (median end-to-end on testnet, from block timestamp to webhook delivery).
 4. **Every escrow-backed delivery is written on chain.** The contract itself emits `record_delivery`. Your bill is an auditable ledger on cspr.live, not a monthly invoice we made up. The public demo lanes on the live feed have no escrow to bill, so they deliver for real but write no receipt; they are labelled `DELIVERED` rather than `CONFIRMED`.
 
@@ -46,7 +46,7 @@ Cancel any time. Remaining CSPR is refunded to your wallet.
 | **Matcher** | Watches CSPR.cloud streaming WebSocket. Evaluates predicates. Dispatches webhooks with HMAC signature and idempotency key. Records deliveries on chain. |
 | **`sluice` CLI** | `subscribe`, `list`, `cancel`, `tail`, `watch`, `replay-last`, `sandbox`, `doctor`, `ai`, `repl`. One binary, works against any deployed contract. |
 | **MCP server (stdio)** | 5 tools, 4 resources, 2 prompts. Open standard, so any MCP client works: Claude, Cursor, Windsurf, Cline, VS Code, Codex. Built from this repo (see below); not yet published to npm. |
-| **Hosted MCP (HTTP)** | Zero install, one URL for any client: `https://sluice.unitynodes.com/mcp`. Exposes the 2 read-only tools plus all 4 resources and 2 prompts; `subscribe` / `top_up` / `cancel` stay stdio-only because they sign with your Casper key. Per-client setup in [docs/MCP_CLIENTS.md](docs/MCP_CLIENTS.md). |
+| **Hosted MCP (HTTP)** | Zero install, one URL for any client: `https://sluice.unitynodes.com/mcp`. Exposes the 2 non-signing tools (`recent_deliveries`, `sluice_sandbox_dispatch`) plus all 4 resources, 3 resource templates and 2 prompts; `subscribe_to_events` and `cancel_subscription` stay stdio-only because they sign with your Casper key. Per-client setup in [docs/MCP_CLIENTS.md](docs/MCP_CLIENTS.md). |
 | **Web workspace** | Live subscription table, visual builder with plain-English AI parser, sandbox that fires real webhooks, rolling activity feed with click-to-explain. |
 | **Demo stack** | `./scripts/demo.sh up`. One command boots matcher, Caddy, demo webhook receiver, Prometheus, Grafana, and two pre-seeded whale subscriptions. |
 
@@ -166,7 +166,7 @@ docker compose up --build                  # first build takes about 10 min (car
 open http://localhost:8080                 # landing, /app, /feed, /h/ all served from the local stack
 ```
 
-Bind a different port with `SLUICE_HTTP_PORT=9090 docker compose up`. Add a local HMAC-verifying receiver with `docker compose --profile with-demo-webhook up`. Skip the 10-minute Rust build with `--build-arg INSTALL_CASPER_CLIENT=false` for a read-only matcher (matches and fires webhooks, but skips the on-chain `record_delivery` step). Full reference in [docker/README.md](docker/README.md).
+Bind a different port with `SLUICE_HTTP_PORT=9090 docker compose up`. Add a local HMAC-verifying receiver with `docker compose --profile with-demo-webhook up`. Skip the 10-minute Rust build by setting `INSTALL_CASPER_CLIENT: "false"` under `services.matcher.build.args` in `docker-compose.yml`, which gives a read-only matcher (matches and fires webhooks, but skips the on-chain `record_delivery` step). Full reference in [docker/README.md](docker/README.md).
 
 ### One-command demo stack
 
@@ -211,7 +211,7 @@ Every line above is a real log. Tx-hash prefixes match the ones on cspr.live for
 
 - **Contract** ([contract/](contract/)). Rust + Casper Odra 2.8. Holds subscriptions, tracks escrow balance, emits `SubscriptionCreated / SubscriptionCancelled / DeliveryRecorded / ToppedUp` events.
 - **Matcher** ([matcher/](matcher/)). Node 20 + TypeScript. Subscribes to the CSPR.cloud transfer WebSocket. Evaluates predicates. Dispatches webhooks with `X-Sluice-Idempotency-Key` and `X-Sluice-Signature` (HMAC-SHA256). Retries with exponential backoff. Records delivery on chain via signed deploy.
-- **MCP** ([mcp/](mcp/)). stdio server (5 tools) + Streamable HTTP server (2 read-only tools; signing tools stay local). 4 resources, 2 prompts.
+- **MCP** ([mcp/](mcp/)). stdio server (5 tools) + Streamable HTTP server (the 2 non-signing tools; signing tools stay local). 4 resources, 3 resource templates, 2 prompts.
 - **Web** ([web/](web/)). Static HTML + vanilla JS. Landing, `/app` workspace, `/status`, `/feed`, hosted receiver at `/h/<slug>`.
 
 Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -255,7 +255,7 @@ Full list in [docs/HONEST_LIMITS.md](docs/HONEST_LIMITS.md).
 
 - Q3 2026: OR / nested predicates (**shipped**), historical replay from CSPR.cloud, SSE alternative to webhook, Rust SDK.
 - Q4 2026: mainnet contract, volume pricing tiers, dead-letter queue.
-- 2027: cross-contract predicates (not just transfers), timelocked subscriptions.
+- 2027: predicates spanning several contracts at once, timelocked subscriptions. (Single-contract event matching already ships.)
 
 Vote with usage. Roadmap tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
@@ -275,7 +275,7 @@ X-Sluice-Idempotency-Key: <sha256-of-event-payload>
 X-Sluice-Sub-Id: <subscription-id>
 ```
 
-Verify the signature server-side with a shared secret you set when you subscribed. Full snippets for Node, Python, Go, and Rust in [docs/HMAC_VERIFY.md](docs/HMAC_VERIFY.md). Drop-in middleware for Express and Fastify ships as the `@sluice/client` middleware ([clients/typescript/src/middleware.ts](clients/typescript/src/middleware.ts)).
+Verify the signature server-side with a shared secret you set when you subscribed. Full snippets for Node, Python, Go, and shell in [docs/HMAC_VERIFY.md](docs/HMAC_VERIFY.md). Drop-in middleware for Express and Fastify ships as the `@sluice/client` middleware ([clients/typescript/src/middleware.ts](clients/typescript/src/middleware.ts)).
 
 ## Prometheus and Grafana
 

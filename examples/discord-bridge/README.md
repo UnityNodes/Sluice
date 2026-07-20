@@ -1,6 +1,6 @@
 # sluice → Discord bridge
 
-50-line Express receiver that forwards Sluice matches to a Discord channel via an incoming-webhook URL.
+Small Express receiver that forwards Sluice matches to a Discord channel via an incoming-webhook URL.
 
 ## Run
 
@@ -8,7 +8,7 @@
 cd examples/discord-bridge && npm install
 
 SLUICE_WEBHOOK_SECRET=<shared with sluice matcher> \
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...\
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/... \
 PORT=8788 npm start
 ```
 

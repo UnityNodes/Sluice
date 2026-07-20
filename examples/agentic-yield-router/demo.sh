@@ -20,6 +20,11 @@ set -euo pipefail
 
 PORT="${PORT:-8791}"
 SLUICE_API="${SLUICE_API:-https://sluice.unitynodes.com/api}"
+# The agent verifies the HMAC signature before acting, and the README says so.
+# Leaving this unset made verify() fail open and every log line read
+# "verified": false, which flatly contradicted the claim. Default it so the
+# demo actually demonstrates the guarantee.
+export SLUICE_WEBHOOK_SECRET="${SLUICE_WEBHOOK_SECRET:-demo-secret-please-change}"
 # Left unset on purpose. Sluice's SSRF guard rejects loopback targets, so
 # defaulting this to localhost made every sandbox dispatch fail with 400 while
 # the demo still printed "complete". With no public URL we sign locally instead.
@@ -55,7 +60,7 @@ for _ in $(seq 1 20); do
 done
 
 # hex HMAC-SHA256 over the body, matching the matcher's X-Sluice-Signature.
-sign() { printf '%s' "$1" | openssl dgst -sha256 -hmac "${SLUICE_WEBHOOK_SECRET:-}" -r | awk '{print $1}'; }
+sign() { printf '%s' "$1" | openssl dgst -sha256 -hmac "$SLUICE_WEBHOOK_SECRET" -r | awk '{print $1}'; }
 
 # One Sluice-shaped webhook envelope for a large deposit (motes).
 envelope() {
