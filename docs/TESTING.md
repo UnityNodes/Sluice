@@ -34,6 +34,12 @@ the delivery `latency_ms`.
 Open <https://sluice.unitynodes.com/app> to see the same data rendered, with the
 watched subscriptions and their predicates.
 
+Where the traffic comes from: a cron on our side fires one real `swap` on the
+DemoDex contract every hour, so the public feed keeps moving between judging
+sessions. Those are genuine on-chain transactions, matched by the same engine
+as any other event, not replayed fixtures. Fire your own at any time with
+`scripts/demo-swap.sh` (Part 3) and watch it land.
+
 ### 3. Confirm a delivery against the chain
 
 Take any `deploy_hash` from `recent_events` and open it on the explorer:
