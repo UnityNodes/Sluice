@@ -29,7 +29,12 @@
     const heroStatus = $('hero-status');
     const heroDot = $('hero-status-dot');
     if (heroStatus) {
-      heroStatus.lastChild.textContent = ' ' + label + (ratePerMin != null ? ` · ${ratePerMin}/MIN` : '');
+      // Below one event per minute, show an hourly rate. Rounding a slow but
+      // healthy feed to "0/MIN" reads as a dead system.
+      const rate = ratePerMin == null ? ''
+        : ratePerMin >= 1 ? ` · ${Math.round(ratePerMin)}/MIN`
+        : ` · ${Math.max(1, Math.round(ratePerMin * 60))}/HR`;
+      heroStatus.lastChild.textContent = ' ' + label + rate;
       if (heroDot) heroDot.style.background = ok ? '#3edc64' : '#ff2d2e';
     }
     const fs = $('footer-status');
@@ -244,7 +249,7 @@
         const tEnd = new Date(events[0].timestamp).getTime();
         const tStart = new Date(events[events.length - 1].timestamp).getTime();
         const spanMin = Math.max(1, (tEnd - tStart) / 60_000);
-        ratePerMin = Math.round(events.length / spanMin);
+        ratePerMin = events.length / spanMin;
       }
       setStatus({ ok: fresh, label: fresh ? 'MATCHER ONLINE' : 'MATCHER STALE', ratePerMin });
       renderNumbers(snap, events);

@@ -79,7 +79,10 @@ function loadConfig(): MatcherConfig {
  * `<img src="https://sluice.unitynodes.com/api/badge.svg">`.
  */
 function renderBadge(activeSubs: number, totalDeliveries: number, ok: boolean): string {
-  const right = `${totalDeliveries} delivered · ${activeSubs} active`;
+  // totalDeliveries sums each subscription's on-chain `deliveries` counter, so
+  // it counts receipts, not webhook dispatches. Say which one, otherwise it
+  // reads as a contradiction against the dispatch total in /api/metrics.
+  const right = `${totalDeliveries} on-chain · ${activeSubs} active`;
   const labelW = 50;
   const valueW = Math.max(60, right.length * 7 + 14);
   const totalW = labelW + valueW;

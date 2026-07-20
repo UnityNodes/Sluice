@@ -142,6 +142,12 @@
   @media (prefers-reduced-motion: reduce) {
     [data-reveal] { opacity: 1; transform: none; transition: none; }
   }
+  /* Keyboard users need to see where focus is. The default outline disappears
+     against the black panels, so pin a high-contrast lime ring. */
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+    outline: 3px solid #bcfc07;
+    outline-offset: 2px;
+  }
 </style>
 </head>
 <body>
@@ -450,7 +456,7 @@
   <section style="background:#000;color:#fff;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0">
       <div style="padding:32px 32px;border-right:1px solid #222">
-        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">DELIVERED · ALL TIME</div>
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">RECORDED ON CHAIN</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px"><span id="ns-delivered" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span></div>
       </div>
       <div style="padding:32px 32px;border-right:1px solid #222">
@@ -723,7 +729,7 @@
           <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#666;flex:1">Open the sandbox, paste a webhook.site URL, fire up to 10 real HMAC-signed POSTs. Zero CSPR spent, no subscription needed.</div>
           <div style="font:500 12px 'JetBrains Mono';color:#000;border-bottom:1px solid #000;align-self:flex-start;padding-bottom:2px">Open the sandbox →</div>
         </a>
-        <div id="eval-mcp" style="background:#000;color:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #bcfc07'" onmouseout="this.style.transform='';this.style.boxShadow=''" onclick="(function(){var c='https://sluice.unitynodes.com/mcp';navigator.clipboard&&navigator.clipboard.writeText(c);var l=document.getElementById('eval-mcp-cta');if(l){var p=l.textContent;l.textContent='✓ Copied to clipboard';setTimeout(function(){l.textContent=p;},1500);}})()">
+        <div id="eval-mcp" role="button" tabindex="0" aria-label="Copy the hosted MCP endpoint URL" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="background:#000;color:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #bcfc07'" onmouseout="this.style.transform='';this.style.boxShadow=''" onclick="(function(){var c='https://sluice.unitynodes.com/mcp';navigator.clipboard&&navigator.clipboard.writeText(c);var l=document.getElementById('eval-mcp-cta');if(l){var p=l.textContent;l.textContent='✓ Copied to clipboard';setTimeout(function(){l.textContent=p;},1500);}})()">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span class="icon-tile" style="background:#bcfc07;color:#000"><svg><use href="#icon-copy"/></svg></span>
             <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#888">STEP 3</span>

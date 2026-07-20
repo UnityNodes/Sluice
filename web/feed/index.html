@@ -27,9 +27,9 @@
     body > div[style*="max-width:1440px"], div[style*="max-width:1440px"] { padding: 22px 12px 60px !important; }
     [style*="padding:48px 28px 80px"] { padding: 22px 12px 56px !important; }
     /* feed row grid is too wide on mobile, collapse to 3 cols, hide time + age */
-    [style*="grid-template-columns:120px 90px 1fr 110px 130px 200px"] { grid-template-columns: 70px 1fr 90px !important; gap: 8px !important; font-size: 10px !important; padding-left: 14px !important; padding-right: 14px !important; }
-    [style*="grid-template-columns:120px 90px 1fr 110px 130px 200px"] > div:nth-child(2),
-    [style*="grid-template-columns:120px 90px 1fr 110px 130px 200px"] > div:nth-child(5) { display: none !important; }
+    [style*="grid-template-columns:120px 90px 1fr 110px 110px 160px 160px"] { grid-template-columns: 70px 1fr 90px !important; gap: 8px !important; font-size: 10px !important; padding-left: 14px !important; padding-right: 14px !important; }
+    [style*="grid-template-columns:120px 90px 1fr 110px 110px 160px 160px"] > div:nth-child(2),
+    [style*="grid-template-columns:120px 90px 1fr 110px 110px 160px 160px"] > div:nth-child(5) { display: none !important; }
     h1, h2 { font-size: clamp(22px, 6vw, 30px) !important; line-height: 1.1 !important; }
   }
 </style>
@@ -52,7 +52,7 @@
     <div style="flex:1"></div>
     <div style="display:flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#000;background:#bcfc07;padding:5px 9px;letter-spacing:.06em">
       <span id="ls-dot" style="width:6px;height:6px;background:#000;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
-      <span id="ls-rate">LIVE ·, events/min</span>
+      <span id="ls-rate">LIVE</span>
     </div>
     <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">SYNC: <span id="ls-sync">…</span></div>
   </div>
@@ -69,12 +69,13 @@
       <div style="margin-top:8px;font:400 14px 'Casper Sans',Inter;color:#999">
         Stream of deliveries from contract
         <a id="ls-contract" href="#" target="_blank" rel="noopener" style="font:500 12.5px 'JetBrains Mono'">…</a>.
-        Each row links to the on-chain <code style="background:#1a1a1a;padding:1px 5px;color:#bcfc07">record_delivery</code> tx + the matched event.
+        Every row links the source transaction that produced the event. Escrow-backed lanes also link their on-chain <code style="background:#1a1a1a;padding:1px 5px;color:#bcfc07">record_delivery</code> receipt.
       </div>
     </div>
     <div style="flex:1"></div>
     <div style="display:flex;gap:14px;font:500 11px 'JetBrains Mono';color:#999;letter-spacing:.06em">
-      <span>TOTAL: <span id="ls-total" style="color:#fff;font-weight:500">…</span></span>
+      <span>ON-CHAIN RECEIPTS: <span id="ls-total" style="color:#fff;font-weight:500">…</span></span>
+      <span>SHOWING: <span id="ls-showing" style="color:#fff;font-weight:500">…</span></span>
       <span>ACTIVE SUBS: <span id="ls-active" style="color:#fff;font-weight:500">…</span></span>
       <span>SUCCESS: <span id="ls-success" style="color:#3edc64;font-weight:500">…</span></span>
       <span>P50: <span id="ls-p50" style="color:#fff;font-weight:500">…</span></span>
@@ -82,8 +83,8 @@
   </div>
 
   <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07">
-    <div style="display:grid;grid-template-columns:120px 90px 1fr 110px 130px 200px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
-      <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div><div style="text-align:right">Latency</div><div>Tx</div>
+    <div style="display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
+      <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div><div style="text-align:right">Latency</div><div>Source tx</div><div>Receipt</div>
     </div>
     <div id="feed-body" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:400px"></div>
     <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:12px;letter-spacing:.04em">
@@ -127,6 +128,7 @@
       $('ls-contract').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}`;
       $('ls-contract-events').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}?tab=events`;
       $('ls-total').textContent = subs.reduce((a, s) => a + (s.deliveries || 0), 0).toLocaleString();
+      $('ls-showing').textContent = events.length;
       $('ls-active').textContent = subs.filter(s => s.active).length;
       const ok = events.filter(e => e.status >= 200 && e.status < 300).length;
       $('ls-success').textContent = events.length ? `${((ok / events.length) * 100).toFixed(0)}%` : '…';
@@ -135,8 +137,12 @@
       $('ls-p50').textContent = p50 != null ? `${p50} ms` : '…';
       if (events.length >= 2) {
         const span = (new Date(events[0].timestamp) - new Date(events[events.length - 1].timestamp)) / 60_000;
-        const rate = span > 0 ? Math.round(events.length / span) : events.length;
-        $('ls-rate').textContent = `LIVE · ${rate} EVENTS/MIN`;
+        const perMin = span > 0 ? events.length / span : events.length;
+        // The demo cron fires hourly, so rounding per-minute always showed 0.
+        // Scale the unit instead of advertising zero throughput.
+        $('ls-rate').textContent = perMin >= 1
+          ? `LIVE · ${Math.round(perMin)} EVENTS/MIN`
+          : `LIVE · ${Math.max(1, Math.round(perMin * 60))} EVENTS/HR`;
       }
 
       const body = $('feed-body');
@@ -152,7 +158,7 @@
         seen.add(e.event_hash);
         const row = document.createElement('div');
         row.className = isNew && body.children.length > 0 ? 'new-row' : '';
-        row.style.cssText = `display:grid;grid-template-columns:120px 90px 1fr 110px 130px 200px;gap:14px;padding:13px 22px;border-bottom:1px solid #1a1a1a;align-items:center;${i > 6 ? 'opacity:0.85;' : ''}${i > 12 ? 'opacity:0.7;' : ''}`;
+        row.style.cssText = `display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:13px 22px;border-bottom:1px solid #1a1a1a;align-items:center;${i > 6 ? 'opacity:0.85;' : ''}${i > 12 ? 'opacity:0.7;' : ''}`;
         const cell = (txt, style = '') => { const c = document.createElement('div'); if (style) c.setAttribute('style', style); if (typeof txt === 'string') c.textContent = txt; else c.appendChild(txt); return c; };
         row.appendChild(cell(time, 'color:#666;font-size:11px'));
         row.appendChild(cell(`sub_${String(e.subscription_id).padStart(4, '0')}`, isNew ? 'color:#bcfc07;font-weight:500' : 'color:#3edc64'));
@@ -165,16 +171,31 @@
         row.appendChild(cell(descText, 'color:#ccc'));
         row.appendChild(cell(ok2 ? `${e.status} OK` : `${e.status || 'FAIL'} retry ${e.attempts ?? '?'}`, `text-align:right;color:${ok2 ? '#3edc64' : '#ff2d2e'};font-size:11px`));
         row.appendChild(cell(`${e.latency_ms ?? '?'} ms`, 'text-align:right;color:#fff;font-size:11px'));
+        // Source tx: the on-chain transaction that produced the event. Always
+        // present, and independently verifiable on the explorer.
+        const srcHash = e.event && e.event.deploy_hash;
+        if (srcHash) {
+          const s = document.createElement('a');
+          s.href = `https://testnet.cspr.live/transaction/${srcHash}`;
+          s.target = '_blank';
+          s.rel = 'noopener';
+          s.style.cssText = 'color:#4589f6;font-size:11px';
+          s.textContent = trunc(srcHash, 6, 6);
+          row.appendChild(cell(s));
+        } else {
+          row.appendChild(cell('…', 'color:#666;font-size:11px'));
+        }
+        // Receipt: the record_delivery tx. Only escrow-backed lanes write one.
         if (e.tx_hash) {
           const a = document.createElement('a');
           a.href = `https://testnet.cspr.live/transaction/${e.tx_hash}`;
           a.target = '_blank';
           a.rel = 'noopener';
-          a.style.cssText = 'color:#4589f6;font-size:11px';
+          a.style.cssText = 'color:#3edc64;font-size:11px';
           a.textContent = trunc(e.tx_hash, 6, 6);
           row.appendChild(cell(a));
         } else {
-          row.appendChild(cell('…', 'color:#666;font-size:11px'));
+          row.appendChild(cell('demo lane', 'color:#666;font-size:11px'));
         }
         body.appendChild(row);
       });
