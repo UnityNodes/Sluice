@@ -71,4 +71,5 @@ app.post('/sluice', async (req, res) => {
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true, repo: REPO, has_secret: !!SECRET }));
-app.listen(PORT, () => console.log(`sluice→GHA bridge on :${PORT} for ${REPO}`));
+if (!SECRET) console.warn('[github-action] WARNING: SLUICE_WEBHOOK_SECRET is unset, signature verification is DISABLED and any unsigned request will dispatch a workflow. Set it in production.');
+app.listen(PORT, () => console.log(`sluice→GHA bridge on :${PORT} for ${REPO}${SECRET ? '' : ' (verification off)'}`));

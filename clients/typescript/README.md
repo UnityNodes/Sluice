@@ -93,7 +93,7 @@ app.use('/webhook', express.raw({ type: 'application/json' }));
 app.use('/webhook', sluiceExpress(process.env.SLUICE_WEBHOOK_SECRET));
 
 app.post('/webhook', (req, res) => {
-  // req.sluice: { verified, subscriptionId, idempotencyKey, event }
+  // req.sluice: { verified, eventHash, subscriptionId, rawBody }
   res.sendStatus(200);
 });
 ```

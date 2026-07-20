@@ -223,11 +223,11 @@
         const headersFlat = Object.entries(req.headers).map(([k, v]) => k + ': ' + v).join('\n');
         row.innerHTML =
           '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
-            '<span style="background:' + methodColor + ';color:#fff;padding:3px 10px;font:500 11px JetBrains Mono;letter-spacing:.06em">' + req.method + '</span>' +
+            '<span style="background:' + methodColor + ';color:#fff;padding:3px 10px;font:500 11px JetBrains Mono;letter-spacing:.06em">' + escapeHtml(req.method) + '</span>' +
             '<span style="font:500 13px JetBrains Mono;color:#000">' + new Date(req.ts).toISOString().substr(11, 12) + '</span>' +
-            '<span style="font:400 12.5px JetBrains Mono;color:#666">from ' + (req.remote || 'unknown') + '</span>' +
+            '<span style="font:400 12.5px JetBrains Mono;color:#666">from ' + escapeHtml(req.remote || 'unknown') + '</span>' +
             sigOk +
-            (req.query ? '<span style="font:400 12.5px JetBrains Mono;color:#666">?' + req.query + '</span>' : '') +
+            (req.query ? '<span style="font:400 12.5px JetBrains Mono;color:#666">?' + escapeHtml(req.query) + '</span>' : '') +
           '</div>' +
           '<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
             '<details><summary>Body · ' + (req.body ? req.body.length + ' bytes' : 'empty') + '</summary><pre>' + escapeHtml(bodyPretty) + '</pre></details>' +

@@ -3,7 +3,7 @@
 Trigger a GitHub Actions workflow on every Sluice match. Two pieces:
 
 1. **`.github/workflows/sluice-watch.yml`**, drops into your repo, listens for `repository_dispatch` of type `sluice-match`.
-2. **`dispatcher.js`**, tiny Express server that receives Sluice's webhook, verifies HMAC, and forwards the payload as a `repository_dispatch` via the GitHub REST API.
+2. **`dispatcher.js`**, tiny Express server that receives Sluice's webhook, verifies the HMAC when `SLUICE_WEBHOOK_SECRET` is set (skipped with a startup warning if it is not, so set it in production), and forwards the payload as a `repository_dispatch` via the GitHub REST API.
 
 ## Use case
 

@@ -48,16 +48,25 @@ AGENT_PID=$!
 # Always clean up the background agent, even on error / Ctrl-C.
 trap 'kill "${AGENT_PID}" 2>/dev/null || true' EXIT
 
-# Wait for /health instead of a blind sleep.
+# Wait for /health instead of a blind sleep, and fail loudly if the agent never
+# came up (e.g. the port was busy). Otherwise the script prints "demo complete"
+# over a dead agent.
 echo -n "▶ waiting for agent to be ready"
+ready=""
 for _ in $(seq 1 20); do
   if curl -sf "http://localhost:${PORT}/health" >/dev/null 2>&1; then
     echo " ✓"
+    ready=1
     break
   fi
   echo -n "."
   sleep 0.25
 done
+if [ -z "$ready" ]; then
+  echo " ✗"
+  echo "✗ agent did not become healthy on :${PORT} (is the port in use? try PORT=18791 ./demo.sh)" >&2
+  exit 1
+fi
 
 # hex HMAC-SHA256 over the body, matching the matcher's X-Sluice-Signature.
 sign() { printf '%s' "$1" | openssl dgst -sha256 -hmac "$SLUICE_WEBHOOK_SECRET" -r | awk '{print $1}'; }

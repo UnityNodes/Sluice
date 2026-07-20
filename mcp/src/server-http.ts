@@ -46,6 +46,9 @@ import {
 } from './server.js';
 
 const PORT = Number(process.env.PORT || 7800);
+// Loopback by default: Caddy proxies to it, so it never needs to answer on the
+// public IP directly. Set HOST=0.0.0.0 only to expose it without a proxy.
+const HOST = process.env.HOST || '127.0.0.1';
 
 /** Build a fresh MCP server pre-wired with read-only tools + every resource/prompt. */
 function buildServer(): Server {
@@ -87,7 +90,12 @@ function buildServer(): Server {
         }
         case SANDBOX_TOOL.name: {
           const args = SandboxArgs.parse(rawArgs);
-          const apiUrl = (args.api_url ?? process.env.SLUICE_API_URL ?? 'https://sluice.unitynodes.com/api').replace(/\/$/, '');
+          // SECURITY: never let a remote caller choose the fetch target here.
+          // On the hosted, unauthenticated endpoint an attacker-supplied
+          // api_url would be a server-side request forgery primitive with
+          // response reflection (e.g. cloud metadata). The matcher base is
+          // fixed by the operator's env; args.api_url is deliberately ignored.
+          const apiUrl = (process.env.SLUICE_API_URL ?? 'https://sluice.unitynodes.com/api').replace(/\/$/, '');
           let predicate: unknown = null;
           if (args.predicate_json) {
             try { predicate = JSON.parse(args.predicate_json); }
@@ -176,6 +184,6 @@ const httpServer = http.createServer(async (req, res) => {
   }
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`sluice-mcp-http listening on http://0.0.0.0:${PORT}/mcp`);
+httpServer.listen(PORT, HOST, () => {
+  console.log(`sluice-mcp-http listening on http://${HOST}:${PORT}/mcp`);
 });

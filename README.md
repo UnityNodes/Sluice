@@ -1,6 +1,6 @@
 # Sluice
 
-[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-107%2F107%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
+[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-109%2F109%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
 > Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
@@ -218,7 +218,7 @@ Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Tests
 
-- Matcher: 89 Jest tests. `cd matcher && npm test`.
+- Matcher: 103 Jest tests. `cd matcher && npm test`.
 - Contract: 6 Odra unit tests (OdraVM). `cd contract && cargo test`.
 - REST API: smoke collection in `docs/sluice.postman_collection.json`. The MCP end-to-end check is [`docs/TESTING.md`](docs/TESTING.md) step 5.
 - Predicate: unit-tested against the CSPR.cloud transfer schema in `matcher/test/predicate.test.ts`, including catastrophic-regex rejection.

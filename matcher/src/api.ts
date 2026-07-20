@@ -154,6 +154,7 @@ interface HookedRequest {
   remote: string;
 }
 const HOOK_MAX = 50;             // per id
+const HOOK_MAX_IDS = 500;        // distinct ids, total
 const HOOK_TTL_MS = 60 * 60 * 1000; // 1h
 const HOOK_ID_RE = /^[a-z0-9-]{4,64}$/i;
 const hooks = new Map<string, HookedRequest[]>();
@@ -182,10 +183,16 @@ interface BuildBody {
   id?: number;
 }
 
+const MAX_JSON_BODY = 256 * 1024;
+
 async function readJson(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
-    req.on('data', (c) => chunks.push(c));
+    let size = 0;
+    // Cap the body like readRaw does. Without this an unauthenticated caller
+    // can stream hundreds of MB into a single POST and OOM the process, and
+    // /predicate/explain echoes the value back, doubling the amplification.
+    req.on('data', (c) => { size += c.length; if (size > MAX_JSON_BODY) { req.destroy(); reject(new Error('body too large')); return; } chunks.push(c); });
     req.on('end', () => {
       try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
       catch (e) { reject(e); }
@@ -810,8 +817,17 @@ function rateLimited(ip: string): boolean {
   return b.count > RATE_MAX;
 }
 function clientIp(req: { headers: Record<string, unknown>; socket: { remoteAddress?: string } }): string {
-  const fwd = String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim();
-  return fwd || req.socket.remoteAddress || 'unknown';
+  // Do NOT trust the leftmost X-Forwarded-For entry: it is fully client-chosen,
+  // and Cloudflare/Caddy only *append* to the header, so a caller can rotate a
+  // fake first hop to dodge the per-IP rate limit. Prefer Cloudflare's
+  // CF-Connecting-IP (which CF overwrites, so a client cannot forge it on the
+  // normal path), then the rightmost XFF entry (added by the nearest trusted
+  // proxy), then the socket address.
+  const cf = String(req.headers['cf-connecting-ip'] ?? '').trim();
+  if (cf) return cf;
+  const xff = String(req.headers['x-forwarded-for'] ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  if (xff.length) return xff[xff.length - 1];
+  return req.socket.remoteAddress || 'unknown';
 }
 
 export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } {
@@ -961,6 +977,13 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
           remote: req.socket.remoteAddress || '',
         };
         const ring = hooks.get(id) ?? [];
+        // Bound the number of distinct ids, not just entries per id: the id is
+        // attacker-chosen and GC only evicts on age, so without this a flood of
+        // fresh ids grows the map without limit. Evict the oldest id when full.
+        if (!hooks.has(id) && hooks.size >= HOOK_MAX_IDS) {
+          const oldest = hooks.keys().next().value;
+          if (oldest !== undefined) hooks.delete(oldest);
+        }
         ring.unshift(entry);
         if (ring.length > HOOK_MAX) ring.length = HOOK_MAX;
         hooks.set(id, ring);

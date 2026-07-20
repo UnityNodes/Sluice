@@ -438,9 +438,12 @@ async function main(): Promise<void> {
           const snapshotPath = process.env.SLUICE_SNAPSHOT_PATH ?? '/tmp/sluice-snapshot.json';
           const fs = await import('node:fs/promises');
           try {
-            const raw = JSON.parse(await fs.readFile(snapshotPath, 'utf8')) as { subscriptions: Array<{ id: number; deliveries: number; balance: string; webhook_url: string }> };
-            const subs = raw.subscriptions.slice(0, limit);
-            return { content: [{ type: 'text', text: JSON.stringify(subs, null, 2) }] };
+            const raw = JSON.parse(await fs.readFile(snapshotPath, 'utf8')) as { recent_events?: unknown[] };
+            // This tool returns deliveries, not subscriptions. The snapshot
+            // keeps them under recent_events; returning subscriptions here (the
+            // old behaviour) answered "last N deliveries" with the wrong data.
+            const deliveries = (raw.recent_events ?? []).slice(0, limit);
+            return { content: [{ type: 'text', text: JSON.stringify(deliveries, null, 2) }] };
           } catch (e) {
             return {
               content: [{ type: 'text', text: `Snapshot unavailable: ${(e as Error).message}` }],

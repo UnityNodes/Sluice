@@ -40,7 +40,7 @@ SLUICE_SNAPSHOT_PATH             # optional, read the snapshot from disk instead
 ```
 
 > **Set `SLUICE_API_URL` when you self-host.** It defaults to
-> `https://sluice.unitynodes.com/api`, so a server started with only the five
+> `https://sluice.unitynodes.com/api`, so a server started with only the required
 > vars above will silently read from, and dispatch sandbox events against, the
 > public production instance rather than your own matcher.
 
@@ -52,4 +52,4 @@ SLUICE_SNAPSHOT_PATH             # optional, read the snapshot from disk instead
 - **recent_deliveries**: returns the most recent matched deliveries.
 - **sluice_sandbox_dispatch**: fires test webhooks with no CSPR spent.
 
-Also exposes 4 resources and 2 prompts. See [docs/ROADMAP.md](../docs/ROADMAP.md) for what is next.
+Also exposes 4 resources, 3 resource templates, and 2 prompts. See [docs/ROADMAP.md](../docs/ROADMAP.md) for what is next.

@@ -101,4 +101,18 @@ describe('dispatchWebhook', () => {
       })
     ).rejects.toBeInstanceOf(SsrfError);
   });
+
+  it('treats a 3xx redirect as a delivery failure, never a success', async () => {
+    // The real poster runs axios with maxRedirects: 0, so a 302 that tries to
+    // bounce us to an internal address surfaces here as a non-2xx status. This
+    // pins the "a redirect is a failed delivery" contract that closes the
+    // redirect-based SSRF: it must not count as ok.
+    for (const status of [301, 302, 307, 308]) {
+      const res = await dispatchWebhook('https://1.1.1.1/x', sampleEvent, 1, {
+        backoffMs: [],
+        poster: async () => ({ status }),
+      });
+      expect(res.ok).toBe(false);
+    }
+  });
 });

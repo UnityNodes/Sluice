@@ -53,3 +53,8 @@ examples/**/node_modules/
 demo-sluice.mp4
 web/demo.mp4
 web/demo/*.mp4
+
+# QA screenshots (scratch)
+*-375-*.jpeg
+app-375-*.jpeg
+land-375-*.jpeg

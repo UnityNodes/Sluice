@@ -41,10 +41,14 @@
     nav a { padding: 6px 12px !important; font-size: 13px !important; white-space: nowrap; }
     body > div[style*="max-width:1440px"], div[style*="max-width:1440px"] { padding: 22px 12px 60px !important; }
     [style*="padding:48px 28px 80px"] { padding: 22px 12px 56px !important; }
-    /* feed row grid is too wide on mobile, collapse to 3 cols, hide time + age */
-    [style*="grid-template-columns:120px 90px 1fr 110px 110px 160px 160px"] { grid-template-columns: 70px 1fr 90px !important; gap: 8px !important; font-size: 10px !important; padding-left: 14px !important; padding-right: 14px !important; }
-    [style*="grid-template-columns:120px 90px 1fr 110px 110px 160px 160px"] > div:nth-child(2),
-    [style*="grid-template-columns:120px 90px 1fr 110px 110px 160px 160px"] > div:nth-child(5) { display: none !important; }
+    /* feed row grid is too wide on mobile, collapse to 3 cols, hide time + age.
+       Header and JS rows both carry .feed-grid; matching on the class rather than
+       the inline-style string is what makes this apply to the JS rows too (their
+       cssText grid is reserialized with spaces, so [style*=…] never matched). */
+    .feed-grid { grid-template-columns: 70px 1fr 90px !important; gap: 8px !important; font-size: 10px !important; padding-left: 14px !important; padding-right: 14px !important; }
+    .feed-grid > div { min-width: 0; overflow-wrap: anywhere; }
+    .feed-grid > div:nth-child(2), .feed-grid > div:nth-child(5),
+    .feed-grid > div:nth-child(6), .feed-grid > div:nth-child(7) { display: none !important; }
     h1, h2 { font-size: clamp(22px, 6vw, 30px) !important; line-height: 1.1 !important; }
   }
 </style>
@@ -98,7 +102,7 @@
   </div>
 
   <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07">
-    <div style="display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
+    <div class="feed-grid" style="display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
       <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div><div style="text-align:right">Latency</div><div>Source tx</div><div>Receipt</div>
     </div>
     <div id="feed-body" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:400px"></div>
@@ -129,7 +133,9 @@
     return `${Math.floor(dt / 3_600_000)}h ago`;
   };
   const trunc = (s, h = 4, t = 4) => !s ? '…' : (s.length <= h + t + 1 ? s : s.slice(0, h) + '…' + s.slice(-t));
-  const motesToCspr = (m) => { try { return Number(BigInt(String(m)) / 1_000_000_000n); } catch { return 0; } };
+  // Divide as Number, not BigInt, so fractional CSPR is preserved (BigInt
+  // division floors, turning 2.5 CSPR into "2" and sub-1 amounts into "0").
+  const motesToCspr = (m) => { try { return Number(BigInt(String(m))) / 1e9; } catch { return 0; } };
 
   async function tick() {
     try {
@@ -173,7 +179,7 @@
         const isNew = !seen.has(e.event_hash);
         seen.add(e.event_hash);
         const row = document.createElement('div');
-        row.className = isNew && body.children.length > 0 ? 'new-row' : '';
+        row.className = 'feed-grid' + (isNew && body.children.length > 0 ? ' new-row' : '');
         row.style.cssText = `display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:13px 22px;border-bottom:1px solid #1a1a1a;align-items:center;${i > 6 ? 'opacity:0.85;' : ''}${i > 12 ? 'opacity:0.7;' : ''}`;
         const cell = (txt, style = '') => { const c = document.createElement('div'); if (style) c.setAttribute('style', style); if (typeof txt === 'string') c.textContent = txt; else c.appendChild(txt); return c; };
         row.appendChild(cell(time, 'color:#666;font-size:11px'));

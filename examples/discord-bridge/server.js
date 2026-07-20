@@ -96,4 +96,5 @@ app.post('/sluice', async (req, res) => {
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true, seen: seen.size, has_secret: !!SECRET }));
-app.listen(PORT, () => console.log(`sluice→discord bridge on :${PORT}, secret=${SECRET ? 'set' : 'unset'}`));
+if (!SECRET) console.warn('[discord-bridge] WARNING: SLUICE_WEBHOOK_SECRET is unset, signature verification is DISABLED and any unsigned request will be forwarded. Set it in production.');
+app.listen(PORT, () => console.log(`sluice→discord bridge on :${PORT}, secret=${SECRET ? 'set' : 'UNSET (verification off)'}`));

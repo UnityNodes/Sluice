@@ -148,4 +148,4 @@ Point your MCP client at the Casper MCP Server and CSPR.trade MCP, drop the thre
 | ------------- | ------------------------------------------------------------------------- |
 | `agent.js`    | Webhook server: HMAC verify → `decideRebalance` → log/act. Exports the policy for unit testing. |
 | `demo.sh`     | Boots the agent and fires 3 sandbox events at it end-to-end.               |
-| `package.json`| `express` + `@anthropic-ai/sdk` dependencies; `start` / `dry-run` / `demo` scripts. |
+| `package.json`| `express`, `express-rate-limit`, `@anthropic-ai/sdk` dependencies; `start` / `dry-run` / `demo` scripts. |

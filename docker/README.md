@@ -18,7 +18,7 @@ Open http://localhost:8080, landing + `/app` + `/feed` + `/h/` all served from t
 |---------------|------------------------------|---------|----------------------------------------------------------------------------------|
 | `matcher`     | `matcher/Dockerfile`         | `7799`  | TypeScript matcher + bundled `casper-client` for `record_delivery` submissions.  |
 | `caddy`       | `caddy:2-alpine`             | `8080`  | Serves `/web` + reverse-proxies `/api/tx/*` and `/api/hooks/*` to the matcher.   |
-| `demo-webhook`| `node:20-alpine` + Express   | `8787`  | Optional. HMAC-verifying receiver, same code as `examples/discord-bridge`.      |
+| `demo-webhook`| `node:20-alpine` + Express   | `8787`  | Optional. HMAC-verifying receiver, a minimal logging receiver (`docker/demo-webhook/`), not the Discord bridge.      |
 
 ## Volumes
 

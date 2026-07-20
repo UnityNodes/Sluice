@@ -33,11 +33,17 @@ node receiver.cjs &
 RECEIVER_PID=$!
 trap 'kill "${RECEIVER_PID}" 2>/dev/null || true' EXIT
 
-# wait for /healthz
+# wait for /healthz, and abort if the receiver never came up (e.g. the port was
+# busy) rather than running the rest of the demo against a dead server.
+ready=""
 for _ in $(seq 1 40); do
-  if curl -sf "${BASE_URL}/healthz" >/dev/null 2>&1; then break; fi
+  if curl -sf "${BASE_URL}/healthz" >/dev/null 2>&1; then ready=1; break; fi
   sleep 0.25
 done
+if [ -z "$ready" ]; then
+  echo "✗ receiver did not become healthy at ${BASE_URL} (is the port in use? set PORT to a free one)" >&2
+  exit 1
+fi
 
 sep() { printf '\n\033[1m%s\033[0m\n' "----------------------------------------------------------------------"; }
 

@@ -209,7 +209,12 @@ export async function dispatchWebhook(
   const backoff = opts.backoffMs ?? BACKOFF_MS;
   const poster = opts.poster ?? (async (url, b, h) => {
     const u = new URL(url);
-    const cfg: Parameters<typeof axios.post>[2] = { headers: h, timeout: REQUEST_TIMEOUT_MS, validateStatus: () => true };
+    // maxRedirects: 0 is a security control, not a preference. We validate and
+    // IP-pin the first hop, but a 3xx Location is never re-validated and an
+    // IP-literal redirect target skips the pinned lookup entirely, so following
+    // redirects reopens the SSRF the guard closes (a public webhook 302s us to
+    // 127.0.0.1 or 169.254.169.254). Treat a redirect as a delivery failure.
+    const cfg: Parameters<typeof axios.post>[2] = { headers: h, timeout: REQUEST_TIMEOUT_MS, validateStatus: () => true, maxRedirects: 0 };
     // Pin the connection to the IP we validated so a rebind cannot redirect it
     // to an internal address between the guard and the request.
     if (pinnedIp && !ipaddr.isValid(u.hostname)) {

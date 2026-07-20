@@ -233,6 +233,7 @@
       wrap.appendChild(status);
       root.appendChild(wrap);
     });
+    window.__renderedDeploysOnce = true;
   }
 
   async function tick() {
@@ -259,6 +260,13 @@
       if (window) window.textContent = `↑ LAST UPDATED ${fmtRel(snap.updated_at).toUpperCase()}`;
     } catch (e) {
       setStatus({ ok: false, label: 'MATCHER OFFLINE' });
+      // If the snapshot never loaded, the static HTML still shows its example
+      // "CONFIRMED" rows, which read as real settled receipts. Replace them
+      // with a neutral offline state so a stalled API never fakes confirmations.
+      if (!window.__renderedDeploysOnce) {
+        const root = $('live-deploys');
+        if (root) root.innerHTML = '<div style="padding:18px 0;color:#666;font:400 13px Casper Sans,Inter;text-align:center">On-chain receipts unavailable, matcher offline.</div>';
+      }
     }
   }
 

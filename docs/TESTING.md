@@ -105,7 +105,7 @@ cd Sluice
 cd matcher
 npm ci
 npm run lint      # tsc --noEmit
-npm test          # 101 tests
+npm test          # 103 tests
 npm run build
 
 cd ../mcp
@@ -117,7 +117,7 @@ cargo check
 cargo test        # 6 tests
 ```
 
-Expected: 89 matcher tests and 6 contract tests pass, and both typecheck and
+Expected: 103 matcher tests and 6 contract tests pass, and both typecheck and
 build are clean. This is exactly what CI runs on every push
 (`.github/workflows/ci.yml`).
 

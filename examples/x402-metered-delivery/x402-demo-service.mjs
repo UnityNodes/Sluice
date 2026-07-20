@@ -16,6 +16,10 @@ import casperSdk from "casper-js-sdk";
 const { KeyAlgorithm } = casperSdk;
 const {
   PORT = "7788",
+  // Bind to loopback by default so this payment endpoint is never reachable on
+  // the public IP directly. Caddy proxies to it over loopback; only set HOST
+  // to 0.0.0.0 if you deliberately want to expose it without a reverse proxy.
+  HOST = "127.0.0.1",
   PAYEE_ADDRESS,
   FACILITATOR_URL = "https://x402-facilitator.cspr.cloud",
   FACILITATOR_API_KEY,
@@ -140,4 +144,4 @@ app.use((req, res) => {
     routes: ["GET /event (x402 gated)", "POST /pay", "GET /health"],
   });
 });
-app.listen(Number(PORT), () => console.log(`x402 demo service on ${selfBase} -> facilitator ${FACILITATOR_URL}`));
+app.listen(Number(PORT), HOST, () => console.log(`x402 demo service on ${HOST}:${PORT} (${selfBase}) -> facilitator ${FACILITATOR_URL}`));

@@ -23,7 +23,7 @@ sluice subscribe \
 
 ## Security
 
-- HMAC `X-Sluice-Signature` verified with constant-time compare. Requests without a valid signature get 401.
+- When `SLUICE_WEBHOOK_SECRET` is set, the `X-Sluice-Signature` HMAC is verified with a constant-time compare and any request without a valid signature gets 401. If the secret is left unset (local testing), verification is skipped and the bridge logs a warning at startup. Always set it in production.
 - `Idempotency-Key` dedupes retries in a 1-hour rolling window.
 - Discord URL is never echoed back; if it's revoked just rotate it on the bridge.
 

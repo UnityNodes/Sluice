@@ -16,7 +16,7 @@ Runnable integrations and predicate fixtures for Sluice.
 |---|---|
 | [`discord-bot/`](discord-bot/) | `/sluice-watch` slash command wires up a subscription and posts matched transfers to a channel. |
 | [`discord-bridge/`](discord-bridge/), [`telegram-bridge/`](telegram-bridge/) | Minimal webhook-to-chat bridges. |
-| [`github-action/`](github-action/) | Fail a CI job when a watched on-chain condition fires. |
+| [`github-action/`](github-action/) | Trigger a GitHub Actions workflow (via repository_dispatch) on every Sluice match. |
 
 ## Predicate fixtures
 

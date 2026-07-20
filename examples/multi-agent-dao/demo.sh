@@ -39,11 +39,18 @@ node coordinator.js &
 COORD_PID=$!
 trap 'kill "$COORD_PID" 2>/dev/null || true' EXIT
 
-# wait for the server to accept connections
+# wait for the server to accept connections, and fail loudly if it never came
+# up (e.g. the port was busy). Otherwise the script would sail past a dead
+# coordinator and still print "demo complete" with nothing above it.
+ready=""
 for _ in $(seq 1 30); do
-  if curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then break; fi
+  if curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null 2>&1; then ready=1; break; fi
   sleep 0.2
 done
+if [ -z "$ready" ]; then
+  echo "✗ coordinator did not become healthy on :${PORT} (is the port in use? try PORT=18790 ./demo.sh)" >&2
+  exit 1
+fi
 
 # hex HMAC-SHA256 of a body with the shared secret (matches X-Sluice-Signature)
 sign() { printf '%s' "$1" | openssl dgst -sha256 -hmac "$SLUICE_WEBHOOK_SECRET" -r | awk '{print $1}'; }
