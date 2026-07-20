@@ -29,6 +29,19 @@ describe('parseNaturalLanguage', () => {
     expect(r.predicate!.and).toContainEqual({ field: 'amount', op, value: '100000000000' });
   });
 
+  // "no more than" embeds "more than", "no less than" embeds "less than". A
+  // naive alternation matches both and emits a contradictory gte + lte pair.
+  test.each([
+    ['no more than 50 cspr', 'lte', 'gte'],
+    ['no less than 50 cspr', 'gte', 'lte'],
+  ])('%p yields only %s, never %s', (prompt, want, unwanted) => {
+    const conds = parseNaturalLanguage(`transfers ${prompt}`).predicate!.and as Array<{ field: string; op: string }>;
+    const amounts = conds.filter((c) => c.field === 'amount');
+    expect(amounts).toHaveLength(1);
+    expect(amounts[0].op).toBe(want);
+    expect(amounts.some((c) => c.op === unwanted)).toBe(false);
+  });
+
   test('range "between 5 and 50 cspr" emits gte + lte', () => {
     const r = parseNaturalLanguage('transfers between 5 and 50 cspr');
     expect(r.predicate!.and).toContainEqual({ field: 'amount', op: 'gte', value: '5000000000' });
