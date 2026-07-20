@@ -75,6 +75,7 @@ export interface ApiConfig {
   getDeliveryRate?: (id: number) => { count: number; window_seconds: number; per_day: number };
   /** Optional: claim the next paid delivery for an x402-billed sub (internal, called by the x402 service after settlement). */
   claimX402?: (subId: number, txHash?: string) => unknown | null;
+  hasX402?: (subId: number) => boolean;
   /** Optional Prometheus metrics snapshot. */
   getMetricsSnapshot?: () => {
     startedAtMs: number;
@@ -444,16 +445,25 @@ function buildBadgeSpec(metric: string, snap: NonNullable<ReturnType<NonNullable
     }
     case 'latency-p95': {
       if (snap.latencyCount === 0) return { label: 'webhook p95', value: 'no data', color: '#999' };
+      // A p95 over a handful of samples is noise, and one slow outlier drags it
+      // to the top bucket. Say the sample is small rather than publishing a
+      // number that contradicts the median we quote everywhere else.
+      if (snap.latencyCount < 20) {
+        return { label: 'webhook p95', value: `n=${snap.latencyCount}, too few`, color: '#999' };
+      }
       // approximate from histogram, find bucket where cumulative >= 0.95 * count
       const target = 0.95 * snap.latencyCount;
       let cum = 0;
-      let bucket = '+Inf';
+      // Falling past every bucket means p95 is above the largest one. Render
+      // that as "over N", never as the raw "+Inf" sentinel.
+      let bucket = `>${buckets[buckets.length - 1]}ms`;
+      let overflowed = true;
       for (let i = 0; i < buckets.length; i++) {
         cum += snap.latencyHistogram[i];
-        if (cum >= target) { bucket = `≤${buckets[i]}ms`; break; }
+        if (cum >= target) { bucket = `≤${buckets[i]}ms`; overflowed = false; break; }
       }
       const bucketMs = Number.parseFloat(bucket.replace(/[^\d.]/g, ''));
-      const color = bucket === '+Inf' ? '#ff2d2e'
+      const color = overflowed ? '#ff2d2e'
                   : bucketMs <= 500 ? '#3edc64'
                   : bucketMs <= 2000 ? '#ffb347'
                   : '#ff2d2e';
@@ -1003,6 +1013,14 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
         if (typeof subscription_id !== 'number') throw new Error('subscription_id (number) required');
         const r = await cfg.testWebhook(subscription_id);
         respond(res, 200, r);
+      } else if (route === '/x402/available') {
+        // Peek before paying. An x402 payment settles on-chain and cannot be
+        // refunded, so a caller checks here first rather than buying a delivery
+        // the matcher has nothing to serve for.
+        if (!cfg.hasX402) { respond(res, 501, { error: 'x402 not wired' }); return; }
+        const { subscription_id } = body as { subscription_id?: number };
+        if (typeof subscription_id !== 'number') throw new Error('subscription_id (number) required');
+        respond(res, 200, { subscription_id, available: cfg.hasX402(subscription_id) });
       } else if (route === '/x402/claim') {
         if (!cfg.claimX402) { respond(res, 501, { error: 'x402 claim not wired' }); return; }
         const { subscription_id, tx_hash } = body as { subscription_id?: number; tx_hash?: string };

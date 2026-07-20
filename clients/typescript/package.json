@@ -20,7 +20,7 @@
   "files": ["dist/", "README.md"],
   "scripts": {
     "build": "tsc -p .",
-    "prepare": "npm run build"
+    "prepare": "npm install --no-save --no-audit --no-fund typescript@5.4.5 @types/node@20 && npm run build"
   },
   "engines": { "node": ">=18" },
   "peerDependencies": {

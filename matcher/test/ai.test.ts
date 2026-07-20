@@ -8,6 +8,27 @@ describe('parseNaturalLanguage', () => {
     expect(r.predicate!.and).toContainEqual({ field: 'to_account_hash', op: 'eq', value: 'dc725246306b8ebfb6623feca7f777c4e9f52c96691cdccf338b797480787c9c' });
   });
 
+  // "more than" and "at least" are the phrasings people reach for first, so
+  // every synonym in the threshold grammar gets pinned here.
+  test.each([
+    ['more than 100 cspr', 'gte'],
+    ['at least 100 cspr', 'gte'],
+    ['no less than 100 cspr', 'gte'],
+    ['over 100 cspr', 'gte'],
+    ['above 100 cspr', 'gte'],
+    ['greater than 100 cspr', 'gte'],
+    ['at most 100 cspr', 'lte'],
+    ['no more than 100 cspr', 'lte'],
+    ['up to 100 cspr', 'lte'],
+    ['under 100 cspr', 'lte'],
+    ['below 100 cspr', 'lte'],
+    ['less than 100 cspr', 'lte'],
+  ])('threshold phrasing %p parses as %s', (prompt, op) => {
+    const r = parseNaturalLanguage(`alert me when someone transfers ${prompt}`);
+    expect(r.predicate).not.toBeNull();
+    expect(r.predicate!.and).toContainEqual({ field: 'amount', op, value: '100000000000' });
+  });
+
   test('range "between 5 and 50 cspr" emits gte + lte', () => {
     const r = parseNaturalLanguage('transfers between 5 and 50 cspr');
     expect(r.predicate!.and).toContainEqual({ field: 'amount', op: 'gte', value: '5000000000' });

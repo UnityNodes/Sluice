@@ -196,8 +196,8 @@ function parseFlat(input: string): Parsed {
   const amountUnit = /(?:cspr|motes)?/.source;
   const amountTok = /(\d+(?:[\d_,.]*\d)?\s*[kKmMbB]?)/.source;
   const rangeRe = new RegExp(`\\bbetween\\s+${amountTok}\\s+and\\s+${amountTok}\\s*${amountUnit}\\b`);
-  const overRe  = new RegExp(`\\b(?:over|above|greater\\s+than|exceeding|>=|>)\\s+${amountTok}\\s*${amountUnit}\\b`);
-  const underRe = new RegExp(`\\b(?:under|below|less\\s+than|<=|<)\\s+${amountTok}\\s*${amountUnit}\\b`);
+  const overRe  = new RegExp(`\\b(?:over|above|greater\\s+than|more\\s+than|at\\s+least|no\\s+less\\s+than|starting\\s+at|from|exceeding|>=|>)\\s+${amountTok}\\s*${amountUnit}\\b`);
+  const underRe = new RegExp(`\\b(?:under|below|less\\s+than|fewer\\s+than|at\\s+most|no\\s+more\\s+than|up\\s+to|<=|<)\\s+${amountTok}\\s*${amountUnit}\\b`);
   const exactRe = new RegExp(`\\b(?:exactly|equal\\s+to|=)\\s+${amountTok}\\s*${amountUnit}\\b`);
 
   const matchRange = lc.match(rangeRe);

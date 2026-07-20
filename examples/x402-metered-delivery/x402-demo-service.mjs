@@ -91,6 +91,26 @@ app.post("/pay", async (req, res) => {
   if (lastPay.get(ip) && now - lastPay.get(ip) < 8000) { res.status(429).json({ ok: false, error: "one payment every 8s, try again shortly" }); return; }
   lastPay.set(ip, now);
   try {
+    // Settlement is on-chain and final, so refuse to charge for a delivery the
+    // matcher cannot serve yet. Happens right after a matcher restart, before
+    // the watched contract has emitted anything.
+    try {
+      const probe = await fetch(`${MATCHER_URL}/x402/available`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subscription_id: Number(X402_SUB_ID) }),
+      });
+      if (probe.ok && (await probe.json()).available === false) {
+        res.status(503).json({
+          ok: false,
+          charged: false,
+          error: "no matched event available yet, so nothing was charged",
+          detail: `subscription ${X402_SUB_ID} watches live DemoDex swaps; it will have one shortly`,
+        });
+        return;
+      }
+    } catch { /* probe is best effort; fall through to the paid path */ }
+
     await ensurePayer();
     const r = await fetchWithPayment(`${selfBase}/event`, { method: "GET" });
     const event = await r.json();
@@ -111,4 +131,13 @@ app.post("/pay", async (req, res) => {
 });
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
+
+// Every other Sluice API route answers in JSON, and Express' default HTML error
+// page also leaks the internally rewritten path. Keep the contract uniform.
+app.use((req, res) => {
+  res.status(404).json({
+    error: `unknown route ${req.method} ${req.path}`,
+    routes: ["GET /event (x402 gated)", "POST /pay", "GET /health"],
+  });
+});
 app.listen(Number(PORT), () => console.log(`x402 demo service on ${selfBase} -> facilitator ${FACILITATOR_URL}`));

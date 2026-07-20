@@ -363,6 +363,11 @@ paths:
                         timestamp:  { type: string, format: date-time }
 
   /og/sub/{id}:
+    # Served from the site root, not behind the /api prefix the other paths use.
+    servers:
+      - url: https://sluice.unitynodes.com
+        description: Live testnet matcher (root-mounted routes)
+      - url: http://127.0.0.1:7799
     get:
       summary: 1200x630 OG card SVG for a subscription (image/svg+xml)
       parameters:
@@ -372,6 +377,11 @@ paths:
         '404': { description: subscription not in matcher view }
 
   /embed/sub/{id}:
+    # Served from the site root, not behind the /api prefix the other paths use.
+    servers:
+      - url: https://sluice.unitynodes.com
+        description: Live testnet matcher (root-mounted routes)
+      - url: http://127.0.0.1:7799
     get:
       summary: 320x120 iframe-embed HTML widget for a subscription
       parameters:

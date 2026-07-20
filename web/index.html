@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sluice · Casper events, the moment they land</title>
 <meta name="description" content="Sluice pushes every matching Casper event to your webhook, your AI agent (MCP), or your dashboard (WebSocket) in under a second, median ~140 ms on testnet. No polling. No indexer. No glue code.">
+<link rel="canonical" href="https://sluice.unitynodes.com/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sluice">
 <meta property="og:url" content="https://sluice.unitynodes.com/">
@@ -764,7 +765,7 @@
           06 &nbsp;·&nbsp;Watch the agent
         </div>
         <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#fff;max-width:520px">Any MCP client drives Sluice in natural language.</h2>
-        <p style="margin:22px 0 0;font:400 17px/1.65 'Casper Sans',Inter;color:#999;max-width:440px">MCP is an open standard, so this is not a Claude-only trick. One hosted URL plugs Sluice into Claude, Cursor, Windsurf, Cline, VS Code, or anything that speaks MCP. Five tools, four resources, two prompts. The agent subscribes, lists, cancels, and reacts to matched events without leaving the chat.</p>
+        <p style="margin:22px 0 0;font:400 17px/1.65 'Casper Sans',Inter;color:#999;max-width:440px">MCP is an open standard, so this is not a Claude-only trick. One hosted URL plugs Sluice into Claude, Cursor, Windsurf, Cline, VS Code, or anything that speaks MCP. The hosted endpoint needs no key and serves two tools, four resources and two prompts: read matched deliveries and fire a sandbox event. Subscribing and cancelling sign a transaction, so those two tools live in the stdio server you install locally. Five tools in total.</p>
         <div id="mcp-clients" style="margin-top:32px;display:flex;flex-wrap:wrap;gap:8px">
           <button class="mcp-pill" data-mcp-client="claude">Claude Code</button>
           <button class="mcp-pill" data-mcp-client="cursor">Cursor</button>
@@ -780,7 +781,7 @@
           </div>
           <pre id="mcp-install-cmd" style="margin:0;white-space:pre-wrap;word-break:break-word;font:400 12px/1.55 'JetBrains Mono';color:#bcfc07">claude mcp add --transport http sluice https://sluice.unitynodes.com/mcp</pre>
         </div>
-        <div style="margin-top:14px;font:400 12.5px/1.6 'JetBrains Mono';color:#666;letter-spacing:.04em">Open standard, one <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">https://sluice.unitynodes.com/mcp</code> endpoint, any MCP client. Restart the client and <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">sluice</code> appears with its read-only tools ready.</div>
+        <div style="margin-top:14px;font:400 12.5px/1.6 'JetBrains Mono';color:#666;letter-spacing:.04em">Open standard, one <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">https://sluice.unitynodes.com/mcp</code> endpoint, any MCP client. Restart the client and <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">sluice</code> appears with its read-only tools ready. The transcript on the right runs the stdio server (<code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">npm i -g @sluice/mcp</code>), which adds subscribe and cancel.</div>
 
         <div style="margin-top:36px;display:flex;flex-direction:column;gap:12px;font:400 14px/1.6 'Casper Sans',Inter;color:#ccc">
           <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">1</span> Same live testnet contract you see in the dashboard.</div>
@@ -795,7 +796,7 @@
           <div style="display:flex;gap:5px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
           <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">CLAUDE CODE · CHAT TRANSCRIPT</div>
           <div style="flex:1"></div>
-          <div style="font:500 10px 'JetBrains Mono';color:#bcfc07;letter-spacing:.1em">MCP · sluice</div>
+          <div style="font:500 10px 'JetBrains Mono';color:#bcfc07;letter-spacing:.1em">MCP · sluice (stdio)</div>
         </div>
 
         <div style="padding:28px 28px;display:flex;flex-direction:column;gap:22px">

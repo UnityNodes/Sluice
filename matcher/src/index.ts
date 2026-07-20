@@ -446,6 +446,16 @@ export class Matcher {
   }
 
   /**
+   * Non-consuming check for whether a paid claim would return an event. Callers
+   * use this to avoid settling a payment for a delivery we cannot make: the sub
+   * has simply not matched anything yet (a fresh matcher process, say).
+   */
+  hasX402Event(subId: number): boolean {
+    const q = this.x402Pending.get(subId);
+    return Boolean((q && q.length) || this.x402Last.has(subId));
+  }
+
+  /**
    * Pull the next paid delivery for an x402-billed sub, called after an on-chain
    * x402 settlement. Returns the oldest queued match, or the most recent match
    * if the queue is drained, or null if the sub has never matched.
@@ -808,6 +818,7 @@ async function main(): Promise<void> {
     getSubscription: (id) => matcher.getActiveSubscription(id),
     getDeliveryRate: (id) => matcher.getRecentDeliveryRate(id),
     claimX402: (subId, txHash) => matcher.claimX402Event(subId, txHash),
+    hasX402: (subId) => matcher.hasX402Event(subId),
     getMetricsSnapshot: () => matcher.getMetricsSnapshot(),
     latencyBucketsMs: LATENCY_BUCKETS_MS as unknown as number[],
   });

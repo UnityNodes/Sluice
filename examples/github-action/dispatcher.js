@@ -37,7 +37,17 @@ app.post('/sluice', async (req, res) => {
   const v = verify(req.body, req.header('x-sluice-signature'));
   if (!v.ok) return res.status(401).json({ error: v.reason });
 
-  const payload = JSON.parse(req.body.toString('utf8'));
+  // express.raw only fills req.body for application/json, so anything else
+  // arrives as {} and would throw here. Reject it instead of letting the
+  // rejection take the process down.
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '');
+    if (!payload || typeof payload !== 'object') throw new Error('body must be a JSON object');
+  } catch (err) {
+    return res.status(400).json({ error: `invalid JSON body: ${err.message}` });
+  }
+
   try {
     const resp = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
       method: 'POST',

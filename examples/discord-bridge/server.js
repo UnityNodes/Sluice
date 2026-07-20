@@ -47,9 +47,24 @@ app.post('/sluice', async (req, res) => {
   if (seen.has(idem)) return res.status(200).json({ duplicate: true });
   seen.set(idem, Date.now());
 
-  const payload = JSON.parse(req.body.toString('utf8'));
+  // express.raw only fills req.body for application/json, so anything else
+  // arrives as {} and would throw here. Reject it instead of letting the
+  // rejection take the process down.
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.isBuffer(req.body) ? req.body.toString('utf8') : '');
+    if (!payload || typeof payload !== 'object') throw new Error('body must be a JSON object');
+  } catch (err) {
+    return res.status(400).json({ error: `invalid JSON body: ${err.message}` });
+  }
+
   const e = payload.event || {};
-  const cspr = (BigInt(e.amount || '0') / 1_000_000_000n).toString();
+  let cspr;
+  try {
+    cspr = (BigInt(e.amount || '0') / 1_000_000_000n).toString();
+  } catch {
+    return res.status(400).json({ error: 'event.amount must be an integer string of motes' });
+  }
   const txUrl = `https://testnet.cspr.live/transaction/${e.deploy_hash}`;
   const msg = {
     embeds: [{

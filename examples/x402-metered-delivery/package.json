@@ -6,12 +6,12 @@
   "description": "x402-gated Sluice event delivery: each on-chain event delivery must carry a valid x402 micropayment or it is refused with HTTP 402. The real integration settles through the live hosted Casper x402 facilitator; the stub files illustrate the raw protocol with no dependencies.",
   "main": "x402-receiver.mjs",
   "scripts": {
-    "start": "node x402-receiver.mjs",
-    "pay": "node x402-payer.mjs",
+    "start": "node --env-file-if-exists=.env x402-receiver.mjs",
+    "pay": "node --env-file-if-exists=.env x402-payer.mjs",
     "stub-receiver": "node receiver.cjs",
     "stub-payer": "node payer.cjs",
     "demo": "./demo.sh",
-    "demo-service": "node x402-demo-service.mjs"
+    "demo-service": "node --env-file-if-exists=.env x402-demo-service.mjs"
   },
   "dependencies": {
     "@make-software/casper-x402": "^1.0.0",
