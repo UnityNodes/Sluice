@@ -191,6 +191,97 @@ paths:
                   estimated_per_day:    { type: number, nullable: true }
                   source:               { type: string, enum: [live, sample, mixed] }
 
+  /predicate/from-prompt:
+    post:
+      summary: Turn plain English into a predicate
+      description: |
+        Deterministic parser, no LLM involved. Turns phrases like
+        "whales over 100k CSPR to my treasury" into a predicate the engine
+        accepts, and reports which parts it understood.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt: { type: string, maxLength: 600, description: Plain-English description of the events to match }
+      responses:
+        '200':
+          description: Parsed predicate plus a human-readable explanation of what was understood.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  predicate: { $ref: '#/components/schemas/Predicate' }
+        '400': { description: prompt missing, empty, or longer than 600 characters }
+        '501': { description: parser not wired on this matcher }
+
+  /sandbox/dispatch:
+    post:
+      summary: Fire test webhooks with no on-chain effect
+      description: |
+        POSTs up to 10 events at a URL so you can develop a receiver without
+        spending CSPR. Real buffered events are used where the optional
+        predicate matches; the rest are synthetic. Signed with the matcher's
+        HMAC secret when one is configured. The target passes the same SSRF
+        guard as live delivery, so loopback and private ranges are rejected.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [webhook]
+              properties:
+                webhook:   { type: string, format: uri, description: Public http/https URL to POST to }
+                predicate: { $ref: '#/components/schemas/Predicate' }
+                count:     { type: integer, minimum: 1, maximum: 10, default: 3 }
+      responses:
+        '200': { description: per-event dispatch results }
+        '400': { description: webhook missing or not an http/https URL }
+        '501': { description: sandbox not wired on this matcher }
+
+  /hooks/{slug}:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema: { type: string, pattern: '^[a-z0-9-]{4,64}$' }
+        description: Any slug you choose. The bucket is created on first use.
+    post:
+      summary: Throwaway webhook receiver
+      description: |
+        A catch-all inbox for testing deliveries without standing up a server.
+        Point a subscription at it, then read the captured requests back from
+        the feed endpoint. Buckets are in-memory, capped, and expire.
+      responses:
+        '200': { description: request captured }
+        '400': { description: malformed slug }
+
+  /hooks/{slug}/feed:
+    parameters:
+      - name: slug
+        in: path
+        required: true
+        schema: { type: string, pattern: '^[a-z0-9-]{4,64}$' }
+    get:
+      summary: Read what a throwaway receiver captured
+      responses:
+        '200':
+          description: Captured requests, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:          { type: string }
+                  requests:    { type: array, items: { type: object } }
+                  max:         { type: integer, description: bucket capacity }
+                  ttl_seconds: { type: integer }
+
   /predicate/explain:
     post:
       summary: Evaluate every condition independently against one event, return pass/fail trace

@@ -10,7 +10,8 @@
     "pay": "node x402-payer.mjs",
     "stub-receiver": "node receiver.cjs",
     "stub-payer": "node payer.cjs",
-    "demo": "./demo.sh"
+    "demo": "./demo.sh",
+    "demo-service": "node x402-demo-service.mjs"
   },
   "dependencies": {
     "@make-software/casper-x402": "^1.0.0",
@@ -22,5 +23,7 @@
     "express": "^4.19.0",
     "express-rate-limit": "^7.4.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

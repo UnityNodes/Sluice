@@ -79,6 +79,21 @@ node payer.cjs --unpaid    # terminal 2: only step 1, shows the 402 challenge
 curl localhost:4021/ledger
 ```
 
+## What powers the button on the dashboard
+
+The "Pull a matched event via x402" button on <https://sluice.unitynodes.com/app>
+is served by `x402-demo-service.mjs`, not by the two scripts above.
+
+```bash
+npm run demo-service     # listens on :7788
+```
+
+In production it runs as the `sluice-x402` systemd unit, and Caddy proxies
+`/api/x402/*` to `127.0.0.1:7788`. On `POST /api/x402/pay` it signs a payment,
+settles it through the live facilitator, then claims one real matched event
+from the matcher over its internal `/x402/claim` route. The event you get back
+is one Sluice actually matched, not a sample.
+
 ## The HTTP 402 flow
 
 1. **Unpaid request.** `POST /hook` with a Sluice event body and **no**
