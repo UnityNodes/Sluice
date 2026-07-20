@@ -71,7 +71,7 @@ curl -s -X POST https://sluice.unitynodes.com/mcp \
 ```
 
 Expected: HTTP 200, `content-type: text/event-stream`, and a JSON-RPC result
-naming the server. It exposes 5 tools, 4 resources, and 2 prompts. Use
+naming the server. The hosted endpoint exposes 2 read-only tools plus 4 resources and 2 prompts; subscribe, top-up and cancel are stdio-only because they sign with your Casper key. Use
 `recent_deliveries` to read the same feed the dashboard shows.
 
 To wire it into a client, add the URL as a Streamable HTTP MCP server.
@@ -99,7 +99,7 @@ cd Sluice
 cd matcher
 npm ci
 npm run lint      # tsc --noEmit
-npm test          # 74 tests
+npm test          # 89 tests
 npm run build
 
 cd ../mcp
@@ -111,7 +111,7 @@ cargo check
 cargo test        # 6 tests
 ```
 
-Expected: 74 matcher tests and 6 contract tests pass, and both typecheck and
+Expected: 89 matcher tests and 6 contract tests pass, and both typecheck and
 build are clean. This is exactly what CI runs on every push
 (`.github/workflows/ci.yml`).
 
@@ -161,10 +161,19 @@ DeFi and RWA contracts, not only our own.
 | [`3fb89280…939efd`](https://testnet.cspr.live/transaction/3fb8928092af0f0a01716c497795ff1950a8d3eae517ddee4b3cc08eeb939efd) | A `swap` call on DemoDex at block 8453751. It emitted the CES `Swap` event (520,000 CSPR in, 518,700 CSPRX out) that Sluice matched and delivered to a webhook in 117 ms. |
 | [`f665f4f7…14b419`](https://testnet.cspr.live/transaction/f665f4f7dd5acf719ff1cb9b5763ffd80a950c7bae94a5bdb4c88e1f0414b419) | Another DemoDex `swap`, matched and delivered on the next cycle. Cross-check it against `recent_events` in the snapshot. |
 
-## What is not live
+## Which lanes are escrow-backed
 
-Sluice runs its public demo subscriptions as off-chain lanes: deliveries are
-real, but `record_delivery` is skipped so the matcher does not spend escrow on
-every demo event. Escrow accounting is implemented in the contract and covered
-by the contract tests. The full list of prototype limits is in
-[`HONEST_LIMITS.md`](HONEST_LIMITS.md).
+Subscription **4** (the DemoDex swap feed) is a real on-chain subscription with
+a funded escrow, so every one of its deliveries calls `record_delivery` and
+carries a transaction hash you can open on cspr.live. Those rows are labelled
+`CONFIRMED`.
+
+The remaining public lanes (the RWA watchers) are injected demo lanes with no
+escrow to bill. Their deliveries are real, but no receipt is written, so they
+are labelled `DELIVERED` rather than `CONFIRMED`. This keeps the public feed
+running without spending escrow on contracts that are not ours.
+
+To see the difference yourself, compare a `CONFIRMED` row's transaction hash on
+the explorer against `sluice_record_delivery_results_total` in
+[`/api/metrics`](https://sluice.unitynodes.com/api/metrics). The full list of
+prototype limits is in [`HONEST_LIMITS.md`](HONEST_LIMITS.md).

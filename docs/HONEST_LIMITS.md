@@ -26,6 +26,8 @@ These limits are summarized in `README.md`. They exist because a payments-savvy 
 
 11. **The public API is rate-limited, not authenticated.** The demo dashboard is meant to be usable by anyone without a login, so the matcher's HTTP API stays open and applies a per-IP rate limit (`SLUICE_API_RATE_LIMIT`, default 60/min) rather than requiring a token. Outbound webhook dispatch (including the sandbox and replay tools) runs through an SSRF guard that resolves the target once, rejects private/link-local/loopback ranges, and pins the connection to the validated IP. A hosted production tier would put a real auth boundary in front of the side-effecting routes; that is a deployment posture, not a code change.
 
+12. **Not every lane on the public feed is escrow-backed.** Subscription 4 (the DemoDex swap feed) is a real on-chain subscription with a funded escrow, so each of its deliveries calls `record_delivery` and carries a transaction hash. The RWA watcher lanes are injected demo subscriptions with no escrow, so their deliveries are real but write no receipt, and the UI labels them `DELIVERED` rather than `CONFIRMED`. This is why `sluice_deliveries_total` is larger than `sluice_record_delivery_results_total`: the first counts webhook dispatches, the second counts on-chain receipts.
+
 ---
 
 If you spot something else worth disclosing, file an issue and label it `honest-limits`.

@@ -211,7 +211,7 @@ Every line above is a real log. Tx-hash prefixes match the ones on cspr.live for
 
 - **Contract** ([contract/](contract/)). Rust + Casper Odra 2.8. Holds subscriptions, tracks escrow balance, emits `SubscriptionCreated / SubscriptionCancelled / DeliveryRecorded / ToppedUp` events.
 - **Matcher** ([matcher/](matcher/)). Node 20 + TypeScript. Subscribes to the CSPR.cloud transfer WebSocket. Evaluates predicates. Dispatches webhooks with `X-Sluice-Idempotency-Key` and `X-Sluice-Signature` (HMAC-SHA256). Retries with exponential backoff. Records delivery on chain via signed deploy.
-- **MCP** ([mcp/](mcp/)). stdio server + Streamable HTTP server. 5 tools, 4 resources, 2 prompts.
+- **MCP** ([mcp/](mcp/)). stdio server (5 tools) + Streamable HTTP server (2 read-only tools; signing tools stay local). 4 resources, 2 prompts.
 - **Web** ([web/](web/)). Static HTML + vanilla JS. Landing, `/app` workspace, `/status`, `/feed`, hosted receiver at `/h/<slug>`.
 
 Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

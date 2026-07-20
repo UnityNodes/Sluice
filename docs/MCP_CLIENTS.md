@@ -9,7 +9,7 @@ endpoint speaks Streamable HTTP and works with any MCP-compatible client.
 https://sluice.unitynodes.com/mcp
 ```
 
-It exposes 5 tools (`subscribe_to_events`, `list_subscriptions`,
+The stdio server exposes 5 tools (`subscribe_to_events`, `list_subscriptions`,
 `cancel_subscription`, `recent_deliveries`, `sluice_sandbox_dispatch`),
 4 resources, and 2 prompts.
 
@@ -62,5 +62,5 @@ Install the package, then point any client's command transport at `sluice-mcp`:
 ## Verify
 
 After adding the server, restart the client. `sluice` should appear in its MCP
-server list with the 5 tools above. Ask it: *"show me the last 10 Sluice
+server list. The hosted endpoint carries the read-only tools; the signing tools need the local stdio server. Ask it: *"show me the last 10 Sluice
 deliveries."*

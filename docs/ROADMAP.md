@@ -11,7 +11,7 @@ Live today on testnet:
 - `SubscriptionRegistry` smart contract (Rust + Odra 2.8). Entry points `create_subscription`, `record_delivery`, `top_up`, `cancel_subscription`. Events `SubscriptionCreated`, `DeliveryRecorded`, `ToppedUp`, `SubscriptionCancelled`.
 - Off-chain matcher (TypeScript, Node 20) reading the live CSPR.cloud stream.
 - Three delivery channels from one subscription: HMAC-signed webhook, MCP tool call, live WebSocket (`/api/stream`).
-- MCP stdio server and hosted Streamable-HTTP server. 5 tools, 4 resources, 2 prompts.
+- MCP stdio server (5 tools) and hosted Streamable-HTTP server (2 read-only tools; signing tools stay local). Both expose 4 resources and 2 prompts.
 - Predicate language: JSON, AND-of-conditions with nested OR groups and parens, 12 operators, plain-English AI parser (rule-based, no LLM, under 5 ms).
 - On-chain billing: every successful delivery calls `record_delivery`. Median end-to-end ~140 ms on testnet (block timestamp to webhook delivery).
 - Web workspace, CLI, self-host installer, Docker stack, Prometheus + Grafana, TypeScript and Python client libraries.
