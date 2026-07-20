@@ -20,7 +20,7 @@
   "files": ["dist/", "README.md"],
   "scripts": {
     "build": "tsc -p .",
-    "prepack": "npm run build"
+    "prepare": "npm run build"
   },
   "engines": { "node": ">=18" },
   "peerDependencies": {
