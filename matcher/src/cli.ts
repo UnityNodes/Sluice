@@ -21,7 +21,8 @@ import {
   CLValueString,
   CLValueUInt512,
   Duration,
-  FixedMode,
+  ByPackageHashInvocationTarget,
+  PaymentLimitedMode,
   Hash,
   HttpHandler,
   InitiatorAddr,
@@ -89,6 +90,11 @@ async function subscribe(opts: {
 
   const motes = BigInt(opts.amount) * CSPR_PER_MOTE;
   if (motes <= 0n) throw new Error('amount must be positive');
+  // transferredValue is a JS number in the SDK, so refuse amounts that would
+  // lose precision rather than silently escrowing the wrong value.
+  if (motes > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error('amount too large to encode safely, use a smaller escrow');
+  }
 
   const signer = await CasperClient.loadKey(opts.key);
 
@@ -96,12 +102,22 @@ async function subscribe(opts: {
   if (opts.csprCloudToken) handler.setCustomHeaders({ authorization: opts.csprCloudToken });
   const rpc = new RpcClient(handler);
 
-  // Build create_subscription tx.
+  // Build create_subscription tx. SLUICE_CONTRACT_HASH is a package hash, so
+  // target the package and let the node resolve the latest version, exactly as
+  // the matcher's record_delivery path does. Targeting it as an entity hash
+  // makes the node reject the transaction with "Invalid params".
+  const byPkg = new ByPackageHashInvocationTarget();
+  byPkg.addr = new Hash(hexToBytes(stripPrefix(opts.contractHash)));
+  (byPkg as { version?: number }).version = undefined;
   const stored = new StoredTarget();
   const invocation = new TransactionInvocationTarget();
-  invocation.byHash = new Hash(hexToBytes(stripPrefix(opts.contractHash)));
+  invocation.byPackageHash = byPkg;
   stored.runtime = 'VmCasperV1';
   stored.id = invocation;
+  // create_subscription is payable: the escrow travels as the transaction's
+  // transferred value. Leaving this unset serialises as undefined and the SDK
+  // throws "invalid BigNumber value" before the transaction is ever submitted.
+  stored.transferredValue = Number(motes);
   const target = new TransactionTarget(undefined, stored);
 
   const callArgs = Args.fromMap({
@@ -113,11 +129,14 @@ async function subscribe(opts: {
     amount: CLValueUInt512.newCLUInt512(motes.toString()),
   });
 
-  const fixedMode = new FixedMode();
-  fixedMode.gasPriceTolerance = 2;
-  fixedMode.additionalComputationFactor = 0;
+  // Testnet's chainspec uses pricing_handling = payment_limited; the node
+  // rejects FixedMode. This mirrors the matcher's own record_delivery path.
+  const payLimited = new PaymentLimitedMode();
+  payLimited.paymentAmount = 5_000_000_000;
+  payLimited.gasPriceTolerance = 1;
+  payLimited.standardPayment = true;
   const pricingMode = new PricingMode();
-  pricingMode.fixed = fixedMode;
+  pricingMode.paymentLimited = payLimited;
 
   const payload = TransactionV1Payload.build({
     initiatorAddr: new InitiatorAddr(signer.publicKey),
@@ -1252,7 +1271,8 @@ async function main(): Promise<void> {
     .action(async (opts) => {
       if (!opts.key) throw new Error('--key (or SLUICE_KEY env) is required');
       if (!opts.contractHash) throw new Error('--contract-hash (or SLUICE_CONTRACT_HASH env) is required');
-      await subscribe(opts);
+      // commander exposes --rpc-url as opts.rpcUrl; subscribe() reads nodeRpcUrl.
+      await subscribe({ ...opts, nodeRpcUrl: opts.rpcUrl });
     });
 
   await program.parseAsync(process.argv);
