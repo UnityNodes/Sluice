@@ -53,6 +53,7 @@
    */
   @media (max-width: 880px) {
     nav > div { padding-left: 16px !important; padding-right: 16px !important; gap: 12px !important; flex-wrap: wrap; height: auto !important; min-height: 60px; padding-top: 10px; padding-bottom: 10px; }
+    .agent-grid { grid-template-columns: minmax(0,1fr) !important; gap: 28px !important; }
     nav > div > div[style*="display:flex;gap:2px"] { order: 99; flex-basis: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; gap: 4px; }
     nav a[href="/app"] { padding: 8px 14px !important; font-size: 13px !important; }
     /* one-column stacks for hero, two-audience, code, transparency, workspace, mcp-demo, v0.1 limits, final CTA */
@@ -590,7 +591,37 @@
     </div>
   </section>
 
-  
+  <!-- ============ LIVE AGENT ============ -->
+  <section id="live-agent" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
+    <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
+      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#bcfc07;margin-bottom:24px;display:flex;align-items:center;gap:12px">
+        <span id="agent-pulse" style="width:9px;height:9px;background:#3edc64;border-radius:50%;box-shadow:0 0 0 0 rgba(62,220,100,.6);animation:pulse-acc 2s infinite"></span>
+        04 &nbsp;·&nbsp;An agent, reacting live
+      </div>
+      <div class="agent-grid" style="display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:56px;align-items:start">
+        <div>
+          <h2 style="margin:0;font:500 clamp(34px,4.4vw,56px)/1.03 'Casper Sans',Inter;letter-spacing:-.03em;color:#fff;max-width:460px">Not a mock. A real agent on the other end of the feed.</h2>
+          <p style="margin:22px 0 0;font:400 16.5px/1.65 'Casper Sans',Inter;color:#999;max-width:460px">The autonomous yield-router from <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 6px">examples/agentic-yield-router</code> is a live Sluice subscriber. Every DemoDex swap you see in the feed is also pushed to it. It verifies the HMAC signature, reasons over the swap, and decides whether to rebalance, with zero human in the loop. What you see on the right is its real decision log, updating as swaps land.</p>
+          <div style="margin-top:34px;display:flex;flex-direction:column;gap:14px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#ccc">
+            <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">1</span> Sluice pushes the matched swap to the agent's webhook.</div>
+            <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">2</span> It rejects anything without a valid signature (401), then decides.</div>
+            <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">3</span> Dry-run: it logs the rebalance plan instead of moving funds.</div>
+          </div>
+          <div style="margin-top:32px;font:400 12.5px/1.6 'JetBrains Mono';color:#666;letter-spacing:.02em">Live decisions: <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">GET /api/agent-log.json</code></div>
+        </div>
+        <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07;min-width:0">
+          <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1a1a1a">
+            <span style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">YIELD-ROUTER · DECISION LOG</span>
+            <div style="flex:1"></div>
+            <span id="agent-status" style="font:500 10px 'JetBrains Mono';color:#666;letter-spacing:.1em">CONNECTING…</span>
+          </div>
+          <div id="agent-live" style="max-height:440px;overflow-y:auto">
+            <div style="padding:28px 20px;color:#666;font:400 13px 'Casper Sans',Inter;text-align:center">Waiting for the next swap…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- ============ RECIPES ============ -->
   <section id="recipes" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
@@ -1175,6 +1206,6 @@
   </div>
 </div>
 
-<script src="/landing.js?v=31"></script>
+<script src="/landing.js?v=33"></script>
 </body>
 </html>

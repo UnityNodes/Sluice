@@ -84,6 +84,27 @@ Which path it uses depends on reachability. Set `PUBLIC_WEBHOOK_URL` to a public
 
 > The sandbox has to be able to reach your `/webhook`. On a laptop, expose it first (`ngrok http 8791` or a Cloudflare Tunnel) and set `PUBLIC_WEBHOOK_URL=https://<your-tunnel>/webhook` before running `demo.sh`.
 
+## Running live against the hosted site
+
+`live-agent.cjs` is this same agent wired to the production matcher. It is a
+real Sluice subscriber: the matcher pushes every matched DemoDex swap to its
+`/webhook`, it verifies the HMAC, reasons over the swap (heuristic, or Claude if
+`ANTHROPIC_API_KEY` is set), and appends its decision to a ring buffer the
+landing page reads.
+
+```bash
+SLUICE_WEBHOOK_SECRET=<shared with the matcher> \
+AGENT_DECISION_LOG=/var/www/sluice/api/agent-log.json \
+  node live-agent.cjs        # binds 127.0.0.1:8795
+```
+
+On sluice.unitynodes.com it runs as the `sluice-live-agent` systemd unit; Caddy
+proxies `/agent/*` to it, an injected subscription delivers DemoDex swaps to
+`/agent/webhook`, and the "An agent, reacting live" section of the landing polls
+`/api/agent-log.json`. It reuses `agent.js`'s decision logic verbatim; the only
+addition is normalising a contract `Swap` event into the deposit shape the
+policy reasons over.
+
 ## How it works
 
 1. **Sluice matches** a Transfer event against your subscription's predicate (e.g. `amount >= 50,000 CSPR to a watched pool`) and POSTs a JSON webhook:
@@ -143,6 +164,8 @@ Everything that touches the network is stubbed and **clearly labelled** so the e
 Point your MCP client at the Casper MCP Server and CSPR.trade MCP, drop the three real calls in, remove the `STUB` returns, and the same loop rebalances real funds, triggered entirely by Sluice's on-chain events.
 
 ## Files
+
+- `live-agent.cjs` — long-running service that subscribes to the live matcher and logs decisions for the site (see "Running live" above).
 
 | File          | What it is                                                                 |
 | ------------- | ------------------------------------------------------------------------- |

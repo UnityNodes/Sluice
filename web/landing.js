@@ -996,6 +996,77 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
     }
     tick();
     setInterval(tick, POLL_MS);
+
+    // Live agent decision log. Built with DOM nodes (never innerHTML) so the
+    // server-sourced fields cannot inject markup.
+    const agentRoot = $('agent-live');
+    const agentStatus = $('agent-status');
+    function agentRow(d) {
+      const wrap = document.createElement('div');
+      wrap.setAttribute('style', 'padding:16px 20px;border-bottom:1px solid #1a1a1a');
+      const top = document.createElement('div');
+      top.setAttribute('style', 'display:flex;align-items:center;gap:10px;flex-wrap:wrap');
+      const isRebal = d.decision === 'REBALANCE';
+      const badge = document.createElement('span');
+      badge.setAttribute('style', `font:500 10px 'JetBrains Mono';letter-spacing:.06em;padding:3px 8px;color:#000;background:${isRebal ? '#bcfc07' : '#3edc64'}`);
+      badge.textContent = String(d.decision || '—');
+      top.appendChild(badge);
+      const amt = document.createElement('span');
+      amt.setAttribute('style', "font:500 13px 'JetBrains Mono';color:#fff");
+      amt.textContent = `${Number(d.amount_cspr || 0).toLocaleString('en-US')} CSPR`;
+      top.appendChild(amt);
+      if (d.swap) {
+        const sw = document.createElement('span');
+        sw.setAttribute('style', "font:400 12px 'JetBrains Mono';color:#888");
+        sw.textContent = String(d.swap);
+        top.appendChild(sw);
+      }
+      const vb = document.createElement('span');
+      vb.setAttribute('style', `font:500 10px 'JetBrains Mono';letter-spacing:.06em;margin-left:auto;color:${d.verified ? '#3edc64' : '#ff8a65'}`);
+      vb.textContent = d.verified ? 'SIG ✓' : 'UNVERIFIED';
+      top.appendChild(vb);
+      wrap.appendChild(top);
+      const reason = document.createElement('div');
+      reason.setAttribute('style', "margin-top:8px;font:400 13px/1.5 'Casper Sans',Inter;color:#bbb");
+      reason.textContent = String(d.reason || '');
+      wrap.appendChild(reason);
+      const meta = document.createElement('div');
+      meta.setAttribute('style', "margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;font:400 11px 'JetBrains Mono';color:#666");
+      const by = document.createElement('span');
+      by.textContent = `decided by ${String(d.decided_by || 'heuristic')}`;
+      meta.appendChild(by);
+      const h = safeHash(d.deploy_hash);
+      if (h) {
+        const a = document.createElement('a');
+        a.href = `https://testnet.cspr.live/transaction/${h}`;
+        a.target = '_blank'; a.rel = 'noopener';
+        a.setAttribute('style', 'color:#4589f6;text-decoration:none');
+        a.textContent = `tx ${h.slice(0, 8)}…`;
+        meta.appendChild(a);
+      }
+      wrap.appendChild(meta);
+      return wrap;
+    }
+    async function pollAgent() {
+      if (!agentRoot) return;
+      try {
+        const r = await fetch('/api/agent-log.json?t=' + Date.now(), { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        const rows = Array.isArray(j.decisions) ? j.decisions : [];
+        if (agentStatus) agentStatus.textContent = rows.length ? `${rows.length} DECISIONS` : 'IDLE';
+        if (rows.length === 0) return;
+        agentRoot.textContent = '';
+        rows.slice(0, 12).forEach((d) => agentRoot.appendChild(agentRow(d)));
+      } catch {
+        if (agentStatus) agentStatus.textContent = 'OFFLINE';
+      }
+    }
+    // reuse the landing hash validator if present, else a local one
+    function safeHash(x) { const s = String(x || ''); return /^[0-9a-f]{6,64}$/i.test(s) ? s : ''; }
+    pollAgent();
+    setInterval(pollAgent, 5000);
+
     // Live Casper testnet head, every 5s via /api/chain/head (cached server-side at 3s).
     const blockH = $('hero-block-h');
     const blockDot = $('hero-block-dot');
