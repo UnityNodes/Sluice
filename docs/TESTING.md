@@ -145,7 +145,7 @@ being finalized.
 |---|---|---|
 | `SubscriptionRegistry` | `f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971` | Holds each subscription and its CSPR escrow. `record_delivery(id, event_hash)` decrements the escrow once per delivery. |
 | `DemoDex` | `ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7` | A minimal DeFi contract whose non-payable `swap` emits a CES `Swap` event. Used to generate real contract events on demand. |
-| `SLX` (CEP-18) | `220ed4c8e5368063ec167d738d1b96d5760833366af4a1194264312a766db88b` | The x402 payment token. Supports `transfer_with_authorization`, so the facilitator can settle a signed payment. |
+| `SLX` (CEP-18) | `220ed4c8e5368063ec167d738d1b96d5760833366af4a1194264312a766db88b` | The x402 payment token, deployed from `Cep18X402.wasm`, the reference contract shipped in [make-software/casper-x402](https://github.com/make-software/casper-x402) for exactly this purpose. Supports `transfer_with_authorization`, so the facilitator can settle a signed payment. The canonical asset is Wrapped CSPR (`3d80df21…847c1e`), which we verified exposes the same entry point; switching is one env var (`ASSET_PACKAGE`). |
 
 ## Third-party contracts Sluice watches on testnet
 
