@@ -168,6 +168,11 @@ type Broadcast = (env: Omit<ApiStreamEnvelope, 'ts'>) => void;
 export class Matcher {
   private broadcast: Broadcast = () => { /* no-op until wired */ };
   private active: Subscription[] = [];
+  /**
+   * Every subscription the reader returned, active or not. `active` is already
+   * filtered, so deriving an inactive count from it always yielded zero.
+   */
+  private allSubs: Subscription[] = [];
   private ws: WebSocket | null = null;
   private reloadTimer: NodeJS.Timeout | null = null;
   private reconnectDelay = 1_000;
@@ -277,6 +282,7 @@ export class Matcher {
 
   private async reloadSubscriptions(): Promise<void> {
     const subs = await this.reader.loadActiveSubscriptions();
+    this.allSubs = subs;
     this.active = subs.filter((s) => s.active);
     log(`subscriptions reloaded, ${this.active.length} active`);
 
@@ -523,11 +529,11 @@ export class Matcher {
   }
 
   getMetricsSnapshot(): MetricsSnapshot {
-    const active = this.active.filter((s) => s.active).length;
+    const active = this.active.length;
     return {
       ...this.counters,
       activeSubscriptions: active,
-      inactiveSubscriptions: this.active.length - active,
+      inactiveSubscriptions: Math.max(0, this.allSubs.length - active),
       validationBufferSize: this.validationEvents.length,
       validationBufferSeeded: this.seededEventCount,
     };
