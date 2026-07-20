@@ -124,7 +124,7 @@
       <rect x="40" y="500" width="840" height="30" fill="#bcfc07"/>
       <text x="60" y="520" class="term cmd" fill="#000" font-weight="500">END-TO-END</text>
       <text x="180" y="520" class="term" fill="#000">WS event → webhook 200 → record_delivery confirmed</text>
-      <text x="860" y="520" class="term" fill="#000" text-anchor="end" font-weight="500">~ 830 ms</text>
+      <text x="860" y="520" class="term" fill="#000" text-anchor="end" font-weight="500">~ 140 ms</text>
     </g>
   </g>
 </svg>

@@ -81,7 +81,7 @@
         <div class="period">Now<div class="tag now">LIVE ON TESTNET</div></div>
         <ul class="items">
           <li><b>On-chain escrow contract.</b> <code>SubscriptionRegistry</code> (Rust + Odra 2.8): <code>create_subscription</code>, <code>record_delivery</code>, <code>top_up</code>, <code>cancel_subscription</code>, with four emitted events.</li>
-          <li><b>Off-chain matcher</b> reading the live CSPR.cloud stream, median end-to-end ~830 ms on testnet.</li>
+          <li><b>Off-chain matcher</b> reading the live CSPR.cloud stream, median end-to-end ~140 ms on testnet.</li>
           <li><b>Three delivery channels</b> from one subscription: HMAC-signed webhook, MCP tool call, live WebSocket.</li>
           <li><b>MCP server</b>, stdio and hosted Streamable-HTTP: 5 tools, 4 resources, 2 prompts, for any MCP client.</li>
           <li><b>Predicate language</b>: JSON, AND with nested OR, 12 operators, plain-English parser (rule-based, no LLM).</li>

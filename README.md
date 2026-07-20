@@ -1,6 +1,6 @@
 # Sluice
 
-[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-74%2F74%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
+[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-95%2F95%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
 > Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
@@ -29,13 +29,13 @@ Casper's [AI Toolkit](https://www.casper.network/ai) already lets an agent **rea
 ## How it works
 
 <p align="center">
-  <img src="https://sluice.unitynodes.com/pipeline.svg" alt="Sluice pipeline. Casper events, then JSON predicate, then your webhook, then on-chain receipt. End-to-end median about 830 ms on testnet." width="900">
+  <img src="https://sluice.unitynodes.com/pipeline.svg" alt="Sluice pipeline. Casper events, then JSON predicate, then your webhook, then on-chain receipt. End-to-end median about 140 ms on testnet." width="900">
 </p>
 
 1. **Write a rule.** JSON predicate. "Any transfer to my address over 5000 CSPR."
 2. **Prepay in CSPR.** Locked into the on-chain escrow contract. Each webhook delivery costs a fraction of a CSPR.
-3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in about 830 ms (median, measured on testnet).
-4. **Every delivery is written on chain.** The contract itself emits `record_delivery`. Your bill is an auditable ledger on cspr.live, not a monthly invoice we made up.
+3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in about 140 ms (median end-to-end on testnet, from block timestamp to webhook delivery).
+4. **Every escrow-backed delivery is written on chain.** The contract itself emits `record_delivery`. Your bill is an auditable ledger on cspr.live, not a monthly invoice we made up. The public demo lanes on the live feed have no escrow to bill, so they deliver for real but write no receipt; they are labelled `DELIVERED` rather than `CONFIRMED`.
 
 Cancel any time. Remaining CSPR is refunded to your wallet.
 
@@ -45,8 +45,8 @@ Cancel any time. Remaining CSPR is refunded to your wallet.
 |---|---|
 | **Matcher** | Watches CSPR.cloud streaming WebSocket. Evaluates predicates. Dispatches webhooks with HMAC signature and idempotency key. Records deliveries on chain. |
 | **`sluice` CLI** | `subscribe`, `list`, `cancel`, `tail`, `watch`, `replay-last`, `sandbox`, `doctor`, `ai`, `repl`. One binary, works against any deployed contract. |
-| **MCP server (stdio)** | 5 tools, 4 resources, 2 prompts. Open standard, so any MCP client works: Claude, Cursor, Windsurf, Cline, VS Code, Codex. `npm i -g @sluice/mcp`. |
-| **Hosted MCP (HTTP)** | Zero install, one URL for any client: `https://sluice.unitynodes.com/mcp`. Per-client setup in [docs/MCP_CLIENTS.md](docs/MCP_CLIENTS.md). |
+| **MCP server (stdio)** | 5 tools, 4 resources, 2 prompts. Open standard, so any MCP client works: Claude, Cursor, Windsurf, Cline, VS Code, Codex. Built from this repo (see below); not yet published to npm. |
+| **Hosted MCP (HTTP)** | Zero install, one URL for any client: `https://sluice.unitynodes.com/mcp`. Exposes the 2 read-only tools plus all 4 resources and 2 prompts; `subscribe` / `top_up` / `cancel` stay stdio-only because they sign with your Casper key. Per-client setup in [docs/MCP_CLIENTS.md](docs/MCP_CLIENTS.md). |
 | **Web workspace** | Live subscription table, visual builder with plain-English AI parser, sandbox that fires real webhooks, rolling activity feed with click-to-explain. |
 | **Demo stack** | `./scripts/demo.sh up`. One command boots matcher, Caddy, demo webhook receiver, Prometheus, Grafana, and two pre-seeded whale subscriptions. |
 
@@ -66,12 +66,12 @@ export SLUICE_NODE_RPC_URL=https://node.testnet.casper.network/rpc
 
 # 3. Grab a free webhook URL from https://webhook.site and subscribe
 sluice subscribe \
-  --predicate ./examples/whale-transfers.json \
+  --predicate ../examples/whale-transfers.json \
   --webhook https://webhook.site/<your-uuid> \
   --amount 10 --watch
 ```
 
-`--watch` waits until the contract emits SubscriptionCreated, then tails deliveries for you. Every match shows up in webhook.site within about a second of the block landing (median ~830 ms on testnet).
+`--watch` waits until the contract emits SubscriptionCreated, then tails deliveries for you. Every match shows up in webhook.site within a fraction of a second of the block landing (median ~140 ms end-to-end on testnet).
 
 ### With Claude Code (no signup)
 
@@ -85,10 +85,10 @@ Then in any Claude Code conversation:
 
 Claude calls `recent_deliveries`, reads `sluice://subs`, and answers.
 
-For subscribe / cancel (which sign with your Casper key), install the stdio server locally:
+For subscribe / cancel (which sign with your Casper key), build the stdio server from this repo:
 
 ```bash
-npm i -g @sluice/mcp
+cd Sluice/mcp && npm ci && npm run build && npm link
 claude mcp add-json sluice '{"command":"sluice-mcp"}'
 ```
 
@@ -218,10 +218,10 @@ Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Tests
 
-- Matcher: 69 Jest tests. `cd matcher && npm test`.
-- Contract: 6 wasm integration tests. `cd contract && cargo test`.
-- MCP: end-to-end smoke via `docs/sluice.postman_collection.json`.
-- Predicate: fuzzed against the CSPR.cloud transfer schema in `matcher/test/predicate.test.ts`.
+- Matcher: 89 Jest tests. `cd matcher && npm test`.
+- Contract: 6 Odra unit tests (OdraVM). `cd contract && cargo test`.
+- REST API: smoke collection in `docs/sluice.postman_collection.json`. The MCP end-to-end check is [`docs/TESTING.md`](docs/TESTING.md) step 5.
+- Predicate: unit-tested against the CSPR.cloud transfer schema in `matcher/test/predicate.test.ts`, including catastrophic-regex rejection.
 
 Run the full suite with `cd matcher && npm test`.
 
@@ -261,8 +261,8 @@ Vote with usage. Roadmap tracked in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Client libraries
 
-- **TypeScript / Node**: [`@sluice/client`](clients/typescript/) on npm. `npm i @sluice/client`.
-- **Python**: [`sluice-client`](clients/python/) on PyPI. `pip install sluice-client`.
+- **TypeScript / Node**: [`@sluice/client`](clients/typescript/), vendored in this repo (not yet published to npm). `cd clients/typescript && npm ci && npm run build`.
+- **Python**: [`sluice-client`](clients/python/), vendored in this repo (not yet published to PyPI). `pip install ./clients/python`.
 - **VS Code extension**: [clients/vscode/](clients/vscode/). Status bar shows live active/total subscription count and total deliveries; command palette gives one-key access to `sluice subscribe`, `list`, `tail`, `doctor`.
 
 ## HMAC webhook verification
