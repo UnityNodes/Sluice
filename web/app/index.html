@@ -229,12 +229,12 @@
       </div>
 
       <div style="padding:24px 26px;border-right:1px solid #000">
-        <div title="Total events sent to your webhook successfully, each one logged on-chain" style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">EVENTS DELIVERED</div>
+        <div title="Total events successfully POSTed to a subscriber webhook. Escrow-backed lanes also write an on-chain record_delivery receipt; demo lanes do not." style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">EVENTS DELIVERED</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px">
           <span id="stat-deliveries" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
           <span id="stat-deliveries-trend" style="font:500 12px 'JetBrains Mono';color:#3edc64"></span>
         </div>
-        <div style="margin-top:14px;font:400 12px 'JetBrains Mono';color:#666">each delivery written to the blockchain</div>
+        <div style="margin-top:14px;font:400 12px 'JetBrains Mono';color:#666">escrow-backed lanes also write an on-chain receipt</div>
       </div>
 
       <div style="padding:24px 26px;background:#bcfc07">
@@ -313,7 +313,7 @@
           <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">V0.1 NOTES</div>
           <ul style="margin:14px 0 0;padding-left:18px;font:400 13px/1.55 'Casper Sans',Inter;color:#333">
             <li>Snapshot is event-sourced from the testnet contract; updates every 30 s.</li>
-            <li>Create / cancel / top-up go through the connected wallet to the chain, no off-chain account.</li>
+            <li>Create / cancel / top-up go through the CLI or any MCP client, straight to the chain, no off-chain account. Wallet signing arrives in v0.2.</li>
             <li>History before this matcher started isn't visible (stream is live-only). See cspr.live for full history.</li>
           </ul>
         </div>
@@ -453,7 +453,7 @@
   </div>
 </div>
 
-<script src="/app/app.js?v=29"></script>
+<script src="/app/app.js?v=30"></script>
 
 </body>
 </html>

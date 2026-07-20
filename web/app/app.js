@@ -50,10 +50,14 @@
     }
     return n;
   };
+  // BigInt division floors, which rendered an on-chain 2.5 CSPR predicate as
+  // "2" and let a 5.9 CSPR balance trip the "at most 5" low-balance gate.
+  // Divide as a Number so fractional CSPR survives.
   const motesToCspr = (motes) => {
-    try { return Number(BigInt(String(motes)) / CSPR_PER_MOTE); }
+    try { return Number(BigInt(String(motes))) / Number(CSPR_PER_MOTE); }
     catch { return 0; }
   };
+  const fmtCsprNum = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 4 });
   const fmtCspr = (motes) => {
     const c = motesToCspr(motes);
     return c.toLocaleString('en-US');
@@ -133,7 +137,7 @@
   const humanizeValue = (field, v) => {
     if (Array.isArray(v)) return `${v.length} addresses`;
     const s = String(v ?? '');
-    if (field === 'amount' && /^\d{10,}$/.test(s)) return `${motesToCspr(s).toLocaleString('en-US')} CSPR`;
+    if (field === 'amount' && /^\d{10,}$/.test(s)) return `${fmtCsprNum(motesToCspr(s))} CSPR`;
     if (field === 'timestamp' && /^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 16).replace('T', ' ');
     if (KNOWN_CONTRACTS[s.toLowerCase()]) return KNOWN_CONTRACTS[s.toLowerCase()];
     if (/^[0-9a-f]{64}$/i.test(s)) return truncHash(s, 6, 4);
@@ -356,7 +360,7 @@
         }, s.webhook_url || ''),
       ),
       el('div', { style: 'text-align:right' },
-        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, !s.active ? NULL_BAL_STR : motesToCspr(s.balance).toLocaleString()),
+        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, !s.active ? NULL_BAL_STR : fmtCsprNum(motesToCspr(s.balance))),
         el('div', { style: 'font:400 11px JetBrains Mono;color:#666' }, 'CSPR'),
       ),
       el('div', { style: 'text-align:right;font:500 14px JetBrains Mono;color:#000' }, String(s.deliveries)),
@@ -577,7 +581,7 @@
         ` (you sign locally with casper-client) or by your `,
         el('strong', {}, 'AI agent over MCP'),
         ` (Claude Code / Codex signs and submits for you). Fill the fields below and copy the exact command. `,
-        el('span', { style: 'color:#666' }, 'One-click wallet signing lands in v0.2 alongside the TransactionV1 contract rewrite. Cancel already works from this dashboard via your connected wallet.'),
+        el('span', { style: 'color:#666' }, 'One-click wallet signing lands in v0.2 alongside the TransactionV1 contract rewrite. Until then create, top-up and cancel run through the CLI or any MCP client; this dashboard is read-only.'),
       ),
       el('div', { style: 'font:500 11px JetBrains Mono;color:#666;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px' }, '1 · Predicate'),
       predicateTa,
@@ -651,7 +655,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         el('strong', {}, 'v0.1, wallet flow ships with v0.2.'),
         ` Same purse-construct constraint as creating a subscription. Copy the equivalent CLI / MCP command for now.`,
       ),
-      el('div', { style: 'font:400 14px Casper Sans,Inter;color:#000' }, `Sub `, el('span', { style: 'font:500 13px JetBrains Mono' }, `sub_${String(sub.id).padStart(4, '0')}`), ` · current balance ${motesToCspr(sub.balance).toLocaleString()} CSPR.`),
+      el('div', { style: 'font:400 14px Casper Sans,Inter;color:#000' }, `Sub `, el('span', { style: 'font:500 13px JetBrains Mono' }, `sub_${String(sub.id).padStart(4, '0')}`), ` · current balance ${fmtCsprNum(motesToCspr(sub.balance))} CSPR.`),
       el('div', { style: 'font:500 11px JetBrains Mono;color:#666;letter-spacing:.12em;text-transform:uppercase;margin:22px 0 8px' }, 'Top-up (CSPR)'),
       amountIn,
       cliBox,
@@ -676,7 +680,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       ),
       el('p', { style: 'font:400 15px/1.55 Casper Sans,Inter;color:#000' },
         'Cancel ', el('span', { style: 'font:500 13px JetBrains Mono' }, `sub_${String(sub.id).padStart(4, '0')}`),
-        `? Your remaining ${motesToCspr(sub.balance).toLocaleString()} CSPR refunds to the owner's account on-chain.`,
+        `? Your remaining ${fmtCsprNum(motesToCspr(sub.balance))} CSPR refunds to the owner's account on-chain.`,
       ),
       el('p', { style: 'font:400 13px Casper Sans,Inter;color:#666;margin-top:14px' },
         'Only the subscription owner key can submit this, anyone else gets a NotOwner revert from the contract.',
