@@ -159,7 +159,9 @@ DeFi and RWA contracts, not only our own.
 |---|---|
 | [`63de4cc0…f10bd5`](https://testnet.cspr.live/transaction/63de4cc0010c2ebcbb245efc98253523f74cf06e321eca141f35cb1788f10bd5) | An x402 micropayment settled on-chain through the hosted facilitator. 0.1 SLX moved from the paying agent to the feed publisher, and the facilitator paid the gas. This is the payment that buys one matched event delivery. |
 | [`3fb89280…939efd`](https://testnet.cspr.live/transaction/3fb8928092af0f0a01716c497795ff1950a8d3eae517ddee4b3cc08eeb939efd) | A `swap` call on DemoDex at block 8453751. It emitted the CES `Swap` event (520,000 CSPR in, 518,700 CSPRX out) that Sluice matched and delivered to a webhook in 117 ms. |
-| [`f665f4f7…14b419`](https://testnet.cspr.live/transaction/f665f4f7dd5acf719ff1cb9b5763ffd80a950c7bae94a5bdb4c88e1f0414b419) | Another DemoDex `swap`, matched and delivered on the next cycle. Cross-check it against `recent_events` in the snapshot. |
+| [`f665f4f7…14b419`](https://testnet.cspr.live/transaction/f665f4f7dd5acf719ff1cb9b5763ffd80a950c7bae94a5bdb4c88e1f0414b419) | Another DemoDex `swap`, matched and delivered on the next cycle. |
+| [`67a87d6b…089b0e`](https://testnet.cspr.live/transaction/67a87d6bcd35ffb32fb1c7271a0441efef306a127dd8a178f9395f1591089b0e) | `create_subscription` for subscription 4, locking 300 CSPR of escrow. This is the subscription behind every `CONFIRMED` row on the live feed. |
+| [`67cb9683…4c7a75`](https://testnet.cspr.live/transaction/67cb968323b55b68c2b55b576d8575f04c40468768a1531c12fe6454314c7a75) | A `record_delivery` receipt: Sluice matched a swap, POSTed the webhook in 74 ms, then wrote this on-chain and decremented the escrow by 1 CSPR. Delivery and billing, end to end. |
 
 ## Which lanes are escrow-backed
 

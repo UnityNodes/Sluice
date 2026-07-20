@@ -42,7 +42,7 @@ paths:
   /badge.svg:
     get:
       summary: Status badge (SVG)
-      description: 'Shields-style badge, "sluice: N delivered · M active".'
+      description: 'Shields-style badge, "sluice: N on-chain · M active".'
       responses:
         '200':
           description: Static SVG.
@@ -153,7 +153,7 @@ paths:
                   statusCode:  { type: integer }
                   attempts:    { type: integer }
                   latency_ms:  { type: integer }
-        '404': { description: event not in buffer }
+        '400': { description: event not in buffer }
 
   /tx/test-webhook:
     post:
@@ -163,7 +163,7 @@ paths:
         content: { application/json: { schema: { type: object, required: [subscription_id], properties: { subscription_id: { type: integer } } } } }
       responses:
         '200': { description: dispatch result }
-        '404': { description: subscription not in matcher view }
+        '400': { description: subscription not in matcher view }
 
   /predicate/validate:
     post:

@@ -163,10 +163,11 @@ been paid for?"*, the HMAC answers *"did Sluice really send this body?"*.
 | `SLUICE_WEBHOOK_SECRET` | *(unset)* | Enables `X-Sluice-Signature` HMAC verify |
 | `X402_FROM` / `X402_PAYER_SECRET` | demo values | Payer identity + stub signing key |
 
-## Wiring the real Casper x402 facilitator
+## Swapping the stub illustration for the real facilitator
 
-When the Casper x402 facilitator ships (when it ships, see
-<https://www.casper.network/ai>), replace the two stubs:
+The Casper x402 facilitator is live at <https://x402-facilitator.cspr.cloud>
+(see <https://www.casper.network/ai>). The `.mjs` scripts already use it; to
+port the dependency-free stub walkthrough, replace its two stubs:
 
 1. **Receiver, `verifyPaymentStub()` in `receiver.cjs`.** Swap the structural
    check for a facilitator call that verifies the signed payment against the
