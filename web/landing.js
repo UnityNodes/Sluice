@@ -169,7 +169,7 @@
         c.textContent = txt;
         return c;
       };
-      row.appendChild(cell(time, isLatest ? '' : 'color:#666'));
+      row.appendChild(cell(time, isLatest ? '' : 'color:#8f8f8f'));
       row.appendChild(cell(`sub_${String(e.subscription_id).padStart(4, '0')}`, isLatest ? 'font-weight:500' : 'color:#3edc64'));
       // Event cell shows description plus a channel tag (webhook / mcp / websocket)
       const evtCell = document.createElement('div');
@@ -894,7 +894,7 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
             <a href="${shareLink}" style="background:#000;color:#bcfc07;text-decoration:none;padding:8px 14px;font:500 12px 'Casper Sans',Inter;letter-spacing:.02em">Open in builder →</a>
             <button id="hero-ai-copy" type="button" style="background:#fff;color:#000;border:1px solid #000;padding:8px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">⧉ Copy JSON</button>
             <span style="flex:1"></span>
-            <span style="font:500 10.5px 'JetBrains Mono';color:#666;align-self:center;letter-spacing:.06em">RULE-BASED · 0 LLM CALLS · &lt; 5 MS</span>
+            <span style="font:500 10.5px 'JetBrains Mono';color:#666;align-self:center;letter-spacing:.06em">RULE-BASED · 0 LLM CALLS</span>
           </div>
         </div>`;
       // Fire dry-run in parallel

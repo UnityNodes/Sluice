@@ -56,7 +56,7 @@ claude mcp add --transport http sluice https://sluice.unitynodes.com/mcp
 
 ### Local stdio (offline / self-host)
 
-Install the package, then point any client's command transport at `sluice-mcp`:
+Build from source — `@sluice/mcp` isn't published to npm yet — with `cd Sluice/mcp && npm ci && npm run build && npm link`, then point any client's command transport at the linked `sluice-mcp` binary:
 
 ```json
 { "mcpServers": { "sluice": { "command": "sluice-mcp" } } }

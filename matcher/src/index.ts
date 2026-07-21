@@ -300,8 +300,9 @@ export class Matcher {
       };
       try {
         await writeFile(this.cfg.snapshotPath, JSON.stringify(snapshot, null, 2));
-        const totalDeliveries = subs.reduce((a, s) => a + (s.deliveries || 0), 0);
-        const activeCount = subs.filter(s => s.active).length;
+        const realSubs = subs.filter((s) => !this.cfg.demoSubs?.has(s.id));
+        const totalDeliveries = realSubs.reduce((a, s) => a + (s.deliveries || 0), 0);
+        const activeCount = realSubs.filter(s => s.active).length;
         const badge = renderBadge(activeCount, totalDeliveries, this.counters.wsTransfers);
         const badgePath = path.join(path.dirname(this.cfg.snapshotPath), 'badge.svg');
         await writeFile(badgePath, badge);
@@ -540,11 +541,12 @@ export class Matcher {
   }
 
   getMetricsSnapshot(): MetricsSnapshot {
-    const active = this.active.length;
+    const demoActive = this.active.filter((s) => this.cfg.demoSubs?.has(s.id)).length;
+    const active = this.active.length - demoActive;
     return {
       ...this.counters,
       activeSubscriptions: active,
-      inactiveSubscriptions: Math.max(0, this.allSubs.length - active),
+      inactiveSubscriptions: Math.max(0, this.allSubs.length - this.active.length),
       validationBufferSize: this.validationEvents.length,
       validationBufferSeeded: this.seededEventCount,
     };
@@ -615,7 +617,9 @@ export class Matcher {
 
   /** Look up an active subscription, used by the .ics calendar feed. */
   getActiveSubscription(id: number): Subscription | null {
-    return this.active.find((s) => s.id === id) ?? null;
+    const s = this.active.find((s) => s.id === id) ?? null;
+    if (s && this.cfg.demoSubs?.has(s.id)) return { ...s, balance: '0' };
+    return s;
   }
 
   /** Count deliveries for a subscription in the recent-events buffer, drives .ics rate estimate. */

@@ -57,4 +57,4 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 ### Known limits (v0.1)
 Documented honestly in [docs/HONEST_LIMITS.md](docs/HONEST_LIMITS.md):
 - §9 `casper-js-sdk@5.0.0-rc6` Stored-target serialisation bug; the CLI uses the Rust `casper-client` binary as a subprocess to dodge it
-- §10 Browser-wallet mutations (create/top-up) currently render CLI snippets in a modal instead of one-clicking the wallet, due to Odra 2.8's `#[odra(payable)]` `cargo_purse` semantics; cancel works through the wallet because it's non-payable.
+- §10 Browser-wallet mutations (create/top-up/cancel) currently render CLI snippets in a modal instead of one-clicking the wallet, due to Odra 2.8's `#[odra(payable)]` `cargo_purse` semantics; the dashboard is read-only. cancel is non-payable, so it's the first mutation slated for wallet-native signing once the v0.2 TransactionV1 work lands.

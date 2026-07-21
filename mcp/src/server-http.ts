@@ -158,7 +158,8 @@ const httpServer = http.createServer(async (req, res) => {
       '  - prompts:   sluice-build-watcher, sluice-debug-sub\n' +
       '\n' +
       'For subscribe / cancel (requires local Casper key) use the stdio server:\n' +
-      '  npm i -g @sluice/mcp && claude mcp add-json sluice \'{"command":"sluice-mcp"}\'\n');
+      '  build from source (@sluice/mcp is not yet on npm): cd mcp && npm ci && npm run build && npm link\n' +
+      '  then: claude mcp add-json sluice \'{"command":"sluice-mcp"}\'\n');
     return;
   }
   if (url.pathname !== '/mcp') {

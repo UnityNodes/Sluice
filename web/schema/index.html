@@ -16,7 +16,8 @@
   ul { padding-left: 22px; line-height: 1.7; }
   a { color: #0a6d38; }
   .schemas { background: #fff; border: 1px solid #000; padding: 18px 22px; margin-top: 24px; }
-  .schemas h3 { margin-top: 0; font-size: 18px; }
+  .schemas h2 { margin-top: 0; font-size: 18px; }
+  h2 { font-size: 20px; margin: 0 0 8px; letter-spacing: -.01em; }
   a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #bcfc07; outline-offset: 2px; box-shadow: 0 0 0 1px #000; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } [data-reveal] { opacity: 1 !important; transform: none !important; } }
 </style>
@@ -27,7 +28,7 @@
   <p>Drop these URLs into VS Code's <code>json.schemas</code> setting, JetBrains' <em>JSON Schema Mappings</em>, or reference them inline with a <code>$schema</code> key to get inline autocomplete, validation, and hover docs while writing predicates.</p>
 
   <div class="schemas">
-    <h3>predicate-v1.json</h3>
+    <h2>predicate-v1.json</h2>
     <p>The current stable predicate format, AND-of-conditions with 12 operators. <a href="/schema/predicate-v1.json">View JSON</a></p>
     <pre>{
   "$schema": "https://sluice.unitynodes.com/schema/predicate-v1.json",
@@ -37,7 +38,7 @@
 }</pre>
   </div>
 
-  <h3 style="margin-top:32px">VS Code (workspace settings.json)</h3>
+  <h2 style="margin-top:32px">VS Code (workspace settings.json)</h2>
 <pre>{
   "json.schemas": [{
     "fileMatch": ["**/predicate*.json", "**/sluice*.json"],
@@ -45,10 +46,10 @@
   }]
 }</pre>
 
-  <h3 style="margin-top:32px">JetBrains IDEs</h3>
+  <h2 style="margin-top:32px">JetBrains IDEs</h2>
   <p>Preferences → Languages & Frameworks → Schemas and DTDs → <em>JSON Schema Mappings</em> → + → paste the URL above and target <code>predicate*.json</code>.</p>
 
-  <h3 style="margin-top:32px">Validate from CLI</h3>
+  <h2 style="margin-top:32px">Validate from CLI</h2>
 <pre># with ajv-cli
 npx ajv-cli@5 validate \
   -s https://sluice.unitynodes.com/schema/predicate-v1.json \

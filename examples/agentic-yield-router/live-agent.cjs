@@ -56,7 +56,7 @@ async function decideWithLlm(event, base) {
   const user =
     `Deposit: ${amountCspr} CSPR (swap ${event.token_in || '?'} -> ${event.token_out || '?'}).\n` +
     `Current pool: current-pool @ 4.1% APY.\n` +
-    `Available pools: ${POOLS.map((x) => `${x.name} ${x.apy}%`).join(', ')}.\n` +
+    `Available pools (illustrative sample yields, not live market data): ${POOLS.map((x) => `${x.name} ${x.apy}%`).join(', ')}.\n` +
     'Rebalance only if a pool beats the current APY by at least 1 point.';
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 6000);

@@ -494,7 +494,7 @@ function buildBadgeSpec(metric: string, snap: NonNullable<ReturnType<NonNullable
  * to keep the matcher dependency-free; Discord/Slack/LinkedIn/Facebook accept
  * image/svg+xml previews. Twitter still wants raster, see HONEST_LIMITS.
  */
-function renderOgSvg(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscription']>>>, chain: string): string {
+function renderOgSvg(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscription']>>>, contractHash: string, chain: string): string {
   const cspr = (BigInt(sub.balance) / 1_000_000_000n).toString();
   const webhook = sub.webhook_url.length > 56 ? sub.webhook_url.slice(0, 53) + '…' : sub.webhook_url;
   const status = sub.active ? 'ACTIVE' : 'INACTIVE';
@@ -537,7 +537,7 @@ function renderOgSvg(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubsc
     </g>
     <g transform="translate(660, 470)">
       <text font-size="14" font-weight="500" fill="#666" letter-spacing="2">CONTRACT</text>
-      <text y="32" font-size="20" font-weight="500" fill="#fff" font-family="JetBrains Mono, monospace">f3710eaf…b971</text>
+      <text y="32" font-size="20" font-weight="500" fill="#fff" font-family="JetBrains Mono, monospace">${esc(contractHash.slice(0, 8))}…${esc(contractHash.slice(-4))}</text>
     </g>
     <g transform="translate(60, 580)" font-family="JetBrains Mono, monospace">
       <text font-size="13" fill="#666">webhook</text>
@@ -961,7 +961,7 @@ export function startApi(cfg: ApiConfig): { close: () => void; hub: StreamHub } 
         const id = Number(ogMatch[1]);
         const sub = cfg.getSubscription(id);
         if (!sub) { respond(res, 404, { error: `subscription ${id} not found in matcher's active view` }); return; }
-        const svg = renderOgSvg(sub, cfg.chainName);
+        const svg = renderOgSvg(sub, cfg.contractHash, cfg.chainName);
         respondText(res, 200, 'image/svg+xml; charset=utf-8', svg, 60);
         return;
       }
