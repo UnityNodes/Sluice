@@ -28,8 +28,10 @@ curl -s https://sluice.unitynodes.com/api/snapshot.json | head -c 400
 ```
 
 The `recent_events` array holds the last 20 real deliveries. Each entry carries
-the record_delivery receipt as the top-level `tx_hash`, the source swap's
-`event.deploy_hash` and `event.block_height` (nested under `event`), the webhook
+the source swap's `event.deploy_hash` and `event.block_height` (nested under
+`event`, present on every entry — use these for on-chain verification). Escrow-backed
+lanes also carry the `record_delivery` receipt as the top-level `tx_hash`; demo
+lanes deliver but write no receipt, so their `tx_hash` is empty. Each entry has the webhook
 `status` (200), and the webhook dispatch `latency_ms`.
 
 Open <https://sluice.unitynodes.com/app> to see the same data rendered, with the

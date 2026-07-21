@@ -295,7 +295,7 @@ export class Matcher {
         chain: this.cfg.chainName,
         delivery_unit_cost: process.env.SLUICE_DELIVERY_UNIT_COST ?? '1000000000',
         updated_at: new Date().toISOString(),
-        subscriptions: subs.map((s) => (this.cfg.demoSubs?.has(s.id) ? { ...s, demo: true } : s)),
+        subscriptions: subs.map((s) => (this.cfg.demoSubs?.has(s.id) ? { ...s, demo: true, balance: '0' } : s)),
         recent_events: this.recentEvents.slice(0, Matcher.MAX_RECENT),
       };
       try {

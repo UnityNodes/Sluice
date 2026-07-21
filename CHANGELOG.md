@@ -19,7 +19,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 - Postman collection at `docs/sluice.postman_collection.json` covering every endpoint.
 
 ### Added: HTTP API (matcher)
-- `POST /api/health`, liveness probe
+- `GET /api/health`, liveness probe
 - `GET  /api/snapshot.json`, full subs + recent_events feed
 - `GET  /api/metrics`, Prometheus exposition (10 metric families, latency histogram, WS gauges)
 - `GET  /api/chain/head`, Casper testnet head, cached 3s, in-flight-collapsed
