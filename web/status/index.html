@@ -31,6 +31,7 @@
   body { margin:0; background:#f4f4f4; font-family:'Casper Sans',Inter,system-ui,sans-serif; color:#000; -webkit-font-smoothing:antialiased; }
   ::selection { background:#bcfc07; color:#000; }
   a { color:#000; text-decoration:none; }
+  #raw-ep a { text-decoration: underline; }
   a:hover { text-decoration:underline; text-decoration-color:#bcfc07; text-decoration-thickness:2px; }
   @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.55 } }
   .pulse { animation: pulse 2s infinite; }
@@ -114,7 +115,7 @@
   <!-- Endpoint reference -->
   <div style="margin-top:32px;background:#fafafa;border:1px solid #ccc;padding:20px 24px">
     <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em">RAW ENDPOINTS</div>
-    <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font:400 13px 'JetBrains Mono';color:#333">
+    <div id="raw-ep" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;font:400 13px 'JetBrains Mono';color:#333">
       <div>POST <a href="/api/health">/api/health</a> &nbsp;,  matcher liveness</div>
       <div>GET &nbsp;<a href="/api/metrics">/api/metrics</a>Prometheus exposition</div>
       <div>GET &nbsp;<a href="/api/snapshot.json">/api/snapshot.json</a>active subs + recent events</div>

@@ -315,7 +315,7 @@
     const q = state.search.trim().toLowerCase();
     const filtered = subs.filter((s) => {
       if (f === 'active' && !s.active) return false;
-      if (f === 'low' && (motesToCspr(s.balance) > 5 || !s.active)) return false;
+      if (f === 'low' && (motesToCspr(s.balance) > 5 || !s.active || s.demo)) return false;
       if (f === 'depleted' && s.active) return false;
       if (f === 'mine' && (!state.wallet.connected || s.owner !== state.wallet.accountHash)) return false;
       if (q) {
@@ -393,6 +393,7 @@
 
   function renderActivity() {
     const events = state.snapshot.recent_events || [];
+    const demoIds = new Set((state.snapshot.subscriptions || []).filter(s => s.demo).map(s => s.id));
     const list = $('#activity-list');
     list.innerHTML = '';
     if (events.length === 0) {
@@ -408,7 +409,10 @@
       }, '↻ RESEND');
       list.appendChild(el('div', { style: 'padding:13px 16px;border-bottom:1px solid #1a1a1a' },
         el('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' },
-          el('span', { style: 'color:#fff;font-weight:500' }, `sub_${String(e.subscription_id).padStart(4, '0')}`),
+          el('span', { style: 'display:inline-flex;align-items:center;gap:6px' },
+            el('span', { style: 'color:#fff;font-weight:500' }, `sub_${String(e.subscription_id).padStart(4, '0')}`),
+            demoIds.has(e.subscription_id) ? el('span', { title: 'Demo lane, delivers but writes no on-chain receipt', style: 'font:500 8px JetBrains Mono;background:#333;color:#ccc;padding:1px 5px;letter-spacing:.08em' }, 'DEMO') : null,
+          ),
           el('span', { style: 'color:#8f8f8f' }, fmtRelative(e.timestamp)),
         ),
         el('div', { style: 'margin-top:4px;color:#ccc' }, e.description || `event ${truncHash(e.event_hash || '', 6, 4)}`),
@@ -488,8 +492,8 @@
   function exportCsv() {
     if (!state.snapshot) return;
     const subs = state.snapshot.subscriptions || [];
-    const header = ['id', 'owner', 'predicate_json', 'webhook_url', 'balance_motes', 'deliveries', 'active', 'created_at'];
-    const rows = subs.map(s => [s.id, s.owner, JSON.stringify(s.predicate), s.webhook_url, s.balance, s.deliveries, s.active, s.created_at]
+    const header = ['id', 'owner', 'predicate_json', 'webhook_url', 'balance_motes', 'deliveries', 'active', 'demo', 'created_at'];
+    const rows = subs.map(s => [s.id, s.owner, JSON.stringify(s.predicate), s.webhook_url, s.demo ? '' : s.balance, s.demo ? '' : s.deliveries, s.active, s.demo ? 'true' : 'false', s.created_at]
       .map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
     const csv = [header.join(','), ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -1467,9 +1471,10 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     document.getElementById('activity-count').textContent = events.length;
     document.getElementById('tab-badge-activity').textContent = events.length;
     if (events.length === 0) {
-      list.innerHTML = '<div style="padding:48px 22px;text-align:center;color:#666;font:400 14px Casper Sans,Inter">no deliveries in the matcher buffer yet · ring buffer is live-only, restarts wipe it</div>';
+      list.innerHTML = '<div style="padding:48px 22px;text-align:center;color:#666;font:400 14px Casper Sans,Inter">no deliveries in the matcher buffer yet · buffer re-seeds from the last snapshot on restart</div>';
       return;
     }
+    const demoIds = new Set((state.snapshot.subscriptions || []).filter(s => s.demo).map(s => s.id));
     list.innerHTML = events.map((e, i) => {
       const code = Number(e.status) || 0;
       const status = code === 0 ? `<span style="background:#ffb347;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">PENDING</span>`
@@ -1479,7 +1484,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       const tx = hash ? `<a href="https://testnet.cspr.live/transaction/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#666">…</span>';
       return `<div data-act-idx="${i}" class="act-row" title="Click to see condition-by-condition why this matched" style="display:grid;grid-template-columns:130px 70px 70px 80px 1fr 220px;gap:14px;padding:14px 22px;border-bottom:1px solid #eee;align-items:center;font:400 12.5px 'JetBrains Mono';cursor:pointer">
         <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#666">UTC</span></span>
-        <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}</span>
+        <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}${demoIds.has(Number(e.subscription_id)) ? '<span style="display:block;margin-top:2px;font:500 8px JetBrains Mono;background:#e9e9e9;color:#555;padding:1px 4px;width:fit-content;letter-spacing:.06em">DEMO</span>' : ''}</span>
         ${status}
         <span style="color:#000">${Number(e.latency_ms) > 0 ? Number(e.latency_ms) + 'ms' : '—'}</span>
         <span style="color:#333">${escHtml(String(e.description || '').slice(0,80))}</span>
