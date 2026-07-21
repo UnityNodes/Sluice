@@ -200,7 +200,8 @@
   const toast = (msg, kind = 'info') => {
     const c = $('#toasts') || document.body.appendChild(el('div', { id: 'toasts', style: 'position:fixed;right:24px;bottom:24px;z-index:1000;display:flex;flex-direction:column;gap:8px' }));
     const colors = { info: '#000', error: '#ff2d2e', success: '#3edc64', warn: '#ff8a65' };
-    const t = el('div', { style: `background:${colors[kind] || '#000'};color:#fff;padding:14px 18px;font:500 13px 'Casper Sans',Inter;max-width:380px;box-shadow:4px 4px 0 ${kind === 'error' ? '#000' : '#bcfc07'};border:1px solid #000` }, msg);
+    const ink = (kind === 'success' || kind === 'warn') ? '#000' : '#fff';
+    const t = el('div', { style: `background:${colors[kind] || '#000'};color:${ink};padding:14px 18px;font:500 13px 'Casper Sans',Inter;max-width:380px;box-shadow:4px 4px 0 ${kind === 'error' ? '#000' : '#bcfc07'};border:1px solid #000` }, msg);
     c.appendChild(t);
     setTimeout(() => t.remove(), 6000);
   };

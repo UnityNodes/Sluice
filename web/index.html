@@ -353,7 +353,9 @@
     .bp-stamp.tl, .bp-stamp.bl { left:60px; }
     .bp-stamp.tr, .bp-stamp.br { right:60px; }
     .bp-watermark { font-size:clamp(120px,28vw,180px) !important; }
+    nav { position: static !important; }
   }
+  @media (min-width: 641px) { html { scroll-padding-top: 72px; } }
 </style>
 
 <div style="background:#f4f4f4;min-height:100vh">
@@ -800,7 +802,7 @@
           </div>
           <pre id="mcp-install-cmd" style="margin:0;white-space:pre-wrap;word-break:break-word;font:400 12px/1.55 'JetBrains Mono';color:#bcfc07">claude mcp add --transport http sluice https://sluice.unitynodes.com/mcp</pre>
         </div>
-        <div style="margin-top:14px;font:400 12.5px/1.6 'JetBrains Mono';color:#666;letter-spacing:.04em">Open standard, one <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">https://sluice.unitynodes.com/mcp</code> endpoint, any MCP client. Restart the client and <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">sluice</code> appears with its read-only tools ready. The transcript on the right runs the stdio server, built from the repo (<code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">cd mcp &amp;&amp; npm install &amp;&amp; npm run build &amp;&amp; npm link</code>), which adds subscribe and cancel.</div>
+        <div style="margin-top:14px;font:400 12.5px/1.6 'JetBrains Mono';color:#8f8f8f;letter-spacing:.04em">Open standard, one <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">https://sluice.unitynodes.com/mcp</code> endpoint, any MCP client. Restart the client and <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">sluice</code> appears with its read-only tools ready. The transcript on the right runs the stdio server, built from the repo (<code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">cd mcp &amp;&amp; npm install &amp;&amp; npm run build &amp;&amp; npm link</code>), which adds subscribe and cancel.</div>
 
         <div style="margin-top:36px;display:flex;flex-direction:column;gap:12px;font:400 14px/1.6 'Casper Sans',Inter;color:#ccc">
           <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">1</span> Same live testnet contract you see in the dashboard.</div>
@@ -813,7 +815,7 @@
       <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1a1a1a">
           <div style="display:flex;gap:5px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
-          <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">CLAUDE CODE · CHAT TRANSCRIPT</div>
+          <div style="font:500 11px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.06em">CLAUDE CODE · CHAT TRANSCRIPT</div>
           <div style="flex:1"></div>
           <div style="font:500 10px 'JetBrains Mono';color:#bcfc07;letter-spacing:.1em">MCP · sluice (stdio)</div>
         </div>
@@ -830,12 +832,12 @@
             <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
               I'll check existing subscriptions first.
               <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
-                <div style="color:#666">→ tool call</div>
+                <div style="color:#8f8f8f">→ tool call</div>
                 <div style="color:#bcfc07">sluice.list_subscriptions</div>
                 <div style="color:#ccc">{}</div>
               </div>
               <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
-                <div style="color:#666">← result</div>
+                <div style="color:#8f8f8f">← result</div>
                 <div style="color:#ccc">contract <span style="color:#80cbc4">f3710eaf…b971</span></div>
                 <div style="color:#ccc">subs: [</div>
                 <div style="color:#ccc">&nbsp;&nbsp;{ id: 1, active: false, balance: 0 },</div>
@@ -849,7 +851,7 @@
             <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
               Sub <span style="font-family:'JetBrains Mono';color:#fff">#3</span> already watches your address with the same rule and has 6 CSPR left. I'll create a fresh one anyway with 10 CSPR locked, per your spec.
               <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
-                <div style="color:#666">→ tool call</div>
+                <div style="color:#8f8f8f">→ tool call</div>
                 <div style="color:#bcfc07">sluice.subscribe_to_events</div>
                 <div style="color:#ccc">{</div>
                 <div style="color:#ccc">&nbsp;&nbsp;<span style="color:#bcfc07">predicate_json</span>: <span style="color:#80cbc4">{ and: [</span></div>
@@ -860,7 +862,7 @@
                 <div style="color:#ccc">}</div>
               </div>
               <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
-                <div style="color:#666">← result</div>
+                <div style="color:#8f8f8f">← result</div>
                 <div style="color:#ccc"><span style="color:#bcfc07">tx_hash:</span> <a href="https://testnet.cspr.live/transaction/4d454d87eb6c0cfbbd1ec4caf9b3cfe2698aba02445fec016dd8a7c88aac4567" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">4d454d87…aac4567</a></div>
                 <div style="color:#ccc"><span style="color:#bcfc07">subscription_id:</span> <span style="color:#80cbc4">4</span> · 10 CSPR escrowed</div>
               </div>
@@ -877,12 +879,12 @@
             <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
               All five matched. Webhook returned 200 every time, average latency 111 ms from block landing to POST.
               <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
-                <div style="color:#666">→ tool call</div>
+                <div style="color:#8f8f8f">→ tool call</div>
                 <div style="color:#bcfc07">sluice.recent_deliveries</div>
                 <div style="color:#ccc">{ limit: 5 }</div>
               </div>
               <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
-                <div style="color:#666">← result · 5 deliveries</div>
+                <div style="color:#8f8f8f">← result · 5 deliveries</div>
                 <div style="color:#3edc64">sub_3 · 200 · 105 ms · tx <a href="https://testnet.cspr.live/transaction/4287a5196a8741406098815688dc2dce63424ca1e28512c3f629f1a304672911" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">4287a519…672911</a></div>
                 <div style="color:#3edc64">sub_3 · 200 · 112 ms · tx <a href="https://testnet.cspr.live/transaction/bddc9211b25939582eda547f939bd50eda4e403687c7c549d41ecc075c495aa7" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">bddc9211…c495aa7</a></div>
                 <div style="color:#3edc64">sub_3 · 200 · &nbsp;98 ms · tx <a href="https://testnet.cspr.live/transaction/b9c841032e1f9ff6a54ed8c3596994d0f0b042205c3329ab81bcd8f873391b7a" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">b9c84103…3391b7a</a></div>
@@ -894,7 +896,7 @@
           </div>
         </div>
 
-        <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
+        <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#8f8f8f;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
           <span>↑ REAL TRANSCRIPT · ALL TX-HASHES CLICKABLE</span>
           <span style="flex:1"></span>
           <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971?tab=events" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:none">EVENTS ON CSPR.LIVE ↗</a>
@@ -918,7 +920,7 @@
         <div style="background:#000;border:1px solid #000;box-shadow:8px 8px 0 #bcfc07;overflow:hidden">
           <div style="display:flex;align-items:center;border-bottom:1px solid #222">
             <div style="display:flex;gap:5px;padding:14px 18px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
-            <div style="display:flex;font:500 12px 'JetBrains Mono';color:#666;letter-spacing:.04em">
+            <div style="display:flex;font:500 12px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.04em">
               <span style="padding:15px 18px;color:#fff;background:#1a1a1a;border-bottom:2px solid #bcfc07;margin-bottom:-1px">curl</span>
               <span style="padding:15px 18px">typescript</span>
               <span style="padding:15px 18px">rust</span>
@@ -928,7 +930,7 @@
             <div style="padding:14px 18px;font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">⧉ COPY</div>
           </div>
           <div style="padding:28px 32px;font:400 13.5px/1.75 'JetBrains Mono';color:#fff">
-            <div style="color:#666"># save a predicate, lock 10 CSPR, alert on big incoming transfers</div>
+            <div style="color:#8f8f8f"># save a predicate, lock 10 CSPR, alert on big incoming transfers</div>
             <div style="margin-top:8px"><span style="color:#bcfc07">cat</span> &gt; whale.json &lt;&lt;EOF</div>
             <div>&nbsp;{ <span style="color:#bcfc07">"and"</span>: [</div>
             <div>&nbsp;&nbsp;&nbsp;{ <span style="color:#bcfc07">"field"</span>: <span style="color:#80cbc4">"amount"</span>, <span style="color:#bcfc07">"op"</span>: <span style="color:#80cbc4">"gte"</span>, <span style="color:#bcfc07">"value"</span>: <span style="color:#80cbc4">"5000000000000"</span> },</div>
@@ -940,7 +942,7 @@
             <div>&nbsp;&nbsp;--webhook <span style="color:#80cbc4">https://webhook.site/&lt;your-id&gt;</span> \</div>
             <div>&nbsp;&nbsp;--amount <span style="color:#80cbc4">10</span> --watch</div>
             <div style="margin-top:18px;padding-top:18px;border-top:1px dashed #333">
-              <div style="color:#666"># → stdout</div>
+              <div style="color:#8f8f8f"># → stdout</div>
               <div style="color:#ccc">submitted.</div>
               <div style="color:#ccc">&nbsp;&nbsp;tx_hash: 3f9c…b801</div>
               <div style="color:#ccc">&nbsp;&nbsp;amount: 10 CSPR (10000000000 motes)</div>

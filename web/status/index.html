@@ -60,7 +60,7 @@
       <span style="font:500 18px/1 'Casper Sans',Inter;letter-spacing:-.02em">sluice</span>
     </a>
     <div style="width:1px;height:22px;background:#ccc"></div>
-    <div style="display:flex;align-items:center;font:400 14px 'Casper Sans',Inter">
+    <div style="display:flex;align-items:center;flex-wrap:wrap;font:400 14px 'Casper Sans',Inter">
       <a href="/" style="padding:8px 14px">← Landing</a>
       <a href="/app" style="padding:8px 14px">Dashboard</a>
       <a href="/feed/" style="padding:8px 14px">Live feed</a>
@@ -184,7 +184,7 @@
       `<span class="dot" style="width:11px;height:11px;border-radius:50%;background:#666"></span>` +
       `<span style="font:500 14px 'Casper Sans',Inter;flex:1">${c.name}</span>` +
       `<span class="detail" style="font:500 12px 'JetBrains Mono';color:#666">checking…</span>` +
-      `<span style="font:400 11px 'JetBrains Mono';color:#999;letter-spacing:.04em">${c.hint}</span>`;
+      `<span style="font:400 11px 'JetBrains Mono';color:#666;letter-spacing:.04em">${c.hint}</span>`;
     list.appendChild(row);
   });
 
