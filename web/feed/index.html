@@ -163,7 +163,7 @@
       $('ls-contract-events').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}?tab=events`;
       $('ls-total').textContent = subs.filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0).toLocaleString();
       $('ls-showing').textContent = events.length;
-      $('ls-active').textContent = subs.filter(s => s.active).length;
+      $('ls-active').textContent = subs.filter(s => s.active && !s.demo).length;
       const ok = events.filter(e => e.status >= 200 && e.status < 300).length;
       $('ls-success').textContent = events.length ? `${((ok / events.length) * 100).toFixed(0)}%` : '…';
       const lats = events.map(e => e.latency_ms).filter(l => Number.isFinite(l) && l > 0);

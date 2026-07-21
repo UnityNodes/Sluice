@@ -64,9 +64,9 @@
     /* main padding */
     body > div > div[style*="max-width:1440px"] { padding: 20px 14px 40px !important; }
     h1[style*="font:500 44px"] { font-size: 30px !important; }
-    /* tabs scroll horizontally */
-    .app-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .app-tab { padding: 12px 16px !important; font-size: 13px !important; white-space: nowrap; }
+    /* tabs wrap so every tab stays reachable */
+    .app-tabs { flex-wrap: wrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .app-tab { flex: 1 1 auto; justify-content: center; padding: 12px 14px !important; font-size: 13px !important; white-space: nowrap; border-bottom: 1px solid #000; }
     /* stats strip 4 → 2x2 */
     [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: repeat(2,1fr) !important; }
     [style*="grid-template-columns:repeat(4,1fr)"] [style*="font:500 40px"] { font-size: 26px !important; }

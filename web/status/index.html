@@ -260,7 +260,7 @@
 
     setOverall([api.status, snap.status, metrics.status, chain.status, wsStatus]);
 
-    $('stat-subs').textContent = snap.data ? snap.data.subscriptions.filter((s) => s.active).length : '…';
+    $('stat-subs').textContent = snap.data ? snap.data.subscriptions.filter((s) => s.active && !s.demo).length : '…';
     $('stat-deliveries').textContent = snap.data ? num(snap.data.subscriptions.filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0)) : '…';
     if (metrics.body) {
       const ok = parseMetric(metrics.body, 'sluice_webhook_results_total{result="ok"}') ?? 0;

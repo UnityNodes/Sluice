@@ -70,6 +70,7 @@ export interface ApiConfig {
   getSubscription?: (id: number) => {
     id: number; owner: string; webhook_url: string;
     balance: string; deliveries: number; active: boolean; created_at: number;
+    demo?: boolean;
   } | null;
   /** Optional delivery-rate calc for /sub/:id.ics balance-runout projection. */
   getDeliveryRate?: (id: number) => { count: number; window_seconds: number; per_day: number };
@@ -356,6 +357,7 @@ interface BadgeSpec { label: string; value: string; color: string }
  */
 function renderEmbed(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscription']>>>, contractHash: string, chain: string): string {
   const cspr = (BigInt(sub.balance) / 1_000_000_000n).toString();
+  const demo = sub.demo === true;
   const explorer = chain === 'casper-test' ? 'https://testnet.cspr.live' : 'https://cspr.live';
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   return `<!DOCTYPE html>
@@ -376,7 +378,7 @@ function renderEmbed(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubsc
   .num{font:600 28px/1 'Casper Sans',Inter,sans-serif;letter-spacing:-.02em}
   .small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#888}
   .pill{padding:2px 8px;font:600 9px 'JetBrains Mono';letter-spacing:.08em;border-radius:2px}
-  .ok{background:#3edc64;color:#000}.bad{background:#ff2d2e;color:#fff}
+  .ok{background:#3edc64;color:#000}.bad{background:#ff2d2e;color:#fff}.demo{background:#ffb347;color:#000}
 </style>
 </head><body>
 <a class="card" id="card" href="${explorer}/contract/${contractHash}" target="_blank" rel="noopener" title="Open Sluice subscription #${sub.id} on cspr.live">
@@ -386,6 +388,7 @@ function renderEmbed(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubsc
     <span class="mono small">SUB</span>
     <span class="mono" style="font-weight:600">#${sub.id}</span>
     <span style="flex:1"></span>
+    ${demo ? '<span class="pill demo" title="Simulated demo lane — no real on-chain escrow">DEMO</span>' : ''}
     <span class="pill ${sub.active ? 'ok' : 'bad'}" id="status">${sub.active ? 'ACTIVE' : 'INACTIVE'}</span>
   </div>
   <div class="row" style="gap:24px">
@@ -402,6 +405,7 @@ function renderEmbed(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubsc
     <span>${chain.toUpperCase()}</span>
     <span style="color:#444">·</span>
     <span>updated <span id="ago">just now</span></span>
+    ${demo ? '<span style="color:#444">·</span><span style="color:#ffb347">demo · simulated</span>' : ''}
     <span style="flex:1"></span>
     <span class="accent">sluice.unitynodes.com ↗</span>
   </div>
@@ -503,6 +507,7 @@ function renderOgSvg(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubsc
   const status = sub.active ? 'ACTIVE' : 'INACTIVE';
   const statusBg = sub.active ? '#3edc64' : '#ff2d2e';
   const chainBadge = chain.toUpperCase();
+  const demo = sub.demo === true;
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Sluice subscription ${sub.id}">
@@ -530,6 +535,10 @@ function renderOgSvg(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubsc
       <rect width="100" height="32" fill="${statusBg}"/>
       <text x="50" y="22" font-size="14" font-weight="600" fill="#000" text-anchor="middle" letter-spacing="2">${status}</text>
     </g>
+    ${demo ? `<g transform="translate(172, 380)">
+      <rect width="160" height="32" fill="#ffb347"/>
+      <text x="80" y="22" font-size="14" font-weight="600" fill="#000" text-anchor="middle" letter-spacing="2">DEMO · SIMULATED</text>
+    </g>` : ''}
     <g transform="translate(60, 470)">
       <text font-size="14" font-weight="500" fill="#666" letter-spacing="2">BALANCE</text>
       <text y="32" font-size="32" font-weight="500" fill="#fff">${esc(cspr)} CSPR</text>
@@ -577,6 +586,7 @@ function buildIcs(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscrip
   // Float division: integer BigInt division truncated sub-1-CSPR balances to 0,
   // which skipped the runway reminder for exactly the subs that need it.
   const balanceCspr = Number(sub.balance) / motesPerCspr;
+  const demo = sub.demo === true;
   const perDeliveryMotes = Number(process.env.SLUICE_PER_DELIVERY_MOTES ?? 500_000_000); // 0.5 CSPR
   const perDeliveryCspr = perDeliveryMotes / motesPerCspr;
   const explorer = chain === 'casper-test' ? 'https://testnet.cspr.live' : 'https://cspr.live';
@@ -587,8 +597,10 @@ function buildIcs(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscrip
   lines.push('PRODID:-//Sluice//Subscription Calendar//EN');
   lines.push('CALSCALE:GREGORIAN');
   lines.push('METHOD:PUBLISH');
-  lines.push(`X-WR-CALNAME:Sluice sub_${sub.id}`);
-  lines.push(`X-WR-CALDESC:On-chain event subscription on Casper (${chain})`);
+  lines.push(`X-WR-CALNAME:Sluice sub_${sub.id}${demo ? ' (demo)' : ''}`);
+  lines.push(`X-WR-CALDESC:${demo
+    ? `Demo lane on Casper (${chain}) — simulated deliveries, no real on-chain escrow`
+    : `On-chain event subscription on Casper (${chain})`}`);
 
   // Balance-runs-out projection, only if we have a measurable rate.
   if (rate.per_day > 0 && perDeliveryCspr > 0) {
@@ -625,8 +637,9 @@ function buildIcs(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscrip
   lines.push(`SUMMARY:${icsEscape(`Sluice sub_${sub.id}, weekly check-in`)}`);
   lines.push(`DESCRIPTION:${icsEscape(
     `Quick weekly look at subscription #${sub.id}:\n` +
+    (demo ? `• demo lane: simulated deliveries, no real on-chain escrow\n` : '') +
     `• balance: ${balanceCspr} CSPR\n` +
-    `• deliveries to date: ${sub.deliveries}\n` +
+    `• deliveries to date: ${sub.deliveries}${demo ? ' (simulated)' : ''}\n` +
     `• webhook: ${sub.webhook_url}\n` +
     `Open the dashboard: https://sluice.unitynodes.com/app`
   )}`);
@@ -635,7 +648,7 @@ function buildIcs(sub: NonNullable<ReturnType<NonNullable<ApiConfig['getSubscrip
 
   // Delivery-count milestones already crossed, fixed dates in the past so
   // calendar apps surface them as a one-tap history of the subscription.
-  for (const milestone of [100, 500, 1000, 5000, 10000]) {
+  for (const milestone of demo ? [] : [100, 500, 1000, 5000, 10000]) {
     if (sub.deliveries < milestone) continue;
     const at = new Date(sub.created_at * 1000); // approximate, we don't track exact crossing
     lines.push('BEGIN:VEVENT');

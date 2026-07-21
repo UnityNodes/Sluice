@@ -282,7 +282,7 @@
   function renderHeader() {
     const s = state.snapshot;
     const subs = s.subscriptions || [];
-    const active = subs.filter(x => x.active).length;
+    const active = subs.filter(x => x.active && !x.demo).length;
     const mine = state.wallet.connected
       ? subs.filter(x => x.owner === state.wallet.accountHash).length
       : null;
