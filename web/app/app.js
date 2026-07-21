@@ -415,7 +415,7 @@
         el('div', { style: 'margin-top:4px;color:#ccc' }, e.description || `event ${truncHash(e.event_hash || '', 6, 4)}`),
         el('div', { style: 'margin-top:4px;display:flex;justify-content:space-between;align-items:center' },
           el('span', { style: `color:${ok ? '#3edc64' : '#ff2d2e'}` },
-            ok ? `→ ${e.status} · ${e.latency_ms ?? '?'}ms` : `↻ ${e.status || 'FAIL'} · retry ${e.attempts || '?'}`,
+            ok ? `→ ${e.status} · ${e.latency_ms > 0 ? e.latency_ms + 'ms' : '—'}` : `↻ ${e.status || 'FAIL'} · retry ${e.attempts || '?'}`,
           ),
           replayBtn,
         ),
@@ -1442,7 +1442,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           return `<div style="display:grid;grid-template-columns:32px 80px 90px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid #1a1a1a">
             <span style="color:#666">#${i+1}</span>
             <span style="color:${color};font-weight:500">${Number(r.statusCode) || 'no-resp'}</span>
-            <span style="color:#fff">${Number(r.latency_ms) || 0}ms</span>
+            <span style="color:#fff">${Number(r.latency_ms) > 0 ? Number(r.latency_ms) + 'ms' : '—'}</span>
             <span style="color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${evHash}">${evHash.slice(0,16)}…</span>
           </div>`;
         }).join('');
@@ -1482,7 +1482,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#999">UTC</span></span>
         <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}</span>
         ${status}
-        <span style="color:#000">${Number(e.latency_ms) || 0}ms</span>
+        <span style="color:#000">${Number(e.latency_ms) > 0 ? Number(e.latency_ms) + 'ms' : '—'}</span>
         <span style="color:#333">${escHtml(String(e.description || '').slice(0,80))}</span>
         <span>${tx}</span>
       </div>`;
@@ -1547,7 +1547,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         <div>
           <div style="font:500 10.5px 'JetBrains Mono';color:#666;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">DELIVERY</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">status: ${Number(evt.status) || 'pending'}</div>
-          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">latency: ${Number(evt.latency_ms) || 0} ms</div>
+          <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">latency: ${Number(evt.latency_ms) > 0 ? Number(evt.latency_ms) + ' ms' : '— (pulled via x402, not a webhook dispatch)'}</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">attempts: ${Number(evt.attempts) || 1}</div>
           ${safeHash(evt.tx_hash) ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/deploy/${safeHash(evt.tx_hash)}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none">${safeHash(evt.tx_hash).slice(0,16)}…</a></div>` : ''}
         </div>
@@ -1601,7 +1601,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         card.style.cssText = "background:#fff;border:1px solid #000;padding:8px 10px;font:500 11px/1.45 'JetBrains Mono';color:#000;cursor:pointer";
         const code = Number(e.status) || 0;
         const status = code >= 200 && code < 300 ? '#3edc64' : code === 0 ? '#ffb347' : '#ff2d2e';
-        card.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:${status};color:#000;padding:1px 5px;font-size:9.5px;letter-spacing:.06em">${code || 'PEND'}</span><span style="flex:1;color:#666">${escHtml(ago)}</span><span style="color:#666">${Number(e.latency_ms) || 0}ms</span></div>` +
+        card.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:${status};color:#000;padding:1px 5px;font-size:9.5px;letter-spacing:.06em">${code || 'PEND'}</span><span style="flex:1;color:#666">${escHtml(ago)}</span><span style="color:#666">${Number(e.latency_ms) > 0 ? Number(e.latency_ms) + 'ms' : '—'}</span></div>` +
           `<div style="color:#000">${amt}</div>` +
           `<div style="color:#999;font-size:10px;margin-top:2px">→ ${fmtVal(e.event?.to_account_hash)}</div>`;
         card.addEventListener('click', () => { closeAll(); setTimeout(() => openExplain(e), 50); });

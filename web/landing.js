@@ -52,7 +52,7 @@
     const active = subs.filter(s => s.active).length;
     const ok = events.filter(e => e.status >= 200 && e.status < 300).length;
     const successPct = events.length ? (ok / events.length * 100).toFixed(1) : null;
-    const latencies = events.map(e => e.latency_ms).filter(n => typeof n === 'number');
+    const latencies = events.map(e => e.latency_ms).filter(n => typeof n === 'number' && n > 0);
     const p50 = latencies.length ? latencies.slice().sort((a, b) => a - b)[Math.floor(latencies.length / 2)] : null;
 
     if ($('ns-delivered')) $('ns-delivered').textContent = totalDeliveries.toLocaleString('en-US');
