@@ -437,20 +437,20 @@
       <div style="background:#000;color:#fff;overflow:hidden;border:1px solid #000;box-shadow:8px 8px 0 #bcfc07;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #222">
           <div style="display:flex;gap:5px"><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span><span style="width:9px;height:9px;background:#333"></span></div>
-          <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">LIVE FEED · TESTNET</div>
+          <div style="font:500 11px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.06em">LIVE FEED · TESTNET</div>
           <div style="flex:1"></div>
           <div style="display:flex;align-items:center;gap:6px;font:500 10px 'JetBrains Mono';color:#bcfc07;letter-spacing:.1em"><span style="width:6px;height:6px;background:#bcfc07;border-radius:50%;animation:pulse-dot 1.6s infinite"></span>LIVE</div>
         </div>
-        <div style="display:grid;grid-template-columns:72px 70px 1fr 88px;gap:12px;padding:10px 18px;background:#0d0d0d;font:500 9.5px 'JetBrains Mono';color:#666;letter-spacing:.1em;text-transform:uppercase">
+        <div style="display:grid;grid-template-columns:72px 70px 1fr 88px;gap:12px;padding:10px 18px;background:#0d0d0d;font:500 9.5px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.1em;text-transform:uppercase">
           <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div>
         </div>
         <div id="live-rows" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:280px">
-          <div style="padding:24px 18px;color:#666;font:400 12px 'JetBrains Mono';text-align:center">Connecting to live feed…</div>
+          <div style="padding:24px 18px;color:#8f8f8f;font:400 12px 'JetBrains Mono';text-align:center">Connecting to live feed…</div>
         </div>
         <div style="padding:12px 18px;border-top:1px solid #222;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
           <span id="hero-window">↑ ROLLING SNAPSHOT</span>
           <span style="flex:1"></span>
-          <span title="A cron fires one real DemoDex swap every hour so the public feed keeps moving. Fire your own with scripts/demo-swap.sh." style="color:#666">DEMO TRAFFIC: 1 REAL SWAP/HR</span>
+          <span title="A cron fires one real DemoDex swap every hour so the public feed keeps moving. Fire your own with scripts/demo-swap.sh." style="color:#8f8f8f">DEMO TRAFFIC: 1 REAL SWAP/HR</span>
           <a href="/app" style="color:#bcfc07;text-decoration:none">OPEN FULL FEED ↗</a>
         </div>
       </div>
@@ -461,15 +461,15 @@
   <section style="background:#000;color:#fff;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0">
       <div style="padding:32px 32px;border-right:1px solid #222">
-        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">RECORDED ON CHAIN</div>
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">RECORDED ON CHAIN</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px"><span id="ns-delivered" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span></div>
       </div>
       <div style="padding:32px 32px;border-right:1px solid #222">
-        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">ACTIVE SUBS</div>
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">ACTIVE SUBS</div>
         <div id="ns-active" style="margin-top:14px;font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</div>
       </div>
       <div style="padding:32px 32px;border-right:1px solid #222">
-        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">WEBHOOK SUCCESS</div>
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">WEBHOOK SUCCESS</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-success" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span><span id="ns-success-suffix" style="font:500 22px 'Casper Sans',Inter;color:#666"></span></div>
       </div>
       <div style="padding:32px 32px;background:#bcfc07;color:#000;position:relative;overflow:hidden">
@@ -598,16 +598,16 @@
             <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">2</span> It rejects anything without a valid signature (401), then decides.</div>
             <div style="display:flex;align-items:flex-start;gap:14px"><span style="width:18px;height:18px;background:#bcfc07;color:#000;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font:500 11px 'JetBrains Mono'">3</span> Dry-run: it logs the rebalance plan instead of moving funds.</div>
           </div>
-          <div style="margin-top:32px;font:400 12.5px/1.6 'JetBrains Mono';color:#666;letter-spacing:.02em">Live decisions: <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">GET /api/agent-log.json</code></div>
+          <div style="margin-top:32px;font:400 12.5px/1.6 'JetBrains Mono';color:#8f8f8f;letter-spacing:.02em">Live decisions: <code style="background:#1a1a1a;padding:1px 6px;color:#bcfc07">GET /api/agent-log.json</code></div>
         </div>
         <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07;min-width:0">
           <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #1a1a1a">
             <span style="font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.06em">YIELD-ROUTER · DECISION LOG</span>
             <div style="flex:1"></div>
-            <span id="agent-status" style="font:500 10px 'JetBrains Mono';color:#666;letter-spacing:.1em">CONNECTING…</span>
+            <span id="agent-status" style="font:500 10px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.1em">CONNECTING…</span>
           </div>
           <div id="agent-live" style="max-height:440px;overflow-y:auto">
-            <div style="padding:28px 20px;color:#666;font:400 13px 'Casper Sans',Inter;text-align:center">Waiting for the next swap…</div>
+            <div style="padding:28px 20px;color:#8f8f8f;font:400 13px 'Casper Sans',Inter;text-align:center">Waiting for the next swap…</div>
           </div>
         </div>
       </div>
@@ -795,7 +795,7 @@
         </div>
         <div style="margin-top:14px;background:#0d0d0d;border:1px solid #1a1a1a;padding:14px 16px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px">
-            <span id="mcp-install-hint" style="font:500 10px 'JetBrains Mono';color:#666;letter-spacing:.12em;text-transform:uppercase">Terminal · one command</span>
+            <span id="mcp-install-hint" style="font:500 10px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.12em;text-transform:uppercase">Terminal · one command</span>
             <button id="mcp-install-copy" style="background:none;border:none;color:#bcfc07;font:500 11px 'JetBrains Mono';cursor:pointer;letter-spacing:.04em;padding:0;flex-shrink:0">⧉ COPY</button>
           </div>
           <pre id="mcp-install-cmd" style="margin:0;white-space:pre-wrap;word-break:break-word;font:400 12px/1.55 'JetBrains Mono';color:#bcfc07">claude mcp add --transport http sluice https://sluice.unitynodes.com/mcp</pre>
@@ -908,9 +908,6 @@
     <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
       <div style="display:grid;grid-template-columns:.8fr 1.2fr;gap:80px;align-items:center">
         <div>
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
-            <span style="width:24px;height:1px;background:#000"></span>COPY · PASTE · SUBSCRIBE
-          </div>
           <h2 style="margin:18px 0 0;font:500 clamp(36px,4.3vw,56px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000">Create a subscription in one call.</h2>
           <p style="margin:22px 0 0;font:400 17px/1.6 'Casper Sans',Inter;color:#666">The whole API surface is small on purpose. Four endpoints, one signed deploy, one webhook contract. That's it for v0.1. Everything else is sugar in the CLI and MCP.</p>
           <div style="margin-top:36px;display:flex;flex-direction:column;gap:0;border:1px solid #000;background:#fff">
@@ -963,9 +960,6 @@
     <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
       <div style="background:#fff;border:1px solid #000;display:grid;grid-template-columns:.9fr 1.1fr;gap:0">
         <div style="padding:48px 44px;border-right:1px solid #000">
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
-            <span style="width:24px;height:1px;background:#000"></span>VERIFIABLE, NOT JUST TRUSTED
-          </div>
           <div style="margin-top:20px;font:500 clamp(30px,3.6vw,44px)/1.05 'Casper Sans',Inter;letter-spacing:-.02em;color:#000">Every delivery is a deploy on&nbsp;Casper.</div>
           <p style="margin:22px 0 0;font:400 16px/1.65 'Casper Sans',Inter;color:#666">When Sluice POSTs to your webhook and gets a 2xx, it calls <span style="font-family:'JetBrains Mono';color:#000;background:#f4f4f4;padding:2px 6px">record_delivery</span> on the escrow contract. Your bill is a sequence of on-chain receipts, not a number we made up at month-end. Pull it from cspr.live yourself if you want.</p>
           <p style="margin:14px 0 0;font:400 14px/1.6 'Casper Sans',Inter;color:#888">Rows marked <span style="font-family:'JetBrains Mono';color:#666">DELIVERED</span> are demo lanes we run for the public feed: the delivery is real, but there is no escrow to bill, so no receipt is written. Rows marked <span style="font-family:'JetBrains Mono';color:#3edc64">CONFIRMED</span> are escrow-backed and carry a real transaction hash.</p>
@@ -1008,9 +1002,6 @@
   <!-- ============ DELIVERY GUARANTEES ============ -->
   <section id="delivery" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;padding:88px 32px">
-      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#bcfc07;display:inline-flex;align-items:center;gap:10px">
-        <span style="width:24px;height:1px;background:#bcfc07"></span>DELIVERY GUARANTEES
-      </div>
       <h2 style="margin:16px 0 0;font:500 clamp(30px,3.6vw,48px)/1.05 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff;max-width:760px">Speed is half the product. Getting the event to you is the other half.</h2>
       <div style="margin-top:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #222">
         <div style="padding:26px 24px;border-right:1px solid #222">
@@ -1039,9 +1030,6 @@
     <div style="max-width:1320px;margin:0 auto;padding:96px 32px">
       <div style="display:grid;grid-template-columns:.7fr 1.3fr;gap:64px;align-items:flex-start">
         <div>
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
-            <span style="width:24px;height:1px;background:#000"></span>HONEST ABOUT V0.1
-          </div>
           <h2 style="margin:18px 0 0;font:500 clamp(36px,4.3vw,56px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000">What's here.<br/>What's not.</h2>
           <p style="margin:22px 0 0;font:400 16px/1.6 'Casper Sans',Inter;color:#666">Sluice is testnet-only and intentionally small. You'll hit limits. They're documented, not hidden. Roadmap is public; vote with usage.</p>
         </div>
@@ -1090,9 +1078,6 @@
     <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 22px,rgba(0,0,0,.03) 22px,rgba(0,0,0,.03) 24px);pointer-events:none"></div>
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px;display:grid;grid-template-columns:1.4fr 1fr;gap:48px;align-items:center;position:relative">
       <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.16em;text-transform:uppercase;color:#000;display:inline-flex;align-items:center;gap:10px">
-          <span style="width:24px;height:1px;background:#000"></span>FREE ON TESTNET
-        </div>
         <h2 style="margin:20px 0 0;font:500 clamp(44px,6.5vw,88px)/.98 'Casper Sans',Inter;letter-spacing:-.035em;color:#000">Subscribe to your first Casper event today.</h2>
         <p style="margin:24px 0 0;font:400 18px/1.55 'Casper Sans',Inter;color:#000;max-width:560px;opacity:.75">Lock CSPR with the CLI (or via any MCP client), paste a webhook URL, then matched events start landing immediately. Cancel anytime from the CLI or any MCP client; remaining CSPR refunds on-chain.</p>
       </div>
@@ -1116,7 +1101,7 @@
         <div id="footer-status" style="margin-top:24px;display:inline-flex;align-items:center;gap:8px;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.06em;background:#1a1a1a;padding:6px 10px;border:1px solid #222"><span id="footer-status-dot" style="width:7px;height:7px;background:#3edc64;border-radius:50%;animation:pulse-green 2s infinite"></span>CHECKING STATUS…</div>
       </div>
       <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">PRODUCT</div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">PRODUCT</div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
           <a href="/app" style="text-decoration:none;color:inherit">App</a>
           <a href="/demo" style="text-decoration:none;color:inherit">Demo video</a>
@@ -1126,7 +1111,7 @@
         </div>
       </div>
       <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">BUILD</div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">BUILD</div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
           <a href="https://github.com/UnityNodes/Sluice#readme" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Docs ↗</a>
           <a href="https://github.com/UnityNodes/Sluice/tree/main/matcher/src/predicate.ts" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Predicate ref ↗</a>
@@ -1137,7 +1122,7 @@
         </div>
       </div>
       <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">ECOSYSTEM</div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">ECOSYSTEM</div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
           <a href="https://casper.network" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">Casper Network ↗</a>
           <a href="https://cspr.cloud" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">CSPR.cloud ↗</a>
@@ -1146,7 +1131,7 @@
         </div>
       </div>
       <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">TALK</div>
+        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">TALK</div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;font:400 14px 'Casper Sans',Inter;color:#ccc">
           <a href="https://x.com/UnityNodes" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">X / Twitter ↗</a>
           <a href="https://github.com/UnityNodes/Sluice" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">GitHub</a>

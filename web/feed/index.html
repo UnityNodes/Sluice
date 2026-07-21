@@ -125,6 +125,16 @@
 <script>
 (() => {
   'use strict';
+  (function () {
+    var css = '@media (max-width:880px){'
+      + '.feed-grid{grid-template-columns:70px 1fr 90px !important;gap:8px !important;font-size:10px !important;padding-left:14px !important;padding-right:14px !important}'
+      + '.feed-grid>div{min-width:0;overflow-wrap:anywhere}'
+      + '.feed-grid>div:nth-child(2),.feed-grid>div:nth-child(5),.feed-grid>div:nth-child(6),.feed-grid>div:nth-child(7){display:none !important}'
+      + '}';
+    var s = document.createElement('style');
+    s.textContent = css;
+    (document.head || document.documentElement).appendChild(s);
+  })();
   const $ = (id) => document.getElementById(id);
   const seen = new Set();
   const fmtRel = (iso) => {

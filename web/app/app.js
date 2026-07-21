@@ -8,6 +8,18 @@
  *      Stored-target serialisation bug (HONEST_LIMITS §9).
  */
 
+(function () {
+  var css = '@media (max-width:880px){'
+    + '#onboard-strip{grid-template-columns:1fr !important}'
+    + '.subs-grid{grid-template-columns:1fr !important;gap:4px 0 !important;font-size:12px !important;padding:14px 16px !important;align-items:start !important}'
+    + '.subs-grid>div{min-width:0;overflow-wrap:anywhere;text-align:left !important;justify-content:flex-start !important}'
+    + '.subs-grid>div:nth-child(3),.subs-grid>div:nth-child(5){display:none !important}'
+    + '}';
+  var s = document.createElement('style');
+  s.textContent = css;
+  (document.head || document.documentElement).appendChild(s);
+})();
+
 (() => {
   'use strict';
 
@@ -1266,6 +1278,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       const ok = pbEvalFull(predicate, PB_REFERENCE);
       verdict.textContent = ok ? '✓ MATCHES' : '✕ NO MATCH';
       verdict.style.background = ok ? '#3edc64' : '#ff2d2e';
+      verdict.style.color = ok ? '#00330f' : '#fff';
     }
     pbRenderDiff();
   }
@@ -1364,7 +1377,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           }
           pbAdoptPredicate(j.predicate);
           pbRender();
-          aiStatus.style.color = '#3edc64';
+          aiStatus.style.color = '#1a7f37';
           aiStatus.textContent = '✓ ' + (j.understood || []).slice(0,2).join(' · ') + (j.unknown && j.unknown.length ? '  (ignored: ' + j.unknown.length + ')' : '');
         } catch (e) {
           aiStatus.style.color = '#ff2d2e';
@@ -1632,7 +1645,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           <span style="color:#666;font-weight:400">${g.parent}</span>
         </div>
         ${g.steps.map((s) => {
-          const glyph = s.pass ? '<span style="color:#3edc64;font:500 14px \'JetBrains Mono\'">✓</span>' : '<span style="color:#ff2d2e;font:500 14px \'JetBrains Mono\'">✗</span>';
+          const glyph = s.pass ? '<span style="color:#1a7f37;font:500 14px \'JetBrains Mono\'">✓</span>' : '<span style="color:#ff2d2e;font:500 14px \'JetBrains Mono\'">✗</span>';
           const bg = s.pass ? '#fff' : '#fff8f8';
           return `<div style="display:grid;grid-template-columns:24px 170px 70px 1fr;gap:12px;padding:10px 14px;border-top:1px solid #eee;align-items:baseline;background:${bg}">
             ${glyph}
