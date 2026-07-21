@@ -294,7 +294,7 @@ export class Matcher {
         contract_hash: this.cfg.contractHash,
         chain: this.cfg.chainName,
         updated_at: new Date().toISOString(),
-        subscriptions: subs,
+        subscriptions: subs.map((s) => (this.cfg.demoSubs?.has(s.id) ? { ...s, demo: true } : s)),
         recent_events: this.recentEvents.slice(0, Matcher.MAX_RECENT),
       };
       try {

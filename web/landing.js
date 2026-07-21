@@ -215,7 +215,7 @@
       a.href = e.tx_hash ? `https://testnet.cspr.live/transaction/${e.tx_hash}` : `https://testnet.cspr.live/contract-package/${contractHash}?tab=events`;
       a.target = '_blank';
       a.rel = 'noopener';
-      a.setAttribute('style', 'font:500 14px JetBrains Mono;color:#4589f6;text-decoration:none');
+      a.setAttribute('style', 'font:500 14px JetBrains Mono;color:#1a56c4;text-decoration:none');
       a.textContent = e.tx_hash ? trunc(e.tx_hash, 4, 4) : 'demo lane, no escrow to bill';
       mid.appendChild(a);
       mid.appendChild(document.createTextNode(` · sub_${String(e.subscription_id).padStart(4, '0')}`));

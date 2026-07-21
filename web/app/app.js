@@ -290,7 +290,7 @@
 
   function renderStats() {
     const subs = state.snapshot.subscriptions || [];
-    const totalEscrow = subs.reduce((a, s) => a + motesToCspr(s.balance), 0);
+    const totalEscrow = subs.filter(s => !s.demo).reduce((a, s) => a + motesToCspr(s.balance), 0);
     const totalDeliveries = subs.reduce((a, s) => a + (s.deliveries || 0), 0);
     const active = subs.filter(s => s.active).length;
     const deliveryCost = motesToCspr(state.snapshot.delivery_unit_cost || '1000000000');
@@ -360,7 +360,10 @@
       class: 'subs-grid',
       style: `display:grid;grid-template-columns:84px 1.8fr 1.3fr 100px 90px 110px;gap:14px;padding:16px 22px;border-bottom:1px solid #ccc;align-items:center;font:400 13.5px Casper Sans,Inter;color:#000${isMine ? ';background:#f6ffd6' : ''}`,
     },
-      el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' }, `sub_${String(s.id).padStart(4, '0')}`),
+      el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' },
+        `sub_${String(s.id).padStart(4, '0')}`,
+        s.demo ? el('span', { title: 'Injected demo lane, no on-chain escrow', style: 'display:block;margin-top:5px;width:fit-content;font:500 9px JetBrains Mono;background:#e9e9e9;color:#555;padding:2px 6px;letter-spacing:.08em' }, 'DEMO LANE') : null,
+      ),
       el('div', {},
         el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' }, predicateSummaryNode(s.predicate)),
         el('div', { style: 'margin-top:6px;font:500 11px JetBrains Mono;color:#666;letter-spacing:.04em' },
@@ -374,7 +377,7 @@
         }, s.webhook_url || ''),
       ),
       el('div', { style: 'text-align:right' },
-        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, fmtCsprNum(motesToCspr(s.balance))),
+        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, s.demo ? '—' : fmtCsprNum(motesToCspr(s.balance))),
         el('div', { style: 'font:400 11px JetBrains Mono;color:#666' }, 'CSPR'),
       ),
       el('div', { style: 'text-align:right;font:500 14px JetBrains Mono;color:#000' }, String(s.deliveries)),
@@ -394,7 +397,7 @@
     const list = $('#activity-list');
     list.innerHTML = '';
     if (events.length === 0) {
-      list.appendChild(el('div', { style: 'padding:24px 16px;color:#666;font:400 12px JetBrains Mono;text-align:center' }, 'No deliveries yet · waiting for matches'));
+      list.appendChild(el('div', { style: 'padding:24px 16px;color:#8f8f8f;font:400 12px JetBrains Mono;text-align:center' }, 'No deliveries yet · waiting for matches'));
       return;
     }
     for (const e of events.slice(0, 6)) {
@@ -407,7 +410,7 @@
       list.appendChild(el('div', { style: 'padding:13px 16px;border-bottom:1px solid #1a1a1a' },
         el('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' },
           el('span', { style: 'color:#fff;font-weight:500' }, `sub_${String(e.subscription_id).padStart(4, '0')}`),
-          el('span', { style: 'color:#666' }, fmtRelative(e.timestamp)),
+          el('span', { style: 'color:#8f8f8f' }, fmtRelative(e.timestamp)),
         ),
         el('div', { style: 'margin-top:4px;color:#ccc' }, e.description || `event ${truncHash(e.event_hash || '', 6, 4)}`),
         el('div', { style: 'margin-top:4px;display:flex;justify-content:space-between;align-items:center' },
@@ -1470,7 +1473,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         : code >= 200 && code < 300 ? `<span style="background:#3edc64;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`
         : `<span style="background:#ff2d2e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`;
       const hash = safeHash(e.tx_hash);
-      const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#999">…</span>';
+      const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#999">…</span>';
       return `<div data-act-idx="${i}" class="act-row" title="Click to see condition-by-condition why this matched" style="display:grid;grid-template-columns:130px 70px 70px 80px 1fr 220px;gap:14px;padding:14px 22px;border-bottom:1px solid #eee;align-items:center;font:400 12.5px 'JetBrains Mono';cursor:pointer">
         <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#999">UTC</span></span>
         <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}</span>
@@ -1542,7 +1545,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">status: ${Number(evt.status) || 'pending'}</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">latency: ${Number(evt.latency_ms) || 0} ms</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">attempts: ${Number(evt.attempts) || 1}</div>
-          ${safeHash(evt.tx_hash) ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/deploy/${safeHash(evt.tx_hash)}" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">${safeHash(evt.tx_hash).slice(0,16)}…</a></div>` : ''}
+          ${safeHash(evt.tx_hash) ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/deploy/${safeHash(evt.tx_hash)}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none">${safeHash(evt.tx_hash).slice(0,16)}…</a></div>` : ''}
         </div>
       </div>
       <div id="explain-body" style="padding:24px;min-height:240px;font:400 14px 'Casper Sans',Inter;color:#666;border-right:1px solid #ddd">running predicate/explain…</div>

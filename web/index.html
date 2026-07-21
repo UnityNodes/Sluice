@@ -449,10 +449,10 @@
         <div id="live-rows" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:280px">
           <div style="padding:24px 18px;color:#8f8f8f;font:400 12px 'JetBrains Mono';text-align:center">Connecting to live feed…</div>
         </div>
-        <div style="padding:12px 18px;border-top:1px solid #222;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
+        <div style="padding:12px 18px;border-top:1px solid #222;font:500 11px 'JetBrains Mono';color:#8f8f8f;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
           <span id="hero-window">↑ ROLLING SNAPSHOT</span>
           <span style="flex:1"></span>
-          <span title="A cron fires one real DemoDex swap every hour so the public feed keeps moving. Fire your own with scripts/demo-swap.sh." style="color:#8f8f8f">DEMO TRAFFIC: 1 REAL SWAP/HR</span>
+          <span title="A cron fires one real DemoDex swap every 15 minutes so the public feed keeps moving. Fire your own with scripts/demo-swap.sh." style="color:#8f8f8f">DEMO TRAFFIC: 1 REAL SWAP / 15 MIN</span>
           <a href="/app" style="color:#bcfc07;text-decoration:none">OPEN FULL FEED ↗</a>
         </div>
       </div>
@@ -472,7 +472,7 @@
       </div>
       <div style="padding:32px 32px;border-right:1px solid #222">
         <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">WEBHOOK SUCCESS</div>
-        <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-success" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span><span id="ns-success-suffix" style="font:500 22px 'Casper Sans',Inter;color:#666"></span></div>
+        <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-success" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span><span id="ns-success-suffix" style="font:500 22px 'Casper Sans',Inter;color:#8f8f8f"></span></div>
       </div>
       <div style="padding:32px 32px;background:#bcfc07;color:#000;position:relative;overflow:hidden">
         <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">P50 LATENCY · EVT → POST</div>
@@ -970,31 +970,7 @@
         <div style="background:#fafafa;padding:36px 44px">
           <div style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">Last 5 deliveries</div>
           <div id="live-deploys" style="margin-top:20px">
-            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
-              <div style="font:500 12px 'JetBrains Mono';color:#666">JUST NOW</div>
-              <div><span style="font:500 14px 'JetBrains Mono';color:#1a56c4">3f9c…b801</span> · sub_4f29</div>
-              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
-            </div>
-            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
-              <div style="font:500 12px 'JetBrains Mono';color:#666">8S AGO</div>
-              <div><span style="font:500 14px 'JetBrains Mono';color:#1a56c4">a017…44e2</span> · sub_8b11</div>
-              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
-            </div>
-            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
-              <div style="font:500 12px 'JetBrains Mono';color:#666">14S AGO</div>
-              <div><span style="font:500 14px 'JetBrains Mono';color:#1a56c4">d2a4…9912</span> · sub_2a07</div>
-              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
-            </div>
-            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;border-bottom:1px solid #ccc;align-items:center;font:400 14px;color:#000">
-              <div style="font:500 12px 'JetBrains Mono';color:#666">22S AGO</div>
-              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">8b30…71f0</span> · sub_4f29</div>
-              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
-            </div>
-            <div style="display:grid;grid-template-columns:80px 1fr 100px;gap:14px;padding:14px 0;align-items:center;font:400 14px;color:#000">
-              <div style="font:500 12px 'JetBrains Mono';color:#666">34S AGO</div>
-              <div><span style="font:500 14px 'JetBrains Mono';color:#4589f6">c61f…0204</span> · sub_8b11</div>
-              <div style="text-align:right;font:500 11px 'JetBrains Mono';color:#3edc64;letter-spacing:.04em">✓ CONFIRMED</div>
-            </div>
+            <div style="padding:22px 0;font:400 13px 'JetBrains Mono';color:#666">Loading on-chain receipts from the matcher…</div>
           </div>
         </div>
       </div>
@@ -1143,7 +1119,7 @@
       </div>
     </div>
     <div style="border-top:1px solid #222">
-      <div style="max-width:1320px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;font:500 11.5px 'JetBrains Mono';color:#666;letter-spacing:.06em">
+      <div style="max-width:1320px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;font:500 11.5px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.06em">
         <span>© 2026 SLUICE · TESTNET PREVIEW · BUILT FOR THE CASPER ECOSYSTEM</span>
         <span style="flex:1"></span>
         <a href="https://github.com/UnityNodes/Sluice/blob/main/LICENSE" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">MIT LICENSE ↗</a>
