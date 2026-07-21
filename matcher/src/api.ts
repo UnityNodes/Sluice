@@ -299,6 +299,8 @@ function renderPromMetrics(snap: NonNullable<ReturnType<NonNullable<ApiConfig['g
   out.push('# HELP sluice_validation_buffer_size Number of events currently in the dry-run validation ring buffer.');
   out.push('# TYPE sluice_validation_buffer_size gauge');
   line('sluice_validation_buffer_size', snap.validationBufferSize);
+  out.push('# HELP sluice_validation_buffer_seeded Whether the dry-run validation buffer has been seeded with at least one real event (1) or not (0).');
+  out.push('# TYPE sluice_validation_buffer_seeded gauge');
   line('sluice_validation_buffer_seeded', snap.validationBufferSeeded);
 
   out.push('# HELP sluice_uptime_seconds Seconds since matcher start.');

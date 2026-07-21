@@ -254,7 +254,7 @@
       </div>
 
       <div style="padding:24px 26px;border-right:1px solid #000">
-        <div title="Total events successfully POSTed to a subscriber webhook. Escrow-backed lanes also write an on-chain record_delivery receipt; demo lanes do not." style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">EVENTS DELIVERED</div>
+        <div title="Escrow-backed deliveries recorded on-chain via record_delivery. Demo lanes also POST but write no receipt, so they are excluded from this count." style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">EVENTS DELIVERED</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px">
           <span id="stat-deliveries" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
           <span id="stat-deliveries-trend" style="font:500 12px 'JetBrains Mono';color:#3edc64"></span>
@@ -455,7 +455,7 @@
 
         <div style="background:#000;color:#fff;border:1px solid #000">
           <div style="padding:14px 18px;border-bottom:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#bcfc07;letter-spacing:.08em">DISPATCH RESULTS</div>
-          <div id="sb-results" style="padding:18px 22px;font:500 12px 'JetBrains Mono';color:#666;min-height:280px">Configure a webhook URL and click ▶ Fire. Results show up here as the matcher POSTs.</div>
+          <div id="sb-results" style="padding:18px 22px;font:500 12px 'JetBrains Mono';color:#8f8f8f;min-height:280px">Configure a webhook URL and click ▶ Fire. Results show up here as the matcher POSTs.</div>
         </div>
 
       </div>
@@ -478,7 +478,7 @@
   </div>
 </div>
 
-<script src="/app/app.js?v=40"></script>
+<script src="/app/app.js?v=41"></script>
 
 </body>
 </html>

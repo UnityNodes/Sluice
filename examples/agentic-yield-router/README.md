@@ -180,7 +180,7 @@ Point your MCP client at the Casper MCP Server and CSPR.trade MCP, drop the thre
 
 ## Files
 
-- `live-agent.cjs` — long-running service that subscribes to the live matcher and logs decisions for the site (see "Running live" above).
+- `live-agent.cjs`: long-running service that subscribes to the live matcher and logs decisions for the site (see "Running live" above).
 
 | File          | What it is                                                                 |
 | ------------- | ------------------------------------------------------------------------- |

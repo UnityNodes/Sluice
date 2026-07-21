@@ -14,7 +14,7 @@
 <meta property="og:image" content="https://sluice.unitynodes.com/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Sluice: Casper events, the moment they land. Push delivery to a webhook, an AI agent over MCP, or a dashboard, in a median of about 140 milliseconds on testnet.">
+<meta property="og:image:alt" content="Sluice: Casper events, the moment they land. Push delivery to a webhook, an AI agent over MCP, or a dashboard, with a median webhook dispatch under 150 milliseconds on testnet.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Sluice · Casper events, the moment they land">
 <meta name="twitter:description" content="Push delivery to your webhook, your AI agent over MCP, or your dashboard over WebSocket. Median webhook dispatch under ~150 ms on testnet. No polling, no indexer.">
@@ -483,7 +483,7 @@
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-success" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#fff">…</span><span id="ns-success-suffix" style="font:500 22px 'Casper Sans',Inter;color:#8f8f8f"></span></div>
       </div>
       <div style="padding:32px 32px;background:#bcfc07;color:#000;position:relative;overflow:hidden">
-        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">P50 LATENCY · EVT → POST</div>
+        <div style="font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#000;text-transform:uppercase">P50 · WEBHOOK DISPATCH (MATCH → POST)</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:6px"><span id="ns-latency" style="font:500 44px/.95 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span><span id="ns-latency-suffix" style="font:500 22px 'Casper Sans',Inter;color:#000">ms</span></div>
       </div>
     </div>
@@ -539,7 +539,7 @@
             <div><span style="color:#bcfc07">POST</span> /cspr-hook</div>
             <div style="color:#666">X-Sluice-Idempotency-Key: 8a3f…</div>
             <div style="color:#666">X-Sluice-Sub-Id: sub_4f29c1a8</div>
-            <div style="margin-top:8px;color:#3edc64">↳ 200 OK · 142ms</div>
+            <div style="margin-top:8px;color:#3edc64">↳ 200 OK · webhook dispatch &lt; 150ms</div>
             <div style="margin-top:4px;color:#666;font-size:11px">↳ record_delivery on-chain ✓</div>
           </div>
         </div>
@@ -857,7 +857,7 @@
           <div style="display:flex;gap:14px">
             <div style="flex-shrink:0;font:500 10.5px 'JetBrains Mono';color:#3edc64;letter-spacing:.08em;width:60px;padding-top:3px">CLAUDE</div>
             <div style="flex:1;font:400 14.5px/1.55 'Casper Sans',Inter;color:#ccc">
-              Sub <span style="font-family:'JetBrains Mono';color:#fff">#3</span> already watches your address with the same rule and has 6 CSPR left. I'll create a fresh one anyway with 10 CSPR locked, per your spec.
+              Sub <span style="font-family:'JetBrains Mono';color:#fff">#3</span> already watches your address with the same rule. I'll top it up with 10 CSPR so it keeps delivering, per your spec.
               <div style="margin-top:14px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
                 <div style="color:#8f8f8f">→ tool call</div>
                 <div style="color:#bcfc07">sluice.subscribe_to_events</div>
@@ -872,7 +872,7 @@
               <div style="margin-top:8px;background:#000;border:1px solid #222;padding:12px 14px;font:400 11.5px/1.55 'JetBrains Mono'">
                 <div style="color:#8f8f8f">← result</div>
                 <div style="color:#ccc"><span style="color:#bcfc07">tx_hash:</span> <a href="https://testnet.cspr.live/transaction/4d454d87eb6c0cfbbd1ec4caf9b3cfe2698aba02445fec016dd8a7c88aac4567" target="_blank" rel="noopener" style="color:#4589f6;text-decoration:none">4d454d87…aac4567</a></div>
-                <div style="color:#ccc"><span style="color:#bcfc07">subscription_id:</span> <span style="color:#80cbc4">3</span> · 10 CSPR escrowed</div>
+                <div style="color:#ccc"><span style="color:#bcfc07">subscription_id:</span> <span style="color:#80cbc4">3</span> · 10 CSPR added</div>
               </div>
             </div>
           </div>
@@ -905,7 +905,7 @@
         </div>
 
         <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#8f8f8f;display:flex;align-items:center;gap:10px;letter-spacing:.04em">
-          <span>↑ REPLAYED SESSION · EVERY TX-HASH IS A REAL ON-CHAIN DEPLOY</span>
+          <span>↑ REPLAYED SESSION · EVERY TX-HASH IS A REAL ON-CHAIN TRANSACTION</span>
           <span style="flex:1"></span>
           <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971?tab=events" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:none">EVENTS ON CSPR.LIVE ↗</a>
         </div>
@@ -1162,6 +1162,6 @@
   </div>
 </div>
 
-<script src="/landing.js?v=37"></script>
+<script src="/landing.js?v=38"></script>
 </body>
 </html>

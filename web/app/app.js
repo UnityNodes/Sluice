@@ -1431,7 +1431,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       const predicate = SANDBOX_PREDICATES[rec.value] ?? null;
       const count = Number(cnt.value);
       const prev = fire.textContent; fire.disabled = true; fire.textContent = '… firing';
-      out.innerHTML = '<div style="color:#666">… dispatching, hold on …</div>';
+      out.innerHTML = '<div style="color:#8f8f8f">… dispatching, hold on …</div>';
       try {
         const r = await fetch('/api/sandbox/dispatch', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ webhook: fullUrl, predicate, count }) });
         const j = await r.json();
@@ -1440,7 +1440,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           const color = r.ok ? '#3edc64' : '#ff8a65';
           const evHash = safeHash(r.event_hash);
           return `<div style="display:grid;grid-template-columns:32px 80px 90px 1fr;gap:10px;padding:6px 0;border-bottom:1px solid #1a1a1a">
-            <span style="color:#666">#${i+1}</span>
+            <span style="color:#8f8f8f">#${i+1}</span>
             <span style="color:${color};font-weight:500">${Number(r.statusCode) || 'no-resp'}</span>
             <span style="color:#fff">${Number(r.latency_ms) > 0 ? Number(r.latency_ms) + 'ms' : '—'}</span>
             <span style="color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${evHash}">${evHash.slice(0,16)}…</span>
@@ -1451,9 +1451,9 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         const peekLink = slug
           ? `<div style="margin-top:8px;color:#bcfc07;font:500 11px 'JetBrains Mono';letter-spacing:.04em">↳ peek the requests: <a href="/h/${slug}" target="_blank" style="color:#bcfc07;text-decoration:underline">/h/${slug}</a></div>`
           : '';
-        out.innerHTML = `<div style="color:#bcfc07;font:500 12px 'JetBrains Mono';margin-bottom:10px">${Number(j.delivered) || 0}/${Number(j.requested) || 0} delivered · ${Number(j.matched_in_buffer) || 0} matched buffer · ${j.used_synthetic ? 'synthetic top-up used' : 'all real events'}</div>${rows}${peekLink}<div style="margin-top:12px;color:#666;font:500 11px 'JetBrains Mono';letter-spacing:.06em">NO CSPR SPENT · NO ON-CHAIN RECORD · SUB ID = 0</div>`;
+        out.innerHTML = `<div style="color:#bcfc07;font:500 12px 'JetBrains Mono';margin-bottom:10px">${Number(j.delivered) || 0}/${Number(j.requested) || 0} delivered · ${Number(j.matched_in_buffer) || 0} matched buffer · ${j.used_synthetic ? 'synthetic top-up used' : 'all real events'}</div>${rows}${peekLink}<div style="margin-top:12px;color:#8f8f8f;font:500 11px 'JetBrains Mono';letter-spacing:.06em">NO CSPR SPENT · NO ON-CHAIN RECORD · SUB ID = 0</div>`;
       } catch (e) {
-        out.innerHTML = `<div style="color:#c81d1e">sandbox failed: ${escHtml(e.message || e)}</div>`;
+        out.innerHTML = `<div style="color:#ff2d2e">sandbox failed: ${escHtml(e.message || e)}</div>`;
       } finally {
         fire.disabled = false; fire.textContent = prev;
       }
@@ -1477,9 +1477,9 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         : code >= 200 && code < 300 ? `<span style="background:#3edc64;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`
         : `<span style="background:#c81d1e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`;
       const hash = safeHash(e.tx_hash);
-      const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#999">…</span>';
+      const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#666">…</span>';
       return `<div data-act-idx="${i}" class="act-row" title="Click to see condition-by-condition why this matched" style="display:grid;grid-template-columns:130px 70px 70px 80px 1fr 220px;gap:14px;padding:14px 22px;border-bottom:1px solid #eee;align-items:center;font:400 12.5px 'JetBrains Mono';cursor:pointer">
-        <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#999">UTC</span></span>
+        <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#666">UTC</span></span>
         <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}</span>
         ${status}
         <span style="color:#000">${Number(e.latency_ms) > 0 ? Number(e.latency_ms) + 'ms' : '—'}</span>
@@ -1561,7 +1561,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     </div>`;
     document.getElementById('explain-close').addEventListener('click', closeAll);
     if (!sub || !sub.predicate) {
-      document.getElementById('explain-body').innerHTML = '<div style="color:#ff2d2e;font:500 12px \'JetBrains Mono\'">subscription ' + (Number(evt.subscription_id) || 0) + ' no longer in matcher view, cannot resolve predicate</div>';
+      document.getElementById('explain-body').innerHTML = '<div style="color:#c81d1e;font:500 12px \'JetBrains Mono\'">subscription ' + (Number(evt.subscription_id) || 0) + ' is not a stored subscription in the matcher view (e.g. an x402 pull lane or an expired sub), so there is no stored predicate to explain</div>';
       return;
     }
     fetch('/api/predicate/explain', {
@@ -1572,10 +1572,10 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       .then(({ ok, j }) => {
         const body = document.getElementById('explain-body');
         if (!body) return;
-        if (!ok) { body.innerHTML = '<div style="color:#ff2d2e;font:500 12px \'JetBrains Mono\'">explain HTTP error: ' + escHtml(j.error || JSON.stringify(j)) + '</div>'; return; }
+        if (!ok) { body.innerHTML = '<div style="color:#c81d1e;font:500 12px \'JetBrains Mono\'">explain HTTP error: ' + escHtml(j.error || JSON.stringify(j)) + '</div>'; return; }
         body.innerHTML = renderExplain(j);
       })
-      .catch((e) => { const body = document.getElementById('explain-body'); if (body) body.innerHTML = '<div style="color:#ff2d2e">' + escHtml(e.message || String(e)) + '</div>'; });
+      .catch((e) => { const body = document.getElementById('explain-body'); if (body) body.innerHTML = '<div style="color:#c81d1e">' + escHtml(e.message || String(e)) + '</div>'; });
 
     // Connect to /api/stream for live "MORE LIKE THIS" deliveries
     try {
@@ -1603,7 +1603,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         const status = code >= 200 && code < 300 ? '#3edc64' : code === 0 ? '#ffb347' : '#ff2d2e';
         card.innerHTML = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="background:${status};color:#000;padding:1px 5px;font-size:9.5px;letter-spacing:.06em">${code || 'PEND'}</span><span style="flex:1;color:#666">${escHtml(ago)}</span><span style="color:#666">${Number(e.latency_ms) > 0 ? Number(e.latency_ms) + 'ms' : '—'}</span></div>` +
           `<div style="color:#000">${amt}</div>` +
-          `<div style="color:#999;font-size:10px;margin-top:2px">→ ${fmtVal(e.event?.to_account_hash)}</div>`;
+          `<div style="color:#666;font-size:10px;margin-top:2px">→ ${fmtVal(e.event?.to_account_hash)}</div>`;
         card.addEventListener('click', () => { closeAll(); setTimeout(() => openExplain(e), 50); });
         // animate in
         card.style.opacity = '0';
@@ -1616,7 +1616,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       });
     } catch (e) {
       const list = document.getElementById('explain-live-list');
-      if (list) list.innerHTML = '<div style="color:#ff2d2e;font:500 11px \'JetBrains Mono\'">WS unavailable: ' + escHtml((e && e.message) || String(e)) + '</div>';
+      if (list) list.innerHTML = '<div style="color:#c81d1e;font:500 11px \'JetBrains Mono\'">WS unavailable: ' + escHtml((e && e.message) || String(e)) + '</div>';
     }
   }
   function renderExplain(j) {
@@ -1652,7 +1652,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
             ${glyph}
             <span style="font:500 12.5px 'JetBrains Mono';color:#000">${escHtml(s.field)}</span>
             <span style="font:500 11px 'JetBrains Mono';color:#bcfc07;background:#000;padding:2px 7px;display:inline-block;width:fit-content;letter-spacing:.06em;text-transform:uppercase">${escHtml(s.op)}</span>
-            <span style="font:400 12.5px/1.5 'JetBrains Mono';color:#333;overflow-wrap:anywhere">${fmtVal(s.actual, s.field)} <span style="color:#999">vs</span> ${fmtVal(s.expected, s.field)}</span>
+            <span style="font:400 12.5px/1.5 'JetBrains Mono';color:#333;overflow-wrap:anywhere">${fmtVal(s.actual, s.field)} <span style="color:#666">vs</span> ${fmtVal(s.expected, s.field)}</span>
           </div>`;
         }).join('')}
       </div>`;

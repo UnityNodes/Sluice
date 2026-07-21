@@ -791,7 +791,7 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
 
     function renderError(msg) {
       out.style.display = 'block';
-      out.innerHTML = `<div style="background:#fff4f4;border:1px solid #ff2d2e;color:#ff2d2e;padding:10px 14px;font:500 12.5px 'JetBrains Mono';letter-spacing:.02em">${escHeroHtml(msg)}</div>`;
+      out.innerHTML = `<div style="background:#fff4f4;border:1px solid #c81d1e;color:#c81d1e;padding:10px 14px;font:500 12.5px 'JetBrains Mono';letter-spacing:.02em">${escHeroHtml(msg)}</div>`;
     }
     async function runHeroDryRun(predicate) {
       const el = $('hero-ai-dryrun');
@@ -804,7 +804,7 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
         });
         const j = await r.json();
         if (!r.ok) {
-          el.innerHTML = `<span style="color:#ff2d2e">dry-run failed: ${escHeroHtml(j.error || ('HTTP ' + r.status))}</span>`;
+          el.innerHTML = `<span style="color:#c81d1e">dry-run failed: ${escHeroHtml(j.error || ('HTTP ' + r.status))}</span>`;
           return;
         }
         const { matches, total_scanned, time_window_seconds, estimated_per_day, sample_matches, source } = j;
@@ -816,8 +816,8 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
                           : source === 'mixed' ? '<span style="background:#ffb347;color:#000;padding:1px 6px;font-size:9.5px;letter-spacing:.08em">MIXED</span>'
                           : '<span style="background:#ccc;color:#000;padding:1px 6px;font-size:9.5px;letter-spacing:.08em">SAMPLE</span>';
         const headline = matches === 0
-          ? `<span style="color:#ff2d2e">⚠</span> 0 matches in last ${total_scanned} events (${windowLabel})${perDay}, predicate may be too strict`
-          : `<span style="color:#3edc64">✓</span> <span style="color:#000">${matches} of ${total_scanned}</span> events matched (last ${windowLabel})${perDay}`;
+          ? `<span style="color:#c81d1e">⚠</span> 0 matches in last ${total_scanned} events (${windowLabel})${perDay}, predicate may be too strict`
+          : `<span style="color:#1a7f37">✓</span> <span style="color:#000">${matches} of ${total_scanned}</span> events matched (last ${windowLabel})${perDay}`;
         let sampleHtml = '';
         if (matches > 0 && Array.isArray(sample_matches) && sample_matches.length) {
           const items = sample_matches.slice(0, 3).map((ev) => {
@@ -825,13 +825,13 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
             const to = (ev.to_account_hash || '').slice(0, 8) + '…';
             const ago = ev.timestamp ? (() => { const dt = Math.max(0, Date.now() - new Date(ev.timestamp).getTime()); if (dt < 60000) return Math.floor(dt/1000)+'s ago'; if (dt < 3600000) return Math.floor(dt/60000)+'m ago'; return Math.floor(dt/3600000)+'h ago'; })() : '';
             const blk = ev.block_height ? `block ${ev.block_height.toLocaleString('en-US')}` : '';
-            return `<div style="display:flex;gap:10px;padding:6px 0;border-top:1px dashed #ddd;font:400 11.5px 'JetBrains Mono';color:#333"><span style="color:#666;min-width:80px">${escHeroHtml(ago)}</span><span style="color:#000;min-width:120px;text-align:right">${amt}</span><span style="color:#666;min-width:100px">→ ${escHeroHtml(to)}</span><span style="color:#999">${escHeroHtml(blk)}</span></div>`;
+            return `<div style="display:flex;gap:10px;padding:6px 0;border-top:1px dashed #ddd;font:400 11.5px 'JetBrains Mono';color:#333"><span style="color:#666;min-width:80px">${escHeroHtml(ago)}</span><span style="color:#000;min-width:120px;text-align:right">${amt}</span><span style="color:#666;min-width:100px">→ ${escHeroHtml(to)}</span><span style="color:#666">${escHeroHtml(blk)}</span></div>`;
           }).join('');
           sampleHtml = `<div style="margin-top:8px">${items}</div>`;
         }
         el.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><span style="font:500 10.5px 'JetBrains Mono';color:#666;letter-spacing:.1em">DRY-RUN</span>${sourceBadge}<span style="color:#000;font-weight:400;letter-spacing:0;font-size:12px">${headline}</span></div>${sampleHtml}`;
       } catch (e) {
-        el.innerHTML = `<span style="color:#999">dry-run unavailable: ${escHeroHtml((e && e.message) || String(e))}</span>`;
+        el.innerHTML = `<span style="color:#666">dry-run unavailable: ${escHeroHtml((e && e.message) || String(e))}</span>`;
       }
     }
     function renderCond(c) {
@@ -1187,7 +1187,7 @@ pip install sluice-client`) +
           const html = await steps[idx].run();
           stage.innerHTML = html;
         } catch (e) {
-          stage.innerHTML = `<div style="color:#ff2d2e;font:400 13px 'JetBrains Mono'">step ${idx + 1} failed: ${escHtml((e && e.message) || String(e))}</div>`;
+          stage.innerHTML = `<div style="color:#c81d1e;font:400 13px 'JetBrains Mono'">step ${idx + 1} failed: ${escHtml((e && e.message) || String(e))}</div>`;
         }
       }
       function schedule() {

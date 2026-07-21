@@ -28,8 +28,9 @@ curl -s https://sluice.unitynodes.com/api/snapshot.json | head -c 400
 ```
 
 The `recent_events` array holds the last 20 real deliveries. Each entry carries
-the on-chain `deploy_hash`, the `block_height`, the webhook `status` (200), and
-the delivery `latency_ms`.
+the record_delivery receipt as the top-level `tx_hash`, the source swap's
+`event.deploy_hash` and `event.block_height` (nested under `event`), the webhook
+`status` (200), and the webhook dispatch `latency_ms`.
 
 Open <https://sluice.unitynodes.com/app> to see the same data rendered, with the
 watched subscriptions and their predicates.
@@ -42,7 +43,7 @@ as any other event, not replayed fixtures. Fire your own at any time with
 
 ### 3. Confirm a delivery against the chain
 
-Take any `deploy_hash` from `recent_events` and open it on the explorer:
+Take any `event.deploy_hash` (the source swap) or the top-level `tx_hash` (the record_delivery receipt) from `recent_events` and open it on the explorer:
 
 ```
 https://testnet.cspr.live/transaction/<deploy_hash>

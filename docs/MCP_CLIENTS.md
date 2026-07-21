@@ -12,7 +12,7 @@ https://sluice.unitynodes.com/mcp
 The stdio server exposes 5 tools (`subscribe_to_events`, `list_subscriptions`,
 `cancel_subscription`, `recent_deliveries`, `sluice_sandbox_dispatch`),
 4 resources, 3 resource templates, and 2 prompts. The hosted HTTP endpoint
-serves the 2 non-signing tools (`recent_deliveries`, `sluice_sandbox_dispatch`)
+serves the 2 read-only feed tools (`recent_deliveries`, `sluice_sandbox_dispatch`)
 plus the same resources and prompts; `subscribe_to_events` and
 `cancel_subscription` sign with your Casper key, so they stay stdio-only.
 
