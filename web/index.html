@@ -714,7 +714,7 @@
         .recipe-cta:hover { background:#bcfc07; color:#000; }
         .recipe-cta-label { display:inline-flex; align-items:center; gap:8px; }
         .recipe-cta-icon { width:14px; height:14px; }
-        .recipe-cta-slug { font:400 11px 'JetBrains Mono',monospace; color:#888; letter-spacing:.03em; }
+        .recipe-cta-slug { font:400 11px 'JetBrains Mono',monospace; color:#666; letter-spacing:.03em; }
         .recipe-cta:hover .recipe-cta-slug { color:#000; }
       </style>
 
@@ -756,7 +756,7 @@
         <div id="eval-mcp" role="button" tabindex="0" aria-label="Copy the hosted MCP endpoint URL" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="background:#000;color:#fff;border:1px solid #000;padding:26px 24px;display:flex;flex-direction:column;gap:12px;cursor:pointer;transition:transform .18s,box-shadow .18s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='6px 6px 0 #bcfc07'" onmouseout="this.style.transform='';this.style.boxShadow=''" onclick="(function(){var c='https://sluice.unitynodes.com/mcp';navigator.clipboard&&navigator.clipboard.writeText(c);var l=document.getElementById('eval-mcp-cta');if(l){var p=l.textContent;l.textContent='✓ Copied to clipboard';setTimeout(function(){l.textContent=p;},1500);}})()">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span class="icon-tile" style="background:#bcfc07;color:#000"><svg><use href="#icon-copy"/></svg></span>
-            <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#888">STEP 3</span>
+            <span style="font:500 10.5px 'JetBrains Mono';letter-spacing:.14em;color:#666">STEP 3</span>
           </div>
           <div style="font:500 20px 'Casper Sans',Inter;color:#fff">Add the MCP to your agent</div>
           <div style="font:400 13.5px/1.55 'Casper Sans',Inter;color:#999;flex:1">One hosted URL, zero install. Works with Claude, Cursor, Windsurf, VS Code, and any MCP client. Ask "show me the last 10 Sluice deliveries."</div>
@@ -962,7 +962,7 @@
         <div style="padding:48px 44px;border-right:1px solid #000">
           <div style="margin-top:20px;font:500 clamp(30px,3.6vw,44px)/1.05 'Casper Sans',Inter;letter-spacing:-.02em;color:#000">Every delivery is a deploy on&nbsp;Casper.</div>
           <p style="margin:22px 0 0;font:400 16px/1.65 'Casper Sans',Inter;color:#666">When Sluice POSTs to your webhook and gets a 2xx, it calls <span style="font-family:'JetBrains Mono';color:#000;background:#f4f4f4;padding:2px 6px">record_delivery</span> on the escrow contract. Your bill is a sequence of on-chain receipts, not a number we made up at month-end. Pull it from cspr.live yourself if you want.</p>
-          <p style="margin:14px 0 0;font:400 14px/1.6 'Casper Sans',Inter;color:#888">Rows marked <span style="font-family:'JetBrains Mono';color:#666">DELIVERED</span> are demo lanes we run for the public feed: the delivery is real, but there is no escrow to bill, so no receipt is written. Rows marked <span style="font-family:'JetBrains Mono';color:#3edc64">CONFIRMED</span> are escrow-backed and carry a real transaction hash.</p>
+          <p style="margin:14px 0 0;font:400 14px/1.6 'Casper Sans',Inter;color:#5a5a5a">Rows marked <span style="font-family:'JetBrains Mono';color:#5a5a5a">DELIVERED</span> are demo lanes we run for the public feed: the delivery is real, but there is no escrow to bill, so no receipt is written. Rows marked <span style="font-family:'JetBrains Mono';color:#3edc64">CONFIRMED</span> are escrow-backed and carry a real transaction hash.</p>
           <a href="https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971" target="_blank" rel="noopener" style="margin-top:30px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:500 15px 'Casper Sans',Inter;color:#000;border-bottom:1px solid #000;padding-bottom:3px">See the escrow contract on cspr.live →</a>
         </div>
         <div style="background:#fafafa;padding:36px 44px">
@@ -1021,7 +1021,7 @@
           <div style="margin-top:12px;font:400 14px/1.55 'Casper Sans',Inter;color:#ccc">Re-send recent deliveries on demand, with no new on-chain cost.</div>
         </div>
       </div>
-      <p style="margin:24px 0 0;font:400 14px/1.65 'Casper Sans',Inter;color:#888;max-width:760px">On the roadmap, and honestly not in v0.1: a durable at-least-once queue that survives a matcher restart and auto-redelivers once your endpoint recovers. That gap is the line between a demo and production, and we would rather name it than hide it.</p>
+      <p style="margin:24px 0 0;font:400 14px/1.65 'Casper Sans',Inter;color:#5a5a5a;max-width:760px">On the roadmap, and honestly not in v0.1: a durable at-least-once queue that survives a matcher restart and auto-redelivers once your endpoint recovers. That gap is the line between a demo and production, and we would rather name it than hide it.</p>
     </div>
   </section>
 

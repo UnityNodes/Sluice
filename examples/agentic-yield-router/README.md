@@ -88,8 +88,9 @@ Which path it uses depends on reachability. Set `PUBLIC_WEBHOOK_URL` to a public
 
 `live-agent.cjs` is this same agent wired to the production matcher. It is a
 real Sluice subscriber: the matcher pushes every matched DemoDex swap to its
-`/webhook`, it verifies the HMAC, reasons over the swap (heuristic, or Claude if
-`ANTHROPIC_API_KEY` is set), and appends its decision to a ring buffer the
+`/webhook`, it verifies the HMAC, reasons over the swap (heuristic by default, or
+a real model when a key is set: Groq `llama-3.3-70b-versatile`, any
+OpenAI-compatible endpoint, or Claude), and appends its decision to a ring buffer the
 landing page reads.
 
 ```bash
