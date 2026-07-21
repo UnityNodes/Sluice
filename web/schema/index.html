@@ -29,7 +29,7 @@
 
   <div class="schemas">
     <h2>predicate-v1.json</h2>
-    <p>The current stable predicate format, AND-of-conditions with 12 operators. <a href="/schema/predicate-v1.json">View JSON</a></p>
+    <p>The current stable predicate format: a top-level <code>and</code> of nodes, where each node is a leaf condition or a nested <code>and</code> / <code>or</code> group (up to 4 levels), with 12 operators. <a href="/schema/predicate-v1.json">View JSON</a></p>
     <pre>{
   "$schema": "https://sluice.unitynodes.com/schema/predicate-v1.json",
   "and": [

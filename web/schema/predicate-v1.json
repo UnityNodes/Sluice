@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://sluice.unitynodes.com/schema/predicate-v1.json",
   "title": "Sluice Predicate v1",
-  "description": "AND-of-conditions filter applied to every Casper Transfer event on the network. When all conditions match, Sluice POSTs the full event to the subscription's webhook URL. Reference this schema in your editor for autocompletion: add a top-level \"$schema\": \"https://sluice.unitynodes.com/schema/predicate-v1.json\" to any predicate.json.",
+  "description": "Boolean filter applied to every Casper Transfer event on the network. The top level is an \"and\" array of nodes; each node is either a leaf condition ({field, op, value}) or a nested group ({\"and\": [...]} / {\"or\": [...]}). Groups may nest up to 4 levels deep, with 32 leaf conditions total. When the tree evaluates true, Sluice POSTs the full event to the subscription's webhook URL. Reference this schema in your editor for autocompletion: add a top-level \"$schema\": \"https://sluice.unitynodes.com/schema/predicate-v1.json\" to any predicate.json.",
   "type": "object",
   "required": ["and"],
   "additionalProperties": true,
@@ -15,11 +15,47 @@
       "type": "array",
       "minItems": 1,
       "maxItems": 32,
-      "description": "Every condition must match. OR semantics are not yet supported in v1, file an issue at github.com/UnityNodes/Sluice if you need them.",
-      "items": { "$ref": "#/$defs/condition" }
+      "description": "Every node must match (logical AND). A node is a leaf condition or a nested { \"and\": [...] } / { \"or\": [...] } group.",
+      "items": { "$ref": "#/$defs/node" }
     }
   },
   "$defs": {
+    "node": {
+      "description": "A predicate node: a leaf condition, or a nested and/or group.",
+      "oneOf": [
+        { "$ref": "#/$defs/condition" },
+        { "$ref": "#/$defs/andGroup" },
+        { "$ref": "#/$defs/orGroup" }
+      ]
+    },
+    "andGroup": {
+      "type": "object",
+      "required": ["and"],
+      "additionalProperties": false,
+      "description": "Nested AND group. Every child node must match.",
+      "properties": {
+        "and": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/node" }
+        }
+      }
+    },
+    "orGroup": {
+      "type": "object",
+      "required": ["or"],
+      "additionalProperties": false,
+      "description": "Nested OR group. At least one child node must match.",
+      "properties": {
+        "or": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/node" }
+        }
+      }
+    },
     "condition": {
       "type": "object",
       "required": ["field", "op", "value"],
@@ -90,8 +126,13 @@
     },
     {
       "and": [
-        { "field": "initiator_account_hash", "op": "in", "value": ["aabb…", "ccdd…"] },
-        { "field": "amount", "op": "gt", "value": "100000000000" }
+        { "field": "amount", "op": "gt", "value": "100000000000" },
+        {
+          "or": [
+            { "field": "initiator_account_hash", "op": "in", "value": ["aabb…", "ccdd…"] },
+            { "field": "to_account_hash", "op": "eq", "value": "eeff…" }
+          ]
+        }
       ]
     }
   ]
