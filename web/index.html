@@ -386,9 +386,6 @@
   <section style="border-bottom:1px solid #000;background:#f4f4f4;position:relative;overflow:hidden">
     <div style="max-width:1320px;margin:0 auto;padding:88px 32px 96px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:64px;align-items:end;position:relative;z-index:2">
       <div style="min-width:0">
-        <div style="display:inline-flex;align-items:center;gap:14px;font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
-          01 &nbsp;·&nbsp; The event layer for Casper
-        </div>
         <h1 style="margin:28px 0 0;font:500 clamp(44px,7.4vw,104px)/.96 'Casper Sans',Inter;letter-spacing:-.035em;color:#000;overflow-wrap:normal;word-break:keep-all;hyphens:none">
           <span style="white-space:nowrap">Casper events,</span><br/>
           the moment <span style="background:#bcfc07;padding:0 .12em;display:inline-block;line-height:.95">they land.</span>
@@ -487,9 +484,6 @@
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
       <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:64px">
         <div>
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
-            02 &nbsp;·&nbsp;How it works
-          </div>
           <h2 style="margin:18px 0 0;font:500 clamp(40px,5.4vw,72px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">One escrow. One predicate.<br/>Every matching event, delivered.</h2>
         </div>
         <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">No polling. No chain indexer to operate. No glue code per integration. Sluice replaces ~600 lines of bespoke event-listener plumbing with one signed deploy.</p>
@@ -546,9 +540,6 @@
   <!-- ============ TWO AUDIENCES ============ -->
   <section id="agents" data-reveal style="background:#f4f4f4;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
-      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666;margin-bottom:24px">
-        03 &nbsp;·&nbsp;Built for two audiences
-      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
         <!-- Developer card -->
         <div style="background:#fff;border:1px solid #000;padding:44px 40px;position:relative">
@@ -596,12 +587,10 @@
   <!-- ============ LIVE AGENT ============ -->
   <section id="live-agent" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
-      <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#bcfc07;margin-bottom:24px;display:flex;align-items:center;gap:12px">
-        <span id="agent-pulse" style="width:9px;height:9px;background:#3edc64;border-radius:50%;box-shadow:0 0 0 0 rgba(62,220,100,.6);animation:pulse-green 2s infinite"></span>
-        04 &nbsp;·&nbsp;An agent, reacting live
-      </div>
+
       <div class="agent-grid" style="display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:56px;align-items:start">
         <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px"><span id="agent-pulse" style="width:9px;height:9px;background:#3edc64;border-radius:50%;box-shadow:0 0 0 0 rgba(62,220,100,.6);animation:pulse-green 2s infinite"></span><span style="font:500 12px 'Casper Sans',Inter;color:#3edc64;letter-spacing:.02em">Live now</span></div>
           <h2 style="margin:0;font:500 clamp(34px,4.4vw,56px)/1.03 'Casper Sans',Inter;letter-spacing:-.03em;color:#fff;max-width:460px">Not a mock. A real agent on the other end of the feed.</h2>
           <p style="margin:22px 0 0;font:400 16.5px/1.65 'Casper Sans',Inter;color:#999;max-width:460px">The autonomous yield-router from <code style="font-family:'JetBrains Mono';background:rgba(188,252,7,.15);color:#bcfc07;padding:1px 6px">examples/agentic-yield-router</code> is a live Sluice subscriber. Every DemoDex swap you see in the feed is also pushed to it. It verifies the HMAC signature, reasons over the swap, and decides whether to rebalance, with zero human in the loop. What you see on the right is its real decision log, updating as swaps land.</p>
           <div style="margin-top:34px;display:flex;flex-direction:column;gap:14px;font:400 14.5px/1.5 'Casper Sans',Inter;color:#ccc">
@@ -630,9 +619,6 @@
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
       <div style="display:flex;align-items:flex-end;gap:48px;flex-wrap:wrap;margin-bottom:48px">
         <div>
-          <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#666">
-            05 &nbsp;·&nbsp;Recipes · DeFi, RWA, and agent triggers
-          </div>
           <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#000;max-width:780px">Four triggers. Four copy-paste lines.</h2>
         </div>
         <p style="margin:0 0 12px;font:400 16px/1.6 'Casper Sans',Inter;color:#666;max-width:380px">Each recipe is a working predicate for a real DeFi, RWA, or agent use case. Swap the address or threshold, paste your webhook, lock CSPR. Point it at an agent and the match becomes an autonomous action.</p>
@@ -797,9 +783,6 @@
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px;display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);gap:64px;align-items:start">
       <!-- LEFT, copy/explanation -->
       <div>
-        <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#888">
-          06 &nbsp;·&nbsp;Watch the agent
-        </div>
         <h2 style="margin:18px 0 0;font:500 clamp(36px,4.6vw,60px)/1.02 'Casper Sans',Inter;letter-spacing:-.03em;color:#fff;max-width:520px">Any MCP client drives Sluice in natural language.</h2>
         <p style="margin:22px 0 0;font:400 17px/1.65 'Casper Sans',Inter;color:#999;max-width:440px">MCP is an open standard, so this is not a Claude-only trick. One hosted URL plugs Sluice into Claude, Cursor, Windsurf, Cline, VS Code, or anything that speaks MCP. The hosted endpoint needs no key and serves two tools, four resources and two prompts: read matched deliveries and fire a sandbox event. Subscribing and cancelling sign a transaction, so those two tools live in the stdio server you install locally. Five tools in total.</p>
         <div id="mcp-clients" style="margin-top:32px;display:flex;flex-wrap:wrap;gap:8px">
@@ -1208,6 +1191,6 @@
   </div>
 </div>
 
-<script src="/landing.js?v=34"></script>
+<script src="/landing.js?v=35"></script>
 </body>
 </html>
