@@ -225,7 +225,9 @@
       // response is a failure.
       const delivered = e.status >= 200 && e.status < 300;
       const onChain = delivered && !!e.tx_hash;
-      const colour = !delivered ? '#ff2d2e' : onChain ? '#3edc64' : '#666';
+      // Darker green/red than the on-black brand colors: this block sits on a
+      // light background where #3edc64 is only 1.7:1 and #ff2d2e is 3.7:1.
+      const colour = !delivered ? '#c81d1e' : onChain ? '#1a7f37' : '#5a5a5a';
       const label = !delivered ? '✕ FAILED' : onChain ? '✓ CONFIRMED' : '✓ DELIVERED';
       const status = document.createElement('div');
       status.setAttribute('style', `text-align:right;font:500 11px JetBrains Mono;color:${colour};letter-spacing:.04em`);
@@ -1016,9 +1018,12 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
       amt.textContent = `${Number(d.amount_cspr || 0).toLocaleString('en-US')} CSPR`;
       top.appendChild(amt);
       if (d.swap) {
+        // d.swap is "TOKEN_IN → TOKEN_OUT"; the amount already carries the CSPR
+        // unit, so show only the destination to avoid "700,000 CSPR CSPR → USDC".
+        const dest = String(d.swap).split('→').pop().trim();
         const sw = document.createElement('span');
-        sw.setAttribute('style', "font:400 12px 'JetBrains Mono';color:#888");
-        sw.textContent = String(d.swap);
+        sw.setAttribute('style', "font:400 12px 'JetBrains Mono';color:#8a8a8a");
+        sw.textContent = dest ? `→ ${dest}` : String(d.swap);
         top.appendChild(sw);
       }
       const vb = document.createElement('span');
@@ -1031,7 +1036,7 @@ sluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --
       reason.textContent = String(d.reason || '');
       wrap.appendChild(reason);
       const meta = document.createElement('div');
-      meta.setAttribute('style', "margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;font:400 11px 'JetBrains Mono';color:#666");
+      meta.setAttribute('style', "margin-top:8px;display:flex;gap:12px;flex-wrap:wrap;font:400 11px 'JetBrains Mono';color:#8a8a8a");
       const by = document.createElement('span');
       by.textContent = `decided by ${String(d.decided_by || 'heuristic')}`;
       meta.appendChild(by);

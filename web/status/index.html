@@ -47,6 +47,8 @@
     [style*="font:500 30px"], [style*="font:500 28px"], [style*="font:500 36px"] { font-size: 22px !important; }
     [style*="grid-template-columns:1fr 320px"], [style*="grid-template-columns:1fr 340px"] { grid-template-columns: 1fr !important; gap: 18px !important; }
   }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #bcfc07; outline-offset: 2px; box-shadow: 0 0 0 1px #000; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } [data-reveal] { opacity: 1 !important; transform: none !important; } }
 </style>
 </head>
 <body>

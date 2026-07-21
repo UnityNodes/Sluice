@@ -153,7 +153,9 @@
   }
   /* keyboard focus needs a visible ring even where inline styles set outline:none */
   input:focus-visible, textarea:focus-visible { outline: 3px solid #bcfc07 !important; outline-offset: 1px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } [data-reveal] { opacity: 1 !important; transform: none !important; } }
 </style>
+<noscript><style>[data-reveal]{opacity:1 !important;transform:none !important}</style></noscript>
 </head>
 <body>
 
@@ -595,7 +597,7 @@
   <section id="live-agent" data-reveal style="background:#000;color:#fff;border-bottom:1px solid #000">
     <div style="max-width:1320px;margin:0 auto;padding:120px 32px 96px">
       <div style="font:500 11px 'JetBrains Mono';letter-spacing:.24em;text-transform:uppercase;color:#bcfc07;margin-bottom:24px;display:flex;align-items:center;gap:12px">
-        <span id="agent-pulse" style="width:9px;height:9px;background:#3edc64;border-radius:50%;box-shadow:0 0 0 0 rgba(62,220,100,.6);animation:pulse-acc 2s infinite"></span>
+        <span id="agent-pulse" style="width:9px;height:9px;background:#3edc64;border-radius:50%;box-shadow:0 0 0 0 rgba(62,220,100,.6);animation:pulse-green 2s infinite"></span>
         04 &nbsp;·&nbsp;An agent, reacting live
       </div>
       <div class="agent-grid" style="display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:56px;align-items:start">
@@ -1206,6 +1208,6 @@
   </div>
 </div>
 
-<script src="/landing.js?v=33"></script>
+<script src="/landing.js?v=34"></script>
 </body>
 </html>

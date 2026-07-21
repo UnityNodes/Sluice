@@ -84,6 +84,7 @@
     .wrap { padding: 0 16px; }
     nav .wrap { padding: 10px 16px !important; }
   }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } [data-reveal] { opacity: 1 !important; transform: none !important; } }
 </style>
 </head>
 <body>

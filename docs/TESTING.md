@@ -35,7 +35,7 @@ Open <https://sluice.unitynodes.com/app> to see the same data rendered, with the
 watched subscriptions and their predicates.
 
 Where the traffic comes from: a cron on our side fires one real `swap` on the
-DemoDex contract every hour, so the public feed keeps moving between judging
+DemoDex contract every 15 minutes, so the public feed keeps moving between judging
 sessions. Those are genuine on-chain transactions, matched by the same engine
 as any other event, not replayed fixtures. Fire your own at any time with
 `scripts/demo-swap.sh` (Part 3) and watch it land.
@@ -105,7 +105,7 @@ cd Sluice
 cd matcher
 npm ci
 npm run lint      # tsc --noEmit
-npm test          # 103 tests
+npm test          # 104 tests
 npm run build
 
 cd ../mcp
@@ -117,7 +117,7 @@ cargo check
 cargo test        # 6 tests
 ```
 
-Expected: 103 matcher tests and 6 contract tests pass, and both typecheck and
+Expected: 104 matcher tests and 6 contract tests pass, and both typecheck and
 build are clean. This is exactly what CI runs on every push
 (`.github/workflows/ci.yml`).
 

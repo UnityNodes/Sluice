@@ -58,3 +58,8 @@ web/demo/*.mp4
 *-375-*.jpeg
 app-375-*.jpeg
 land-375-*.jpeg
+
+# QA screenshots (scratch)
+/*.png
+/*.jpeg
+scratch-*.png

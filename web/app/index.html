@@ -70,6 +70,7 @@
     [style*="grid-template-columns:repeat(4,1fr)"] { grid-template-columns: repeat(2,1fr) !important; }
     [style*="grid-template-columns:repeat(4,1fr)"] [style*="font:500 40px"] { font-size: 26px !important; }
     [style*="grid-template-columns:repeat(4,1fr)"] > div { padding: 18px 16px !important; }
+    #onboard-strip { grid-template-columns: 1fr !important; }
     /* main grid table + side-rail → stack (minmax(0) so children with width:100% don't blow up the track) */
     [style*="grid-template-columns:1fr 340px"] { grid-template-columns: minmax(0,1fr) !important; gap: 18px !important; }
     /* build tab: stack builder + json */
@@ -111,8 +112,9 @@
 
   [data-reveal] { opacity:0; transform:translateY(20px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
   [data-reveal].revealed { opacity:1; transform:none; }
-  @media (prefers-reduced-motion: reduce) { [data-reveal] { opacity:1; transform:none; transition:none } }
-  </style>
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } [data-reveal] { opacity: 1 !important; transform: none !important; } }
+</style>
+<noscript><style>[data-reveal]{opacity:1 !important;transform:none !important}</style></noscript>
 </head>
 <body>
 <div id="csprclick-ui" style="display:none"></div>
@@ -476,7 +478,7 @@
   </div>
 </div>
 
-<script src="/app/app.js?v=31"></script>
+<script src="/app/app.js?v=32"></script>
 
 </body>
 </html>

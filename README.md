@@ -1,6 +1,6 @@
 # Sluice
 
-[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-109%2F109%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
+[![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-110%2F110%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
 > Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
@@ -45,7 +45,7 @@ Cancel any time. Remaining CSPR is refunded to your wallet.
 |---|---|
 | **Matcher** | Watches CSPR.cloud streaming WebSocket. Evaluates predicates. Dispatches webhooks with HMAC signature and idempotency key. Records deliveries on chain. |
 | **`sluice` CLI** | `subscribe`, `list`, `cancel`, `tail`, `watch`, `replay-last`, `sandbox`, `doctor`, `ai`, `repl`. One binary, works against any deployed contract. |
-| **MCP server (stdio)** | 5 tools, 4 resources, 2 prompts. Open standard, so any MCP client works: Claude, Cursor, Windsurf, Cline, VS Code, Codex. Built from this repo (see below); not yet published to npm. |
+| **MCP server (stdio)** | 5 tools, 4 resources, 3 resource templates, 2 prompts. Open standard, so any MCP client works: Claude, Cursor, Windsurf, Cline, VS Code, Codex. Built from this repo (see below); not yet published to npm. |
 | **Hosted MCP (HTTP)** | Zero install, one URL for any client: `https://sluice.unitynodes.com/mcp`. Exposes the 2 non-signing tools (`recent_deliveries`, `sluice_sandbox_dispatch`) plus all 4 resources, 3 resource templates and 2 prompts; `subscribe_to_events` and `cancel_subscription` stay stdio-only because they sign with your Casper key. Per-client setup in [docs/MCP_CLIENTS.md](docs/MCP_CLIENTS.md). |
 | **Web workspace** | Live subscription table, visual builder with plain-English AI parser, sandbox that fires real webhooks, rolling activity feed with click-to-explain. |
 | **Demo stack** | `./scripts/demo.sh up`. One command boots matcher, Caddy, demo webhook receiver, Prometheus, Grafana, and two pre-seeded whale subscriptions. |
@@ -218,7 +218,7 @@ Full architecture doc: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Tests
 
-- Matcher: 103 Jest tests. `cd matcher && npm test`.
+- Matcher: 104 Jest tests. `cd matcher && npm test`.
 - Contract: 6 Odra unit tests (OdraVM). `cd contract && cargo test`.
 - REST API: smoke collection in `docs/sluice.postman_collection.json`. The MCP end-to-end check is [`docs/TESTING.md`](docs/TESTING.md) step 5.
 - Predicate: unit-tested against the CSPR.cloud transfer schema in `matcher/test/predicate.test.ts`, including catastrophic-regex rejection.

@@ -27,7 +27,7 @@ Everything CI runs, you can run locally. Do this before you open a pull request.
 ```bash
 cd matcher
 npm run lint     # tsc --noEmit
-npm test         # jest, 103 tests
+npm test         # jest, 104 tests
 npm run build
 
 cd ../mcp

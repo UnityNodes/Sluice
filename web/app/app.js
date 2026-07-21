@@ -345,7 +345,7 @@
     const isMine = state.wallet.connected && s.owner === state.wallet.accountHash;
     return el('div', {
       class: 'subs-grid',
-      style: `display:grid;grid-template-columns:84px 1.8fr 1.3fr 100px 90px 110px;gap:14px;padding:16px 22px;border-bottom:1px solid #ccc;align-items:center;font:400 13.5px Casper Sans,Inter;color:#000${isMine ? ';background:linear-gradient(90deg,rgba(188,252,7,.12),rgba(188,252,7,0) 70%);border-left:3px solid #bcfc07;padding-left:19px' : ''}`,
+      style: `display:grid;grid-template-columns:84px 1.8fr 1.3fr 100px 90px 110px;gap:14px;padding:16px 22px;border-bottom:1px solid #ccc;align-items:center;font:400 13.5px Casper Sans,Inter;color:#000${isMine ? ';background:#f6ffd6' : ''}`,
     },
       el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' }, `sub_${String(s.id).padStart(4, '0')}`),
       el('div', {},
