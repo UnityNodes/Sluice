@@ -41,6 +41,7 @@
   input:focus-visible, textarea:focus-visible, select:focus-visible {
     outline: 3px solid #bcfc07 !important; outline-offset: 2px; box-shadow: 0 0 0 1px #000;
   }
+  input::placeholder, textarea::placeholder { color: #595959; opacity: 1; }
   /* App tabs */
   .app-tabs { display:flex; gap:0; border:1px solid #000; background:#fff; margin-bottom:24px; }
   .app-tab { background:#fff; color:#000; border:none; border-right:1px solid #000; padding:14px 22px; font:500 14px 'Casper Sans',Inter; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
@@ -242,6 +243,7 @@
           <span id="stat-active-count" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
           <span style="font:400 12px 'JetBrains Mono';color:#666">/ <span id="stat-active-total">…</span> TOTAL</span>
         </div>
+        <div style="margin-top:14px;font:400 12px 'JetBrains Mono';color:#666"><span id="stat-active-escrow">…</span> escrow-backed · <span id="stat-active-demo">…</span> demo</div>
       </div>
 
       <div style="padding:24px 26px;border-right:1px solid #000">
@@ -257,7 +259,7 @@
         <div title="Escrow-backed deliveries recorded on-chain via record_delivery. Demo lanes also POST but write no receipt, so they are excluded from this count." style="font:500 11px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">EVENTS DELIVERED</div>
         <div style="margin-top:14px;display:flex;align-items:baseline;gap:10px">
           <span id="stat-deliveries" style="font:500 40px/1 'Casper Sans',Inter;letter-spacing:-.025em;color:#000">…</span>
-          <span id="stat-deliveries-trend" style="font:500 12px 'JetBrains Mono';color:#3edc64"></span>
+          <span id="stat-deliveries-trend" style="font:500 12px 'JetBrains Mono';color:#1a7f37"></span>
         </div>
         <div style="margin-top:14px;font:400 12px 'JetBrains Mono';color:#666">escrow-backed lanes also write an on-chain receipt</div>
       </div>
@@ -478,7 +480,7 @@
   </div>
 </div>
 
-<script src="/app/app.js?v=41"></script>
+<script src="/app/app.js?v=42"></script>
 
 </body>
 </html>

@@ -152,7 +152,7 @@
     if (!row) return;
     const dot = row.querySelector('.dot');
     const det = row.querySelector('.detail');
-    const col = status === 'ok' ? '#3edc64' : status === 'warn' ? '#ffb347' : '#ff2d2e';
+    const col = status === 'ok' ? '#1a7f37' : status === 'warn' ? '#b25e00' : '#ff2d2e';
     dot.style.background = col;
     det.textContent = detail;
   }
@@ -166,10 +166,10 @@
       dot.style.background = '#ff2d2e';
       txt.textContent = `${fails} system${fails > 1 ? 's' : ''} down`;
     } else if (warns > 0) {
-      dot.style.background = '#ffb347';
+      dot.style.background = '#b25e00';
       txt.textContent = `${warns} degraded`;
     } else {
-      dot.style.background = '#3edc64';
+      dot.style.background = '#1a7f37';
       txt.textContent = 'All systems operational';
     }
   }
@@ -260,7 +260,7 @@
     setOverall([api.status, snap.status, metrics.status, chain.status, wsStatus]);
 
     $('stat-subs').textContent = snap.data ? snap.data.subscriptions.filter((s) => s.active).length : '…';
-    $('stat-deliveries').textContent = snap.data ? num(snap.data.subscriptions.reduce((a, s) => a + (s.deliveries || 0), 0)) : '…';
+    $('stat-deliveries').textContent = snap.data ? num(snap.data.subscriptions.filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0)) : '…';
     if (metrics.body) {
       const ok = parseMetric(metrics.body, 'sluice_webhook_results_total{result="ok"}') ?? 0;
       const fail = parseMetric(metrics.body, 'sluice_webhook_results_total{result="fail"}') ?? 0;

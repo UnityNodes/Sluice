@@ -161,7 +161,7 @@
       $('ls-contract').textContent = trunc(snap.contract_hash, 6, 4) + ' on cspr.live';
       $('ls-contract').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}`;
       $('ls-contract-events').href = `https://testnet.cspr.live/contract-package/${snap.contract_hash}?tab=events`;
-      $('ls-total').textContent = subs.reduce((a, s) => a + (s.deliveries || 0), 0).toLocaleString();
+      $('ls-total').textContent = subs.filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0).toLocaleString();
       $('ls-showing').textContent = events.length;
       $('ls-active').textContent = subs.filter(s => s.active).length;
       const ok = events.filter(e => e.status >= 200 && e.status < 300).length;

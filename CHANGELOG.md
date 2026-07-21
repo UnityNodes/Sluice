@@ -21,7 +21,7 @@ First public release. Live on Casper testnet at [sluice.unitynodes.com](https://
 ### Added: HTTP API (matcher)
 - `POST /api/health`, liveness probe
 - `GET  /api/snapshot.json`, full subs + recent_events feed
-- `GET  /api/metrics`, Prometheus exposition (9 metric families, latency histogram, WS gauges)
+- `GET  /api/metrics`, Prometheus exposition (10 metric families, latency histogram, WS gauges)
 - `GET  /api/chain/head`, Casper testnet head, cached 3s, in-flight-collapsed
 - `GET  /api/openapi.yaml`, full OpenAPI 3.1 spec for codegen
 - `POST /api/predicate/validate`, dry-run a predicate against the last-1000 recent-events ring buffer

@@ -15,6 +15,7 @@
   @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
   body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
   ::selection { background: #bcfc07; color: #000; }
+  input::placeholder, textarea::placeholder { color: #595959; opacity: 1; }
   a { color: #1a56c4; text-decoration: none; }
   a:hover { text-decoration: underline; text-decoration-color: #bcfc07; text-decoration-thickness: 2px; }
   @keyframes pulse-acc { 0%,100% { box-shadow: 0 0 0 0 rgba(188,252,7,.55); } 50% { box-shadow: 0 0 0 6px rgba(188,252,7,0); } }
@@ -76,7 +77,7 @@
     <button id="slug-use" style="background:#000;color:#fff;border:1px solid #000;padding:7px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">Use this slug</button>
     <span style="font:400 12px 'JetBrains Mono';color:#666;letter-spacing:.04em">4-64 chars · a-z 0-9 - · first-come, first-served</span>
     <div style="flex:1"></div>
-    <span id="slug-current" style="font:500 11px 'JetBrains Mono';color:#3edc64"></span>
+    <span id="slug-current" style="font:500 11px 'JetBrains Mono';color:#1a7f37"></span>
   </div>
 
   <!-- URL row -->
@@ -110,7 +111,7 @@
   <!-- Requests log -->
   <div style="margin-top:24px;background:#fff;border:1px solid #000">
     <div style="padding:14px 22px;border-bottom:1px solid #000;display:flex;align-items:center;gap:10px">
-      <span style="width:7px;height:7px;background:#3edc64;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
+      <span style="width:7px;height:7px;background:#1a7f37;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
       <div style="font:500 14px 'Casper Sans',Inter;color:#000">Incoming requests</div>
       <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">POLLED EVERY 2 SEC</div>
       <div style="flex:1"></div>

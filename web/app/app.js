@@ -298,6 +298,8 @@
 
     $('#stat-active-count').textContent = active;
     $('#stat-active-total').textContent = subs.length;
+    $('#stat-active-escrow').textContent = subs.filter(s => !s.demo && s.active).length;
+    $('#stat-active-demo').textContent = subs.filter(s => s.demo && s.active).length;
     $('#stat-escrow').textContent = totalEscrow.toLocaleString('en-US');
     $('#stat-coverage').textContent = `~ ${coverage.toLocaleString()} deliveries`;
     $('#stat-deliveries').textContent = totalDeliveries.toLocaleString('en-US');
@@ -380,7 +382,7 @@
         el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#c81d1e' : '#000'}` }, s.demo ? '—' : fmtCsprNum(motesToCspr(s.balance))),
         el('div', { style: 'font:400 11px JetBrains Mono;color:#666' }, 'CSPR'),
       ),
-      el('div', { style: 'text-align:right;font:500 14px JetBrains Mono;color:#000' }, String(s.deliveries)),
+      el('div', { style: 'text-align:right;font:500 14px JetBrains Mono;color:#000' }, s.demo ? '—' : String(s.deliveries)),
       el('div', { style: 'display:flex;justify-content:flex-end;gap:8px;align-items:center' },
         statusBadge,
         el('button', {
@@ -433,7 +435,7 @@
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
       const data = await r.json();
-      toast(`Test sent, ${data.statusCode ?? '?'} · ${data.latency_ms}ms · ${truncHash(data.webhook_url || '', 16, 8)}`, data.ok ? 'success' : 'warn');
+      toast(`Test sent, ${data.statusCode ?? '?'} · ${Number(data.latency_ms) > 0 ? data.latency_ms + 'ms' : '—'} · ${truncHash(data.webhook_url || '', 16, 8)}`, data.ok ? 'success' : 'warn');
     } catch (e) {
       toast(`Test webhook failed: ${e.message}`, 'error');
     }
@@ -452,7 +454,7 @@
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
       const data = await r.json();
-      toast(`Resent, status ${data.statusCode ?? '?'} · ${data.latency_ms}ms`, data.ok ? 'success' : 'warn');
+      toast(`Resent, status ${data.statusCode ?? '?'} · ${Number(data.latency_ms) > 0 ? data.latency_ms + 'ms' : '—'}`, data.ok ? 'success' : 'warn');
       btn.textContent = data.ok ? '✓ SENT' : '✕ FAIL';
       setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
     } catch (e) {
@@ -1477,7 +1479,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         : code >= 200 && code < 300 ? `<span style="background:#3edc64;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`
         : `<span style="background:#c81d1e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`;
       const hash = safeHash(e.tx_hash);
-      const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#666">…</span>';
+      const tx = hash ? `<a href="https://testnet.cspr.live/transaction/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#666">…</span>';
       return `<div data-act-idx="${i}" class="act-row" title="Click to see condition-by-condition why this matched" style="display:grid;grid-template-columns:130px 70px 70px 80px 1fr 220px;gap:14px;padding:14px 22px;border-bottom:1px solid #eee;align-items:center;font:400 12.5px 'JetBrains Mono';cursor:pointer">
         <span style="color:#666">${escHtml(String(e.timestamp || '').substr(11,8))} <span style="color:#666">UTC</span></span>
         <span style="color:#000;font-weight:500">sub_${Number(e.subscription_id) || 0}</span>
@@ -1549,7 +1551,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">status: ${Number(evt.status) || 'pending'}</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">latency: ${Number(evt.latency_ms) > 0 ? Number(evt.latency_ms) + ' ms' : '— (pulled via x402, not a webhook dispatch)'}</div>
           <div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">attempts: ${Number(evt.attempts) || 1}</div>
-          ${safeHash(evt.tx_hash) ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/deploy/${safeHash(evt.tx_hash)}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none">${safeHash(evt.tx_hash).slice(0,16)}…</a></div>` : ''}
+          ${safeHash(evt.tx_hash) ? `<div style="font:500 12.5px/1.6 'JetBrains Mono';color:#000">on-chain: <a href="https://testnet.cspr.live/transaction/${safeHash(evt.tx_hash)}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none">${safeHash(evt.tx_hash).slice(0,16)}…</a></div>` : ''}
         </div>
       </div>
       <div id="explain-body" style="padding:24px;min-height:240px;font:400 14px 'Casper Sans',Inter;color:#666;border-right:1px solid #ddd">running predicate/explain…</div>

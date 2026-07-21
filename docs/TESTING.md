@@ -78,7 +78,7 @@ curl -s -X POST https://sluice.unitynodes.com/mcp \
 ```
 
 Expected: HTTP 200, `content-type: text/event-stream`, and a JSON-RPC result
-naming the server. The hosted endpoint exposes the 2 non-signing tools plus 4 resources, 3 resource templates and 2 prompts; subscribe and cancel are stdio-only because they sign with your Casper key. Use
+naming the server. The hosted endpoint exposes the 2 non-signing tools plus 4 resources, 3 resource templates and 2 prompts; subscribe, cancel and list_subscriptions are stdio-only (subscribe and cancel sign with your Casper key). Use
 `recent_deliveries` to read the same feed the dashboard shows.
 
 To wire it into a client, add the URL as a Streamable HTTP MCP server.
