@@ -75,7 +75,7 @@
       <span id="ls-dot" style="width:6px;height:6px;background:#000;border-radius:50%;animation:pulse-acc 1.6s infinite"></span>
       <span id="ls-rate">LIVE</span>
     </div>
-    <div style="font:500 11px 'JetBrains Mono';color:#666;letter-spacing:.06em">SYNC: <span id="ls-sync">…</span></div>
+    <div style="font:500 11px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.06em">SYNC: <span id="ls-sync">…</span></div>
   </div>
 </nav>
 
@@ -104,19 +104,19 @@
   </div>
 
   <div style="background:#0d0d0d;border:1px solid #1a1a1a;box-shadow:8px 8px 0 #bcfc07">
-    <div class="feed-grid" style="display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#666;text-transform:uppercase">
+    <div class="feed-grid" style="display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:14px 22px;background:#000;border-bottom:1px solid #1a1a1a;font:500 10.5px 'JetBrains Mono';letter-spacing:.12em;color:#8f8f8f;text-transform:uppercase">
       <div>Time</div><div>Sub</div><div>Event</div><div style="text-align:right">Status</div><div style="text-align:right">Latency</div><div>Source tx</div><div>Receipt</div>
     </div>
     <div id="feed-body" style="font:400 12.5px/1.4 'JetBrains Mono';min-height:400px"></div>
-    <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#666;display:flex;align-items:center;gap:12px;letter-spacing:.04em">
+    <div style="padding:14px 22px;background:#000;border-top:1px solid #1a1a1a;font:500 11px 'JetBrains Mono';color:#8f8f8f;display:flex;align-items:center;gap:12px;letter-spacing:.04em">
       <span>↑ ROLLING SNAPSHOT · UP TO 20 EVENTS</span>
-      <span style="color:#666">· DEMO TRAFFIC: A CRON FIRES ONE REAL DEMODEX SWAP EVERY HOUR</span>
+      <span style="color:#8f8f8f">· DEMO TRAFFIC: A CRON FIRES ONE REAL DEMODEX SWAP EVERY HOUR</span>
       <span style="flex:1"></span>
       <a href="/api/snapshot.json" target="_blank" style="color:#bcfc07">RAW JSON ↗</a>
     </div>
   </div>
 
-  <div style="margin-top:18px;font:400 12.5px 'JetBrains Mono';color:#666;letter-spacing:.04em">
+  <div style="margin-top:18px;font:400 12.5px 'JetBrains Mono';color:#8f8f8f;letter-spacing:.04em">
     Matcher snapshot polled every 5 s. History before this matcher started isn't visible (cspr.cloud streaming is live-only), see <a href="" id="ls-contract-events" target="_blank" rel="noopener" style="color:#bcfc07">events on cspr.live</a> for the full timeline.
   </div>
 
@@ -182,7 +182,7 @@
       const body = $('feed-body');
       body.innerHTML = '';
       if (events.length === 0) {
-        body.innerHTML = '<div style="padding:48px 22px;text-align:center;color:#666;font:400 13px Casper Sans,Inter">Matcher is connected and listening · no deliveries yet · send a 2.5+ CSPR transfer to the subscriber address to trigger a match.</div>';
+        body.innerHTML = '<div style="padding:48px 22px;text-align:center;color:#8f8f8f;font:400 13px Casper Sans,Inter">Matcher is connected and listening · no deliveries yet · send a 2.5+ CSPR transfer to the subscriber address to trigger a match.</div>';
         return;
       }
       events.slice(0, 20).forEach((e, i) => {
@@ -194,7 +194,7 @@
         row.className = 'feed-grid' + (isNew && body.children.length > 0 ? ' new-row' : '');
         row.style.cssText = `display:grid;grid-template-columns:120px 90px 1fr 110px 110px 160px 160px;gap:14px;padding:13px 22px;border-bottom:1px solid #1a1a1a;align-items:center;${i > 6 ? 'opacity:0.85;' : ''}${i > 12 ? 'opacity:0.7;' : ''}`;
         const cell = (txt, style = '') => { const c = document.createElement('div'); if (style) c.setAttribute('style', style); if (typeof txt === 'string') c.textContent = txt; else c.appendChild(txt); return c; };
-        row.appendChild(cell(time, 'color:#666;font-size:11px'));
+        row.appendChild(cell(time, 'color:#8f8f8f;font-size:11px'));
         row.appendChild(cell(`sub_${String(e.subscription_id).padStart(4, '0')}`, isNew ? 'color:#bcfc07;font-weight:500' : 'color:#3edc64'));
         const desc = e.description || `event ${trunc(e.event_hash || '', 6, 4)}`;
         // Show amount if event present
@@ -217,7 +217,7 @@
           s.textContent = trunc(srcHash, 6, 6);
           row.appendChild(cell(s));
         } else {
-          row.appendChild(cell('…', 'color:#666;font-size:11px'));
+          row.appendChild(cell('…', 'color:#8f8f8f;font-size:11px'));
         }
         // Receipt: the record_delivery tx. Only escrow-backed lanes write one.
         if (e.tx_hash) {
@@ -229,7 +229,7 @@
           a.textContent = trunc(e.tx_hash, 6, 6);
           row.appendChild(cell(a));
         } else {
-          row.appendChild(cell('demo lane', 'color:#666;font-size:11px'));
+          row.appendChild(cell('demo lane', 'color:#8f8f8f;font-size:11px'));
         }
         body.appendChild(row);
       });

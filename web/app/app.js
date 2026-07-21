@@ -374,7 +374,7 @@
         }, s.webhook_url || ''),
       ),
       el('div', { style: 'text-align:right' },
-        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, !s.active ? NULL_BAL_STR : fmtCsprNum(motesToCspr(s.balance))),
+        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, fmtCsprNum(motesToCspr(s.balance))),
         el('div', { style: 'font:400 11px JetBrains Mono;color:#666' }, 'CSPR'),
       ),
       el('div', { style: 'text-align:right;font:500 14px JetBrains Mono;color:#000' }, String(s.deliveries)),
