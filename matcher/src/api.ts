@@ -444,7 +444,10 @@ function buildBadgeSpec(metric: string, snap: NonNullable<ReturnType<NonNullable
     case 'subs-active':
       return { label: 'sluice subs', value: `${snap.activeSubscriptions} active`, color: snap.activeSubscriptions > 0 ? '#3edc64' : '#999' };
     case 'deliveries':
-      return { label: 'sluice', value: `${snap.deliveriesTotal} delivered`, color: '#3edc64' };
+      // deliveriesTotal counts webhook dispatches (incl. demo + x402 pulls), not
+      // on-chain record_delivery receipts. Say "dispatched" so the badge is not
+      // read as an on-chain count (that is the /api/badge.svg "on-chain" figure).
+      return { label: 'sluice', value: `${snap.deliveriesTotal} dispatched`, color: '#3edc64' };
     case 'delivery-success': {
       const total = snap.webhookOk + snap.webhookFail;
       if (total === 0) return { label: 'webhook ok', value: 'no data', color: '#999' };

@@ -103,12 +103,13 @@
     name: 'Event',
     contract_package_hash: 'Contract',
   };
-  /* Known third-party Casper testnet contracts Sluice watches, so predicate
-   * rows show the project name instead of a bare package hash. */
+  /* Package hashes shown on the public demo feed, labelled by name instead of a
+   * bare hash. DemoDex is Sluice's own demo contract; the RWA/stablecoin entries
+   * are the demo watcher lanes (subs 101–103), not live customer subscriptions. */
   const KNOWN_CONTRACTS = {
-    '65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f': 'Wisp Dollar (stablecoin)',
-    '1d25c895320b16f37eb57b344b8b655f56c30ca6e941e903976fc0e97a803409': 'STEWARD Institutional Fund (RWA)',
-    '0d5ae3015928b0070f03b9a377cf09fa86c63f3ce86f24b357f570977b786d8d': 'Meridian RWA',
+    '65bedddde009284db1bd62614afc8bbeb405590ddec1669eca3db38b5e18810f': 'Wisp Dollar (demo)',
+    '1d25c895320b16f37eb57b344b8b655f56c30ca6e941e903976fc0e97a803409': 'STEWARD Fund RWA (demo)',
+    '0d5ae3015928b0070f03b9a377cf09fa86c63f3ce86f24b357f570977b786d8d': 'Meridian RWA (demo)',
     'ffb5a95650e034784bb8c2f2a2bd03c814f8edf9a895b10d3edd4690e907b7b7': 'DemoDex (Sluice)',
   };
   const FIELD_ICON_ID = {
@@ -198,7 +199,7 @@
     const c = $('#toasts') || document.body.appendChild(el('div', { id: 'toasts', style: 'position:fixed;right:24px;bottom:24px;z-index:1000;display:flex;flex-direction:column;gap:8px' }));
     const colors = { info: '#000', error: '#c81d1e', success: '#3edc64', warn: '#ff8a65' };
     const ink = (kind === 'success' || kind === 'warn') ? '#000' : '#fff';
-    const t = el('div', { style: `background:${colors[kind] || '#000'};color:${ink};padding:14px 18px;font:500 13px 'Casper Sans',Inter;max-width:380px;box-shadow:4px 4px 0 ${kind === 'error' ? '#000' : '#bcfc07'};border:1px solid #000` }, msg);
+    const t = el('div', { style: `background:${colors[kind] || '#000'};color:${ink};padding:14px 18px;font:500 13px 'Casper Sans',Inter;max-width:min(380px,calc(100vw - 48px));box-shadow:4px 4px 0 ${kind === 'error' ? '#000' : '#bcfc07'};border:1px solid #000` }, msg);
     c.appendChild(t);
     setTimeout(() => t.remove(), 6000);
   };
@@ -788,7 +789,11 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           }
           const tx = safeHash(j.tx);
           const explorer = 'https://testnet.cspr.live/transaction/' + tx;
-          out.innerHTML = 'Paid 0.1 WCSPR, delivered: ' + evText + (tx
+          // Show the settled amount the server actually reports, never a
+          // hardcoded figure that would silently drift if the price changes.
+          const paidAmt = j.paid_amount != null ? j.paid_amount : (j.amount != null ? j.amount : null);
+          const paidStr = paidAmt != null ? ('Paid ' + escHtml(String(paidAmt)) + ' ' + escHtml(String(j.paid_token || j.token || 'WCSPR'))) : 'Paid via x402';
+          out.innerHTML = paidStr + ', delivered: ' + evText + (tx
             ? ' · <a href="' + explorer + '" target="_blank" rel="noopener" style="color:#bcfc07;text-decoration:underline">' + tx.slice(0, 10) + '…' + tx.slice(-6) + ' on cspr.live</a>'
             : '');
         } else {

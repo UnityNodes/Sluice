@@ -2,6 +2,15 @@
 
 All notable changes to Sluice land here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Demo/synthetic lanes can no longer leak as real on-chain escrow.** Realness was derived from absence from the hand-maintained `SLUICE_DEMO_SUBS` id allowlist, so an injected lane omitted from it (e.g. the DemoDex swap feed, a placeholder-owner lane) was served with its real balance across `/api/snapshot.json`, the status badge, `/api/metrics`, `/embed`, `/og`, and `/api/sub/N.ics`. The matcher now classifies a lane as demo **by construction** — via a single `isDemoLane()` check that also treats any subscription whose owner is not a plausible on-chain account hash as demo (`looksSyntheticOwner`) — so its balance is zeroed and its deliveries excluded from every escrow/on-chain total, regardless of the allowlist. Genuine subscriptions (real account-hash owners) are unaffected. Added 8 unit tests.
+- Corrected `docs/HONEST_LIMITS.md` and `docs/TESTING.md`, which had certified the DemoDex swap lane (subscription 4) as a real escrow-backed subscription.
+- Frontend honesty: x402 card no longer hardcodes the settled `0.1 WCSPR` amount (uses the server-reported value); predicate-builder sample event relabelled from "real testnet transfer" to "illustrative fixture"; `KNOWN_CONTRACTS` demo lanes labelled `(demo)`; `deliveries` badge relabelled `dispatched` (webhook dispatches, not on-chain receipts).
+- Mobile: `/app` toast width capped to the viewport (`min(380px, 100vw - 48px)`); `/roadmap` pricing grid collapses to one column ≤720px.
+- README tests badge corrected to `118/118` (112 matcher + 6 contract).
+
 ## [0.1.0] - 2026-06-30
 
 First public release. Live on Casper testnet at [sluice.unitynodes.com](https://sluice.unitynodes.com), package contract `f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971`.

@@ -108,7 +108,7 @@ cd Sluice
 cd matcher
 npm ci
 npm run lint      # tsc --noEmit
-npm test          # 104 tests
+npm test          # 112 tests
 npm run build
 
 cd ../mcp
@@ -120,7 +120,7 @@ cargo check
 cargo test        # 6 tests
 ```
 
-Expected: 104 matcher tests and 6 contract tests pass, and both typecheck and
+Expected: 112 matcher tests and 6 contract tests pass, and both typecheck and
 build are clean. This is exactly what CI runs on every push
 (`.github/workflows/ci.yml`).
 
@@ -169,19 +169,23 @@ DeFi and RWA contracts, not only our own.
 | [`37d55534…1eb0`](https://testnet.cspr.live/transaction/37d5553425a1a2290be0b6e0b17843cc8f53a74bc77abe1ecd9b6ae975ab1eb0) | An x402 micropayment settled on-chain through the hosted facilitator. 0.1 WCSPR moved from the paying agent to the feed publisher, and the facilitator paid the gas. This is the payment that buys one matched event delivery. |
 | [`3fb89280…939efd`](https://testnet.cspr.live/transaction/3fb8928092af0f0a01716c497795ff1950a8d3eae517ddee4b3cc08eeb939efd) | A `swap` call on DemoDex at block 8453751. It emitted the CES `Swap` event (520,000 CSPR in, 518,700 CSPRX out) that Sluice matched and delivered to a webhook in 117 ms. |
 | [`f665f4f7…14b419`](https://testnet.cspr.live/transaction/f665f4f7dd5acf719ff1cb9b5763ffd80a950c7bae94a5bdb4c88e1f0414b419) | Another DemoDex `swap`, matched and delivered on the next cycle. |
-| [`67a87d6b…089b0e`](https://testnet.cspr.live/transaction/67a87d6bcd35ffb32fb1c7271a0441efef306a127dd8a178f9395f1591089b0e) | `create_subscription` for subscription 4, locking 300 CSPR of escrow. This is the subscription behind every `CONFIRMED` row on the live feed. |
 | [`67cb9683…4c7a75`](https://testnet.cspr.live/transaction/67cb968323b55b68c2b55b576d8575f04c40468768a1531c12fe6454314c7a75) | A `record_delivery` receipt: Sluice matched a swap, POSTed the webhook in 74 ms, then wrote this on-chain and decremented the escrow by 1 CSPR. Delivery and billing, end to end. |
 
 ## Which lanes are escrow-backed
 
-Subscription **4** (the DemoDex swap feed) is a real on-chain subscription with
-a funded escrow, so every one of its deliveries calls `record_delivery` and
-carries a transaction hash you can open on cspr.live. Those rows are labelled
-`CONFIRMED`.
+The genuinely escrow-backed lanes are the whale-transfer subscriptions funded
+from a real wallet (owner `ecf442…7309`). When one of those matches, the matcher
+calls `record_delivery`, decrements the on-chain escrow, and the row is labelled
+`CONFIRMED` with a transaction hash you can open on cspr.live.
 
-The remaining public lanes (the RWA watchers) are injected demo lanes with no
-escrow to bill. Their deliveries are real, but no receipt is written, so they
-are labelled `DELIVERED` rather than `CONFIRMED`. This keeps the public feed
+The DemoDex swap feed (subscription **4**) and the RWA watcher lanes are injected
+demo lanes: they use placeholder owners (`aaaa1111…`, not a real account hash)
+and hold no escrow to bill. Their deliveries are real webhook dispatches, but no
+receipt is written, so they are labelled `DELIVERED` rather than `CONFIRMED`. The
+matcher classifies these **by construction** — any subscription whose owner is
+not a plausible on-chain account hash is treated as a demo lane and its balance
+is zeroed everywhere it is shown (`looksSyntheticOwner`, `matcher/src/index.ts`),
+so a demo lane can never be presented as real escrow. This keeps the public feed
 running without spending escrow on contracts that are not ours.
 
 To see the difference yourself, compare a `CONFIRMED` row's transaction hash on

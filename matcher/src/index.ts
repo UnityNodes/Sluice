@@ -75,6 +75,37 @@ function loadConfig(): MatcherConfig {
 }
 
 /**
+ * By-construction demo detection: is this subscription's owner NOT a plausible
+ * real on-chain Casper account hash?
+ *
+ * A genuine account-hash is a 64-char lowercase-hex blake2b digest, i.e. high
+ * entropy. Seeded/injected demo lanes use hand-typed placeholder owners like
+ * `aaaa1111bbbb2222cccc3333…` (long uniform runs, near-zero entropy) that a
+ * real digest can never look like. Treating any such owner as demo makes the
+ * honesty guarantee hold by construction — a demo/synthetic lane can never leak
+ * as real escrow just because someone forgot to add its id to an allowlist —
+ * while a real owner (e.g. `ecf442b39a406ad0…`) is never misclassified.
+ *
+ * Deliberately conservative: only owners that are structurally impossible for a
+ * blake2b digest are rejected, so a real account is never demoted.
+ */
+export function looksSyntheticOwner(owner: string): boolean {
+  const hex = (owner ?? '').trim().toLowerCase();
+  // Not a well-formed account hash at all → cannot back real on-chain escrow.
+  if (!/^[0-9a-f]{64}$/.test(hex)) return true;
+  // Entropy proxy: fraction of adjacent character pairs that are identical.
+  // A blake2b digest sits near 1/16 (~6%); the placeholder lanes (runs of 4+
+  // identical chars) sit near 75%. A 30% cut cleanly separates them with an
+  // astronomically small false-positive rate on genuine hashes.
+  let repeats = 0;
+  for (let i = 1; i < hex.length; i++) if (hex[i] === hex[i - 1]) repeats++;
+  if (repeats / (hex.length - 1) > 0.3) return true;
+  // Too few distinct symbols is likewise impossible for a real digest.
+  if (new Set(hex).size < 8) return true;
+  return false;
+}
+
+/**
  * Renders a shields.io-style SVG status badge, embed in README via
  * `<img src="https://sluice.unitynodes.com/api/badge.svg">`.
  */
@@ -295,12 +326,12 @@ export class Matcher {
         chain: this.cfg.chainName,
         delivery_unit_cost: process.env.SLUICE_DELIVERY_UNIT_COST ?? '1000000000',
         updated_at: new Date().toISOString(),
-        subscriptions: subs.map((s) => (this.cfg.demoSubs?.has(s.id) ? { ...s, demo: true, balance: '0' } : s)),
+        subscriptions: subs.map((s) => (this.isDemoLane(s) ? { ...s, demo: true, balance: '0' } : s)),
         recent_events: this.recentEvents.slice(0, Matcher.MAX_RECENT),
       };
       try {
         await writeFile(this.cfg.snapshotPath, JSON.stringify(snapshot, null, 2));
-        const realSubs = subs.filter((s) => !this.cfg.demoSubs?.has(s.id));
+        const realSubs = subs.filter((s) => !this.isDemoLane(s));
         const totalDeliveries = realSubs.reduce((a, s) => a + (s.deliveries || 0), 0);
         const activeCount = realSubs.filter(s => s.active).length;
         const badge = renderBadge(activeCount, totalDeliveries, this.counters.wsTransfers);
@@ -504,9 +535,10 @@ export class Matcher {
     this.counters.deliveriesTotal++;
     log(`webhook ok sub=${sub.id} status=${webhookResult.statusCode} attempts=${webhookResult.attempts}`);
 
-    if (this.cfg.demoSubs?.has(sub.id)) {
+    if (this.isDemoLane(sub)) {
       // Off-chain demo lane: the delivery is real, but there is no on-chain
-      // subscription to bill, so skip record_delivery entirely.
+      // subscription to bill, so skip record_delivery entirely (submitting it
+      // would revert against a registry that has no such subscription).
       this.pushEvent(baseRow);
       return;
     }
@@ -541,7 +573,7 @@ export class Matcher {
   }
 
   getMetricsSnapshot(): MetricsSnapshot {
-    const demoActive = this.active.filter((s) => this.cfg.demoSubs?.has(s.id)).length;
+    const demoActive = this.active.filter((s) => this.isDemoLane(s)).length;
     const active = this.active.length - demoActive;
     return {
       ...this.counters,
@@ -615,10 +647,21 @@ export class Matcher {
     };
   }
 
+  /**
+   * Single source of truth for "this lane is not real on-chain escrow". True if
+   * the id is in the explicit demo allowlist (back-compat), the sub carries an
+   * explicit `demo` flag (provenance travels with the data), OR its owner is not
+   * a plausible on-chain account hash (by-construction backstop, so a synthetic
+   * lane can never leak as real escrow even if it is absent from the allowlist).
+   */
+  private isDemoLane(s: Subscription): boolean {
+    return Boolean(this.cfg.demoSubs?.has(s.id)) || s.demo === true || looksSyntheticOwner(s.owner);
+  }
+
   /** Look up an active subscription, used by the .ics calendar feed. */
   getActiveSubscription(id: number): Subscription | null {
     const s = this.active.find((s) => s.id === id) ?? null;
-    if (s && this.cfg.demoSubs?.has(s.id)) return { ...s, balance: '0' };
+    if (s && this.isDemoLane(s)) return { ...s, demo: true, balance: '0' };
     return s;
   }
 

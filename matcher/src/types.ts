@@ -70,6 +70,14 @@ export interface Subscription {
   deliveries: number;
   active: boolean;
   created_at: number;
+  /**
+   * Off-chain demo/injected lane with no real on-chain escrow. When true (or
+   * when the matcher derives it by construction from a non-account-hash owner),
+   * the sub is never counted as real escrow: its balance is zeroed in every
+   * public surface and record_delivery is skipped. Carried on the sub itself so
+   * provenance travels with the data, rather than in a separate id allowlist.
+   */
+  demo?: boolean;
 }
 
 export interface MatcherConfig {

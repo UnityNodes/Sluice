@@ -51,6 +51,10 @@
     .wrap { padding: 0 20px; }
     nav > div { flex-wrap: wrap !important; height: auto !important; padding: 10px 16px !important; gap: 8px 14px !important; }
     code { overflow-wrap: anywhere; }
+    /* Pricing/business-model grid: stack to one column so cells aren't cramped
+       to ~96px of text width on a phone. Matches on the inline template string. */
+    [style*="grid-template-columns:repeat(2,minmax(0,1fr))"] { grid-template-columns: 1fr !important; }
+    .wrap[style*="padding:80px 32px"] { padding: 48px 20px !important; }
   }
   a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #bcfc07; outline-offset: 2px; box-shadow: 0 0 0 1px #000; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } [data-reveal] { opacity: 1 !important; transform: none !important; } }
