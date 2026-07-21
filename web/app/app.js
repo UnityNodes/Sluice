@@ -41,6 +41,12 @@
   };
   const STORAGE_KEY = 'sluice-wallet';
   const CSPRCLICK_APP_ID = '';
+  // Single source of truth for the deployed contract-package hash: prefer the
+  // live snapshot, fall back to the last-known value until the snapshot loads.
+  // Keeps every CLI/MCP snippet pointing at the currently-deployed contract, so
+  // a redeploy can never hand users a stale SLUICE_CONTRACT_HASH.
+  const CONTRACT_HASH_FALLBACK = 'f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971';
+  const contractHash = () => (state.snapshot && state.snapshot.contract_hash) || CONTRACT_HASH_FALLBACK;
 
   /* ─────────────────── helpers ─────────────────── */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -282,8 +288,15 @@
       : null;
     $('#status-active').textContent = active;
     $('#status-sync').textContent  = `synced ${fmtRelative(s.updated_at)}${mine != null ? ` · ${mine} owned by you` : ''}`;
-    $('#contract-link').href = `https://testnet.cspr.live/contract-package/${s.contract_hash}`;
+    const cpUrl = `https://testnet.cspr.live/contract-package/${s.contract_hash}`;
+    $('#contract-link').href = cpUrl;
     $('#contract-link').textContent = `${truncHash(s.contract_hash, 6, 4)} on cspr.live`;
+    // Point the static nav + history links at the live contract too, so a
+    // redeploy can't leave them on a stale package (they keep their hardcoded
+    // href as a fallback until the first snapshot arrives).
+    const navc = document.getElementById('nav-contract-link');
+    if (navc) navc.href = cpUrl;
+    document.querySelectorAll('.contract-history-link').forEach((a) => { a.href = `${cpUrl}?tab=events`; });
   }
 
   function renderStats() {
@@ -631,7 +644,7 @@ git clone https://github.com/UnityNodes/Sluice && cd Sluice/matcher
 npm install && npm run build && npm link
 
 # 3. lock CSPR into a subscription
-export SLUICE_CONTRACT_HASH=f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971
+export SLUICE_CONTRACT_HASH=${contractHash()}
 export SLUICE_KEY=~/keys/subscriber/secret_key.pem
 sluice subscribe \\
   --predicate ./whale.json \\
@@ -669,7 +682,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     const copyBtn = el('button', { style: 'background:#bcfc07;color:#000;border:1px solid #000;padding:11px 20px;font:500 14px Casper Sans,Inter;cursor:pointer' }, '⧉ Copy CLI command');
 
     const updateCli = () => {
-      cliBox.textContent = `export SLUICE_CONTRACT_HASH=f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice top-up --id ${sub.id} --amount ${amountIn.value || '?'}`;
+      cliBox.textContent = `export SLUICE_CONTRACT_HASH=${contractHash()}\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice top-up --id ${sub.id} --amount ${amountIn.value || '?'}`;
     };
     amountIn.addEventListener('input', updateCli);
     updateCli();
@@ -695,7 +708,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
   function openCancelModal(sub) {
     const cliBox = el('pre', { style: 'margin:14px 0 0;background:#000;color:#fff;padding:14px 18px;font:400 12px JetBrains Mono;line-height:1.6;white-space:pre-wrap;word-break:break-all' });
     const copyBtn = el('button', { style: 'background:#c81d1e;color:#fff;border:1px solid #000;padding:11px 20px;font:500 14px Casper Sans,Inter;cursor:pointer' }, '⧉ Copy CLI command');
-    cliBox.textContent = `export SLUICE_CONTRACT_HASH=f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice cancel --id ${sub.id}`;
+    cliBox.textContent = `export SLUICE_CONTRACT_HASH=${contractHash()}\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice cancel --id ${sub.id}`;
     copyBtn.addEventListener('click', () => copyToClipboard(cliBox.textContent, 'Command'));
 
     const body = el('div', {},
@@ -1329,7 +1342,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     document.getElementById('pb-add').addEventListener('click', () => { pbState.rows.push({ field: 'amount', op: 'gte', value: '0' }); pbRender(); });
     document.getElementById('pb-copy').addEventListener('click', () => {
       const p = pbBuildPredicate();
-      const cli = `cat > predicate.json <<'EOF'\n${JSON.stringify(p, null, 2)}\nEOF\n\nexport SLUICE_CONTRACT_HASH=f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --amount 10 --watch`;
+      const cli = `cat > predicate.json <<'EOF'\n${JSON.stringify(p, null, 2)}\nEOF\n\nexport SLUICE_CONTRACT_HASH=${contractHash()}\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice subscribe --predicate ./predicate.json --webhook https://your.app/hook --amount 10 --watch`;
       copyToClipboard(cli, 'CLI snippet');
     });
     document.getElementById('pb-share').addEventListener('click', () => {
