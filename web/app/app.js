@@ -753,13 +753,6 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
         if (active) onAccount({ account: active });
       } catch (e) { console.warn('csprclick wiring failed', e); }
     });
-    if (!document.getElementById('csprclick-client')) {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.cspr.click/ui/v2.1.0/csprclick-client-2.1.0.js';
-      s.id = 'csprclick-client';
-      s.async = true;
-      document.head.appendChild(s);
-    }
   }
 
   // Judge-clickable live x402 payment: POST /api/x402/pay fires a real on-chain
