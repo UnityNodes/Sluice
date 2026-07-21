@@ -101,9 +101,23 @@ AGENT_DECISION_LOG=/var/www/sluice/api/agent-log.json \
 On sluice.unitynodes.com it runs as the `sluice-live-agent` systemd unit; Caddy
 proxies `/agent/*` to it, an injected subscription delivers DemoDex swaps to
 `/agent/webhook`, and the "An agent, reacting live" section of the landing polls
-`/api/agent-log.json`. It reuses `agent.js`'s decision logic verbatim; the only
-addition is normalising a contract `Swap` event into the deposit shape the
-policy reasons over.
+`/api/agent-log.json`. It reuses `agent.js`'s decision logic; the only additions
+are normalising a contract `Swap` event into the deposit shape the policy reasons
+over, and an optional LLM layer.
+
+**Optional LLM (provider-agnostic).** The heuristic runs by default (offline, no
+key). Set one of these and the agent reasons with a real model, and the decision
+log's `decided_by` shows the model name instead of `heuristic`:
+
+```bash
+GROQ_API_KEY=gsk_…            # free + fast, https://console.groq.com  (default GROQ_MODEL=llama-3.3-70b-versatile)
+# or any OpenAI-compatible endpoint:
+OPENAI_API_KEY=…  OPENAI_BASE_URL=https://api.openai.com/v1  OPENAI_MODEL=gpt-4o-mini
+# or leave both unset and agent.js falls back to ANTHROPIC_API_KEY / heuristic
+```
+
+The heuristic is always computed first as a safety net, so a provider outage
+never breaks a decision, it just keeps the deterministic verdict.
 
 ## How it works
 

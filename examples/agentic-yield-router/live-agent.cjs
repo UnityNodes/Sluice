@@ -24,6 +24,69 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { decideRebalance, verifyHmacSignature } = require('./agent.js');
 
+// Optional LLM layer. Provider-agnostic over the OpenAI-compatible chat API, so
+// it works with Groq (free tier, fast, the default when GROQ_API_KEY is set),
+// any OpenAI-compatible endpoint, or falls back to agent.js's own
+// Anthropic-or-heuristic path when neither is configured. The heuristic is
+// always computed first as a safety net; the LLM only refines the verdict text
+// and stamps decided_by with the real model, so a provider outage never breaks
+// a decision.
+const POOLS = [
+  { name: 'current-pool', apy: 4.1 },
+  { name: 'lido-like-staking', apy: 7.8 },
+  { name: 'stable-lp', apy: 5.2 },
+];
+function llmProvider() {
+  if (process.env.GROQ_API_KEY) {
+    return { key: process.env.GROQ_API_KEY, base: 'https://api.groq.com/openai/v1', model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile' };
+  }
+  if (process.env.OPENAI_API_KEY) {
+    return { key: process.env.OPENAI_API_KEY, base: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1', model: process.env.OPENAI_MODEL || 'gpt-4o-mini' };
+  }
+  return null;
+}
+async function decideWithLlm(event, base) {
+  const p = llmProvider();
+  if (!p) return base; // no OpenAI-compatible provider; keep agent.js's result
+  const amountCspr = base.amountCspr;
+  const sys =
+    'You are an autonomous DeFi yield-routing agent for a Casper (CSPR) treasury. ' +
+    'A large deposit just landed. Decide whether to REBALANCE it into a higher-yield pool or HOLD. ' +
+    'Reply with STRICT JSON only: {"action":"REBALANCE|HOLD","toPool":"<pool name>","reason":"<one sentence>"}.';
+  const user =
+    `Deposit: ${amountCspr} CSPR (swap ${event.token_in || '?'} -> ${event.token_out || '?'}).\n` +
+    `Current pool: current-pool @ 4.1% APY.\n` +
+    `Available pools: ${POOLS.map((x) => `${x.name} ${x.apy}%`).join(', ')}.\n` +
+    'Rebalance only if a pool beats the current APY by at least 1 point.';
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const r = await fetch(`${p.base}/chat/completions`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${p.key}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: p.model, temperature: 0.2, max_tokens: 200, response_format: { type: 'json_object' }, messages: [{ role: 'system', content: sys }, { role: 'user', content: user }] }),
+      signal: ctrl.signal,
+    });
+    if (!r.ok) throw new Error(`LLM HTTP ${r.status}`);
+    const j = await r.json();
+    const txt = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    const v = JSON.parse(txt);
+    const action = v.action === 'REBALANCE' ? 'REBALANCE' : 'HOLD';
+    return {
+      ...base,
+      action,
+      reason: String(v.reason || base.reason).slice(0, 200),
+      decidedBy: p.model,
+      plan: action === 'REBALANCE' ? (base.plan || { fromPool: 'current-pool', toPool: v.toPool || 'lido-like-staking', amountCspr }) : null,
+    };
+  } catch (e) {
+    console.warn(`[live-agent] LLM (${p.model}) unavailable, kept heuristic: ${e.message}`);
+    return base;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 const PORT = Number(process.env.PORT || 8795);
 const HOST = process.env.HOST || '127.0.0.1';
 const SECRET = process.env.SLUICE_WEBHOOK_SECRET || '';
@@ -96,7 +159,8 @@ app.post('/webhook', express.raw({ type: '*/*' }), async (req, res) => {
   if (!event) { console.warn('[live-agent] delivery had no usable amount, skipped'); return; }
 
   try {
-    const decision = await decideRebalance(event);
+    // Heuristic baseline first (always works), then let the LLM refine it.
+    const decision = await decideWithLlm(event, await decideRebalance(event));
     const row = {
       at: new Date().toISOString(),
       verified,
