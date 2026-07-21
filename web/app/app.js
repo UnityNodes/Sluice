@@ -199,7 +199,7 @@
   };
   const toast = (msg, kind = 'info') => {
     const c = $('#toasts') || document.body.appendChild(el('div', { id: 'toasts', style: 'position:fixed;right:24px;bottom:24px;z-index:1000;display:flex;flex-direction:column;gap:8px' }));
-    const colors = { info: '#000', error: '#ff2d2e', success: '#3edc64', warn: '#ff8a65' };
+    const colors = { info: '#000', error: '#c81d1e', success: '#3edc64', warn: '#ff8a65' };
     const ink = (kind === 'success' || kind === 'warn') ? '#000' : '#fff';
     const t = el('div', { style: `background:${colors[kind] || '#000'};color:${ink};padding:14px 18px;font:500 13px 'Casper Sans',Inter;max-width:380px;box-shadow:4px 4px 0 ${kind === 'error' ? '#000' : '#bcfc07'};border:1px solid #000` }, msg);
     c.appendChild(t);
@@ -291,7 +291,7 @@
   function renderStats() {
     const subs = state.snapshot.subscriptions || [];
     const totalEscrow = subs.filter(s => !s.demo).reduce((a, s) => a + motesToCspr(s.balance), 0);
-    const totalDeliveries = subs.reduce((a, s) => a + (s.deliveries || 0), 0);
+    const totalDeliveries = subs.filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0);
     const active = subs.filter(s => s.active).length;
     const deliveryCost = motesToCspr(state.snapshot.delivery_unit_cost || '1000000000');
     const coverage = deliveryCost > 0 ? Math.floor(totalEscrow / deliveryCost) : 0;
@@ -353,7 +353,7 @@
     const statusBadge = !s.active
       ? el('span', { style: 'font:500 10.5px JetBrains Mono;background:#fff;border:1px solid #000;color:#000;padding:2px 7px;letter-spacing:.08em' }, 'DEPLETED')
       : lowBalance
-        ? el('span', { style: 'font:500 10.5px JetBrains Mono;background:#ff2d2e;color:#fff;padding:3px 8px;letter-spacing:.08em' }, 'LOW')
+        ? el('span', { style: 'font:500 10.5px JetBrains Mono;background:#c81d1e;color:#fff;padding:3px 8px;letter-spacing:.08em' }, 'LOW')
         : el('span', { style: 'font:500 10.5px JetBrains Mono;background:#bcfc07;color:#000;padding:3px 8px;letter-spacing:.08em' }, 'ACTIVE');
     const isMine = state.wallet.connected && s.owner === state.wallet.accountHash;
     return el('div', {
@@ -377,7 +377,7 @@
         }, s.webhook_url || ''),
       ),
       el('div', { style: 'text-align:right' },
-        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#ff2d2e' : '#000'}` }, s.demo ? '—' : fmtCsprNum(motesToCspr(s.balance))),
+        el('div', { style: `font:500 14px JetBrains Mono;color:${lowBalance || !s.active ? '#c81d1e' : '#000'}` }, s.demo ? '—' : fmtCsprNum(motesToCspr(s.balance))),
         el('div', { style: 'font:400 11px JetBrains Mono;color:#666' }, 'CSPR'),
       ),
       el('div', { style: 'text-align:right;font:500 14px JetBrains Mono;color:#000' }, String(s.deliveries)),
@@ -466,7 +466,7 @@
     const tp = state.snapshot.throughput_24h;
     const totalEl = $('#tp-total');
     if (!tp || !Array.isArray(tp) || tp.length === 0) {
-      totalEl.textContent = String((state.snapshot.subscriptions || []).reduce((a, s) => a + (s.deliveries || 0), 0));
+      totalEl.textContent = String((state.snapshot.subscriptions || []).filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0));
       $('#tp-peak').textContent = ',  · waiting on timeseries';
       return;
     }
@@ -516,8 +516,12 @@
     menu.appendChild(item('Copy webhook URL', () => copyToClipboard(sub.webhook_url, 'Webhook')));
     menu.appendChild(item('Copy predicate JSON', () => copyToClipboard(JSON.stringify(sub.predicate), 'Predicate')));
     menu.appendChild(item('Send test webhook', () => sendTestWebhook(sub.id)));
-    menu.appendChild(item('Top-up CSPR…', () => openTopUpModal(sub)));
-    menu.appendChild(item('Cancel & refund…', () => openCancelModal(sub)));
+    if (sub.demo) {
+      menu.appendChild(el('div', { style: 'padding:10px 14px;font:400 12px Casper Sans,Inter;color:#666;background:#fafafa' }, 'Demo lane · no on-chain escrow to top up or refund'));
+    } else {
+      menu.appendChild(item('Top-up CSPR…', () => openTopUpModal(sub)));
+      menu.appendChild(item('Cancel & refund…', () => openCancelModal(sub)));
+    }
     document.body.appendChild(menu);
     setTimeout(() => document.addEventListener('click', function once(ev) {
       if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('click', once); }
@@ -686,7 +690,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
 
   function openCancelModal(sub) {
     const cliBox = el('pre', { style: 'margin:14px 0 0;background:#000;color:#fff;padding:14px 18px;font:400 12px JetBrains Mono;line-height:1.6;white-space:pre-wrap;word-break:break-all' });
-    const copyBtn = el('button', { style: 'background:#ff2d2e;color:#fff;border:1px solid #000;padding:11px 20px;font:500 14px Casper Sans,Inter;cursor:pointer' }, '⧉ Copy CLI command');
+    const copyBtn = el('button', { style: 'background:#c81d1e;color:#fff;border:1px solid #000;padding:11px 20px;font:500 14px Casper Sans,Inter;cursor:pointer' }, '⧉ Copy CLI command');
     cliBox.textContent = `export SLUICE_CONTRACT_HASH=f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971\nexport SLUICE_KEY=~/keys/subscriber/secret_key.pem\nsluice cancel --id ${sub.id}`;
     copyBtn.addEventListener('click', () => copyToClipboard(cliBox.textContent, 'Command'));
 
@@ -1274,7 +1278,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     if (verdict) {
       const ok = pbEvalFull(predicate, PB_REFERENCE);
       verdict.textContent = ok ? '✓ MATCHES' : '✕ NO MATCH';
-      verdict.style.background = ok ? '#3edc64' : '#ff2d2e';
+      verdict.style.background = ok ? '#3edc64' : '#c81d1e';
       verdict.style.color = ok ? '#00330f' : '#fff';
     }
     pbRenderDiff();
@@ -1350,7 +1354,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
             <div style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.06em">${rate}</div>
           </div>${samples ? '<div style="margin-top:10px;border-top:1px dashed #ccc;padding-top:8px">' + samples + '</div>' : ''}`;
       } catch (e) {
-        out.innerHTML = `<div style="color:#ff2d2e">dry-run failed: ${escHtml(e.message || e)}</div>`;
+        out.innerHTML = `<div style="color:#c81d1e">dry-run failed: ${escHtml(e.message || e)}</div>`;
       }
     });
     // ✨ AI input
@@ -1360,7 +1364,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
     if (aiInput && aiGo) {
       const fire = async () => {
         const prompt = aiInput.value.trim();
-        if (!prompt) { aiStatus.style.color = '#ff2d2e'; aiStatus.textContent = 'type a description first'; return; }
+        if (!prompt) { aiStatus.style.color = '#c81d1e'; aiStatus.textContent = 'type a description first'; return; }
         const prev = aiGo.textContent; aiGo.disabled = true; aiGo.textContent = '… parsing';
         aiStatus.style.color = '#666'; aiStatus.textContent = '';
         try {
@@ -1368,7 +1372,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           const j = await r.json();
           if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
           if (!j.predicate || !j.predicate.and || !j.predicate.and.length) {
-            aiStatus.style.color = '#ff2d2e';
+            aiStatus.style.color = '#c81d1e';
             aiStatus.textContent = 'couldn\'t understand, try: "over 100k cspr to <64-hex>"';
             return;
           }
@@ -1377,7 +1381,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           aiStatus.style.color = '#1a7f37';
           aiStatus.textContent = '✓ ' + (j.understood || []).slice(0,2).join(' · ') + (j.unknown && j.unknown.length ? '  (ignored: ' + j.unknown.length + ')' : '');
         } catch (e) {
-          aiStatus.style.color = '#ff2d2e';
+          aiStatus.style.color = '#c81d1e';
           aiStatus.textContent = 'failed: ' + (e.message || e);
         } finally {
           aiGo.disabled = false; aiGo.textContent = prev;
@@ -1449,7 +1453,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           : '';
         out.innerHTML = `<div style="color:#bcfc07;font:500 12px 'JetBrains Mono';margin-bottom:10px">${Number(j.delivered) || 0}/${Number(j.requested) || 0} delivered · ${Number(j.matched_in_buffer) || 0} matched buffer · ${j.used_synthetic ? 'synthetic top-up used' : 'all real events'}</div>${rows}${peekLink}<div style="margin-top:12px;color:#666;font:500 11px 'JetBrains Mono';letter-spacing:.06em">NO CSPR SPENT · NO ON-CHAIN RECORD · SUB ID = 0</div>`;
       } catch (e) {
-        out.innerHTML = `<div style="color:#ff2d2e">sandbox failed: ${escHtml(e.message || e)}</div>`;
+        out.innerHTML = `<div style="color:#c81d1e">sandbox failed: ${escHtml(e.message || e)}</div>`;
       } finally {
         fire.disabled = false; fire.textContent = prev;
       }
@@ -1471,7 +1475,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       const code = Number(e.status) || 0;
       const status = code === 0 ? `<span style="background:#ffb347;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">PENDING</span>`
         : code >= 200 && code < 300 ? `<span style="background:#3edc64;color:#000;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`
-        : `<span style="background:#ff2d2e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`;
+        : `<span style="background:#c81d1e;color:#fff;padding:2px 7px;font:500 10.5px 'JetBrains Mono';letter-spacing:.06em">${code}</span>`;
       const hash = safeHash(e.tx_hash);
       const tx = hash ? `<a href="https://testnet.cspr.live/deploy/${hash}" target="_blank" rel="noopener" style="color:#1a56c4;text-decoration:none" onclick="event.stopPropagation()">${hash.slice(0,16)}…</a>` : '<span style="color:#999">…</span>';
       return `<div data-act-idx="${i}" class="act-row" title="Click to see condition-by-condition why this matched" style="display:grid;grid-template-columns:130px 70px 70px 80px 1fr 220px;gap:14px;padding:14px 22px;border-bottom:1px solid #eee;align-items:center;font:400 12.5px 'JetBrains Mono';cursor:pointer">
@@ -1642,7 +1646,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
           <span style="color:#666;font-weight:400">${g.parent}</span>
         </div>
         ${g.steps.map((s) => {
-          const glyph = s.pass ? '<span style="color:#1a7f37;font:500 14px \'JetBrains Mono\'">✓</span>' : '<span style="color:#ff2d2e;font:500 14px \'JetBrains Mono\'">✗</span>';
+          const glyph = s.pass ? '<span style="color:#1a7f37;font:500 14px \'JetBrains Mono\'">✓</span>' : '<span style="color:#c81d1e;font:500 14px \'JetBrains Mono\'">✗</span>';
           const bg = s.pass ? '#fff' : '#fff8f8';
           return `<div style="display:grid;grid-template-columns:24px 170px 70px 1fr;gap:12px;padding:10px 14px;border-top:1px solid #eee;align-items:baseline;background:${bg}">
             ${glyph}
@@ -1654,7 +1658,7 @@ Webhook it to ${wh}, lock ${amt} CSPR."`;
       </div>`;
     }).join('');
     const verdict = j.match ? '<span style="background:#3edc64;color:#000;padding:4px 12px;font:500 12px \'JetBrains Mono\';letter-spacing:.08em">✓ MATCHED</span>'
-                            : '<span style="background:#ff2d2e;color:#fff;padding:4px 12px;font:500 12px \'JetBrains Mono\';letter-spacing:.08em">✗ NO MATCH</span>';
+                            : '<span style="background:#c81d1e;color:#fff;padding:4px 12px;font:500 12px \'JetBrains Mono\';letter-spacing:.08em">✗ NO MATCH</span>';
     return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">${verdict} <span style="font:500 12px 'JetBrains Mono';color:#666;letter-spacing:.06em">${j.conditions_passed}/${j.conditions_total} conditions passed</span></div>${inner}`;
   }
 

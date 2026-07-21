@@ -29,12 +29,12 @@ Casper's [AI Toolkit](https://www.casper.network/ai) already lets an agent **rea
 ## How it works
 
 <p align="center">
-  <img src="https://sluice.unitynodes.com/pipeline.svg" alt="Sluice pipeline. Casper events, then JSON predicate, then your webhook, then on-chain receipt. End-to-end median about 140 ms on testnet." width="900">
+  <img src="https://sluice.unitynodes.com/pipeline.svg" alt="Sluice pipeline. Casper events, then JSON predicate, then your webhook, then on-chain receipt. Median webhook dispatch under 150 ms on testnet." width="900">
 </p>
 
 1. **Write a rule.** JSON predicate. "Any transfer to my address over 5000 CSPR."
 2. **Prepay in CSPR.** Locked into the on-chain escrow contract. Each webhook delivery decrements the escrow by 1 CSPR, the flat per-delivery cost the registry was deployed with.
-3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in about 140 ms (median end-to-end on testnet, from block timestamp to webhook delivery).
+3. **Sluice watches the chain.** When a matching event lands, we POST to your webhook (or reach your AI agent via MCP) in under ~150 ms (median webhook dispatch latency on testnet, measured from match to webhook POST response).
 4. **Every escrow-backed delivery is written on chain.** The contract itself emits `record_delivery`. Your bill is an auditable ledger on cspr.live, not a monthly invoice we made up. The public demo lanes on the live feed have no escrow to bill, so they deliver for real but write no receipt; they are labelled `DELIVERED` rather than `CONFIRMED`.
 
 Cancel any time. Remaining CSPR is refunded to your wallet.
@@ -71,7 +71,7 @@ sluice subscribe \
   --amount 10 --watch
 ```
 
-`--watch` waits until the contract emits SubscriptionCreated, then tails deliveries for you. Every match shows up in webhook.site within a fraction of a second of the block landing (median ~140 ms end-to-end on testnet).
+`--watch` waits until the contract emits SubscriptionCreated, then tails deliveries for you. Every match shows up in webhook.site moments after the block lands (median webhook dispatch under ~150 ms on testnet, measured from match to webhook POST response).
 
 ### With Claude Code (no signup)
 

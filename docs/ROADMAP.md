@@ -13,7 +13,7 @@ Live today on testnet:
 - Three delivery channels from one subscription: HMAC-signed webhook, MCP tool call, live WebSocket (`/api/stream`).
 - MCP stdio server (5 tools) and hosted Streamable-HTTP server (the 2 non-signing tools; signing tools stay local). Both expose 4 resources, 3 resource templates and 2 prompts.
 - Predicate language: JSON, AND-of-conditions with nested OR groups and parens, 12 operators, plain-English AI parser (rule-based, no LLM, under 5 ms).
-- On-chain billing: every successful delivery calls `record_delivery`. Median end-to-end ~140 ms on testnet (block timestamp to webhook delivery).
+- On-chain billing: every successful delivery calls `record_delivery`. Median webhook dispatch under ~150 ms on testnet (measured from match to webhook POST response).
 - Web workspace, CLI, self-host installer, Docker stack, Prometheus + Grafana, TypeScript and Python client libraries.
 
 Honest limits: testnet only, no dead-letter queue, in-memory delivery ring buffer, no production SLAs, wallet-native subscribe not yet wired. Full list in `docs/HONEST_LIMITS.md`.

@@ -15,7 +15,7 @@
   @font-face { font-family: 'Casper Sans'; src: url('https://cdn.prod.website-files.com/668fef77d8ac075ed5e3f57a/669e9356732f668b7ff62d68_CasperSans-Medium.woff2') format('woff2'); font-weight: 500; font-display: swap; }
   body { margin: 0; background: #f4f4f4; font-family: 'Casper Sans', Inter, system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; }
   ::selection { background: #bcfc07; color: #000; }
-  a { color: #4589f6; text-decoration: none; }
+  a { color: #1a56c4; text-decoration: none; }
   a:hover { text-decoration: underline; text-decoration-color: #bcfc07; text-decoration-thickness: 2px; }
   @keyframes pulse-acc { 0%,100% { box-shadow: 0 0 0 0 rgba(188,252,7,.55); } 50% { box-shadow: 0 0 0 6px rgba(188,252,7,0); } }
   @keyframes flash { 0% { background: rgba(188,252,7,.4); } 100% { background: transparent; } }
@@ -226,7 +226,7 @@
         const headersFlat = Object.entries(req.headers).map(([k, v]) => k + ': ' + v).join('\n');
         row.innerHTML =
           '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
-            '<span style="background:' + methodColor + ';color:#fff;padding:3px 10px;font:500 11px JetBrains Mono;letter-spacing:.06em">' + escapeHtml(req.method) + '</span>' +
+            '<span style="background:' + methodColor + ';color:#000;padding:3px 10px;font:500 11px JetBrains Mono;letter-spacing:.06em">' + escapeHtml(req.method) + '</span>' +
             '<span style="font:500 13px JetBrains Mono;color:#000">' + new Date(req.ts).toISOString().substr(11, 12) + '</span>' +
             '<span style="font:400 12.5px JetBrains Mono;color:#666">from ' + escapeHtml(req.remote || 'unknown') + '</span>' +
             sigOk +

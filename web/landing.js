@@ -48,7 +48,7 @@
 
   function renderNumbers(snap, events) {
     const subs = snap.subscriptions || [];
-    const totalDeliveries = subs.reduce((a, s) => a + (s.deliveries || 0), 0);
+    const totalDeliveries = subs.filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0);
     const active = subs.filter(s => s.active).length;
     const ok = events.filter(e => e.status >= 200 && e.status < 300).length;
     const successPct = events.length ? (ok / events.length * 100).toFixed(1) : null;

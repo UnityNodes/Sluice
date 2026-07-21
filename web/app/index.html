@@ -39,7 +39,7 @@
   button { font-family: inherit }
   a:focus-visible, button:focus-visible, [tabindex]:focus-visible,
   input:focus-visible, textarea:focus-visible, select:focus-visible {
-    outline: 3px solid #bcfc07 !important; outline-offset: 2px;
+    outline: 3px solid #bcfc07 !important; outline-offset: 2px; box-shadow: 0 0 0 1px #000;
   }
   /* App tabs */
   .app-tabs { display:flex; gap:0; border:1px solid #000; background:#fff; margin-bottom:24px; }
@@ -374,7 +374,7 @@
           <!-- AI strip -->
           <div style="padding:14px 22px;border-bottom:1px solid #000;background:#fafafa;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <span style="font:500 11px 'JetBrains Mono';color:#000;letter-spacing:.1em;display:inline-flex;align-items:center;gap:7px"><svg width="13" height="13"><use href="#icon-sparkle"/></svg> DESCRIBE IN PLAIN ENGLISH</span>
-            <input id="pb-ai-input" placeholder='e.g. "whales over 100k CSPR to dc7252…787c9c"' style="flex:1;min-width:240px;border:1px solid #000;background:#fff;padding:7px 12px;font:500 13px 'JetBrains Mono';color:#000">
+            <input id="pb-ai-input" aria-label="Describe a subscription in plain English" placeholder='e.g. "whales over 100k CSPR to dc7252…787c9c"' style="flex:1;min-width:240px;border:1px solid #000;background:#fff;padding:7px 12px;font:500 13px 'JetBrains Mono';color:#000">
             <button id="pb-ai-go" type="button" style="background:#000;color:#fff;border:1px solid #000;padding:7px 14px;font:500 12px 'Casper Sans',Inter;cursor:pointer">Build →</button>
             <span id="pb-ai-status" style="font:500 11px 'JetBrains Mono';color:#666;flex-basis:100%;min-height:14px"></span>
           </div>
@@ -478,7 +478,7 @@
   </div>
 </div>
 
-<script src="/app/app.js?v=38"></script>
+<script src="/app/app.js?v=39"></script>
 
 </body>
 </html>

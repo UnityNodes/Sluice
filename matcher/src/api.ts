@@ -279,7 +279,7 @@ function renderPromMetrics(snap: NonNullable<ReturnType<NonNullable<ApiConfig['g
   line('sluice_record_delivery_results_total', snap.recordDeliveryOk, { result: 'ok' });
   line('sluice_record_delivery_results_total', snap.recordDeliveryFail, { result: 'fail' });
 
-  out.push('# HELP sluice_webhook_latency_ms Webhook end-to-end latency histogram, in milliseconds.');
+  out.push('# HELP sluice_webhook_latency_ms Webhook dispatch latency histogram (match to webhook POST response), in milliseconds.');
   out.push('# TYPE sluice_webhook_latency_ms histogram');
   let cum = 0;
   for (let i = 0; i < buckets.length; i++) {

@@ -172,7 +172,7 @@
       if (events.length >= 2) {
         const span = (new Date(events[0].timestamp) - new Date(events[events.length - 1].timestamp)) / 60_000;
         const perMin = span > 0 ? events.length / span : events.length;
-        // The demo cron fires hourly, so rounding per-minute always showed 0.
+        // The demo cron fires every 15 min, so rounding per-minute always showed 0.
         // Scale the unit instead of advertising zero throughput.
         $('ls-rate').textContent = perMin >= 1
           ? `LIVE · ${Math.round(perMin)} EVENTS/MIN`
