@@ -293,6 +293,7 @@ export class Matcher {
       const snapshot = {
         contract_hash: this.cfg.contractHash,
         chain: this.cfg.chainName,
+        delivery_unit_cost: process.env.SLUICE_DELIVERY_UNIT_COST ?? '1000000000',
         updated_at: new Date().toISOString(),
         subscriptions: subs.map((s) => (this.cfg.demoSubs?.has(s.id) ? { ...s, demo: true } : s)),
         recent_events: this.recentEvents.slice(0, Matcher.MAX_RECENT),

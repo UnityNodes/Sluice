@@ -3,7 +3,7 @@
 [![CI](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/ci.yml) [![CodeQL](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml/badge.svg)](https://github.com/UnityNodes/Sluice/actions/workflows/codeql.yml) [![status](https://sluice.unitynodes.com/api/badge.svg)](https://sluice.unitynodes.com/app) [![contract](https://img.shields.io/badge/contract-f3710eaf%E2%80%A6b971-bcfc07?labelColor=000)](https://testnet.cspr.live/contract-package/f3710eaf12c30346eb1c642da832bc1af8ff900254c46bcc49a1efca81d8b971) [![tests](https://img.shields.io/badge/tests-110%2F110%20green-3edc64?labelColor=000)](#tests) [![license](https://img.shields.io/badge/license-MIT-000?labelColor=bcfc07)](./LICENSE)
 
 > **Stripe webhooks, but for Casper.**
-> Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) in under a second from when the block lands.
+> Prepay in CSPR. Sluice pushes every matching on-chain event to your server (or straight into your AI agent via MCP) within a fraction of a second of the match; median webhook dispatch under ~150 ms on testnet.
 
 **Live on Casper testnet.** [sluice.unitynodes.com](https://sluice.unitynodes.com)
 &nbsp; · &nbsp; [Dashboard](https://sluice.unitynodes.com/app)
@@ -246,7 +246,7 @@ That gap is the line between a demo and a service you trust in production. We wo
 - Casper **testnet only**. No mainnet contract yet.
 - Predicates are AND at the top level with optional nested OR groups. Depth limit 4, condition limit 32.
 - Webhook retries: 3 attempts with exponential backoff. No dead-letter queue in v0.1.
-- Ring buffer of recent deliveries is live only. If the matcher restarts, in-memory history is gone. Full history is always in the contract events on cspr.live.
+- Recent deliveries are an in-memory ring buffer re-seeded from the last persisted snapshot (most recent 20) on restart, so recent history survives. Full history is always in the contract events on cspr.live.
 - No production SLAs. It's a buildathon submission running on a single VPS.
 
 Full list in [docs/HONEST_LIMITS.md](docs/HONEST_LIMITS.md).

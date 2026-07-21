@@ -40,10 +40,7 @@
     wallet: { connected: false, pubkey: null, accountHash: null }, // read-only, filter only, no signing in v0.1
   };
   const STORAGE_KEY = 'sluice-wallet';
-  // CSPR.click app id, register one for this origin at https://console.cspr.build .
-  // While empty, the dashboard uses the direct Casper Wallet provider (no CSPR.click
-  // load), so connect keeps working; set this to activate multi-wallet + social login.
-  const CSPRCLICK_APP_ID = 'f3f81255-ff8d-458e-b844-68440025';
+  const CSPRCLICK_APP_ID = '';
 
   /* ─────────────────── helpers ─────────────────── */
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -351,7 +348,7 @@
   }
 
   function renderRow(s) {
-    const lowBalance = motesToCspr(s.balance) <= 5 && s.active;
+    const lowBalance = motesToCspr(s.balance) <= 5 && s.active && !s.demo;
     const statusBadge = !s.active
       ? el('span', { style: 'font:500 10.5px JetBrains Mono;background:#fff;border:1px solid #000;color:#000;padding:2px 7px;letter-spacing:.08em' }, 'DEPLETED')
       : lowBalance
@@ -369,7 +366,7 @@
       el('div', {},
         el('div', { style: 'font:500 12.5px JetBrains Mono;color:#000' }, predicateSummaryNode(s.predicate)),
         el('div', { style: 'margin-top:6px;font:500 11px JetBrains Mono;color:#666;letter-spacing:.04em' },
-          `${s.deliveries} delivered · owner ${truncHash(s.owner)}${isMine ? ' · YOU' : ''}`,
+          `${s.demo ? '—' : s.deliveries} delivered · owner ${truncHash(s.owner)}${isMine ? ' · YOU' : ''}`,
         ),
       ),
       el('div', { style: 'min-width:0' },
@@ -469,7 +466,7 @@
     const totalEl = $('#tp-total');
     if (!tp || !Array.isArray(tp) || tp.length === 0) {
       totalEl.textContent = String((state.snapshot.subscriptions || []).filter(s => !s.demo).reduce((a, s) => a + (s.deliveries || 0), 0));
-      $('#tp-peak').textContent = ',  · waiting on timeseries';
+      $('#tp-peak').textContent = ' · waiting on timeseries';
       return;
     }
     totalEl.textContent = tp.reduce((a, p) => a + (p.deliveries || 0), 0).toLocaleString();
