@@ -78,7 +78,7 @@
   </g>
 
   <!-- Stage 3 bottom. On-chain receipt (dark card) -->
-  <g transform="translate(880,300)">
+  <g transform="translate(880,268)">
     <rect width="256" height="120" fill="#000"/>
     <text x="20" y="30" font-size="11" letter-spacing="2" fill="#bcfc07">DESTINATION 2</text>
     <text x="20" y="56" font-size="15" fill="#fff" font-family="'Casper Sans', Inter, sans-serif" font-weight="500">On-chain receipt</text>

@@ -14,7 +14,7 @@
 🎤 "You're building an app or an AI agent on Casper, and you need to know the instant something happens on chain. Ethereum has Alchemy webhooks. Solana has Helius. Casper had nothing — Sluice fills that gap."
 
 ### ② 0:15–0:35 · Як працює
-🎬 Діаграма `pipeline.svg` («How it works») — по черзі підсвічуються стадії: predicate → prepay escrow → matcher → webhook/MCP → on-chain receipt.
+🎬 На лендінгу проскрол до секції **«How it works»** (пункт меню «How it works») — там діаграма-конвеєр: **Source → Matcher → Your webhook + On-chain receipt**, з анімованим імпульсом по лініях. Дай кадру затриматись на ній.
 🎤 "Write a JSON rule. Prepay in CSPR into an on-chain escrow contract. Sluice watches the chain, and the instant a matching event lands it pushes it to your webhook — median under ~150 ms on testnet — and writes an auditable receipt back on chain."
 
 ### ③ 0:35–1:05 · Чесний дашборд
