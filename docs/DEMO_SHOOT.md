@@ -26,10 +26,10 @@
 > ⚠️ Знімай саме з порогом «over 1000 CSPR» — sample-подія має 5000 CSPR, тож matches зелений. Якщо сказати «100k CSPR», предикат розпарситься правильно, але sample покаже NO MATCH (0.005 % від порогу) — на камері це зайве.
 🎤 "You don't hand-write JSON. Describe the rule in plain English — 'transfers over a thousand CSPR to this address' — and the builder compiles it to a predicate right in the browser. Test it against a sample event: it matches."
 
-### ⑤ 1:30–2:00 · Живий swap end-to-end
-🎬 Термінал: **`scripts/demo-swap.sh 500000 CSPR USDC`**. Повертаєшся на `/app` (або `/feed`) — у стрічці за кілька секунд з'являється новий рядок **`Contract · Swap @ ffb5a9… → 200 · ~80 ms`**.
-> ⚠️ Фіналізація на testnet інколи до 1–2 хв. Запусти swap трохи заздалегідь і зроби cut на момент, коли рядок падає — не тримай очікування в кадрі. (Перевірено: реальна транзакція, доставка status 200, ~74 ms.)
-🎤 "This isn't a mock. I'll fire a real swap on our DemoDex contract on testnet. The production matcher is watching it — swap transaction, to CSPR.cloud's stream, to a predicate match, to a webhook two-hundred — and there it is in the feed, a real matched event in seconds."
+### ⑤ 1:30–2:00 · Жива доставка — усе з браузера (без терміналу)
+🎬 `/app` → вкладка **Sandbox**. Поле **WEBHOOK URL** уже заповнене вбудованим приймачем (`/api/hooks/sandbox-…` — нічого налаштовувати), рецепт «any recent transfer», COUNT лишити на 3 → натиснути **▶ Fire 3 webhooks**. Внизу в **DISPATCH RESULTS** миттєво з'являються 3 рядки: `#1 200 · 100 ms`, `#2 200 · 52 ms`, `#3 200 · …` — кожен зі своїм підпис-хешем. Далі переклацни на **Live feed** (меню «Live feed» / сторінка `/feed`) — там реальні on-chain рядки **`Contract · Swap @ ffb5a9… → 200`** падають самі.
+> ⚠️ Жодного терміналу — усе з сайту. Sandbox дає результат миттєво (натиснув → одразу 200 + латентність + підпис). Він чесно позначений «NO CSPR · no on-chain effect» — це тестові POST-и, тому НЕ називай їх on-chain. Рядки `Swap` у стрічці — навпаки, справжні on-chain матчі (DemoDex, з'являються автоматично кожні ~15 хв); саме їх називай «real on-chain».
+🎤 "And it all runs from the browser — no CLI, no wallet. I hit Fire, and Sluice sends real, HMAC-signed webhook POSTs straight to your endpoint — there they land, two-hundreds in tens of milliseconds. That's how you harden your receiver before you pay a cent. And over here in the live feed, these rows are real on-chain DemoDex swaps the production matcher caught and delivered — landing on their own."
 
 ### ⑥ 2:00–2:25 · On-chain проф + x402
 🎬 Показати на cspr.live реальний **`record_delivery`** деплой (`error: None`) — auditable ledger. Далі панель **x402** на `/app` («Subscription 200 … 0.1 WCSPR micropayment»).
