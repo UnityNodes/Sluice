@@ -11,19 +11,19 @@
 <meta property="og:url" content="https://sluice.unitynodes.com/demo">
 <meta property="og:title" content="Sluice · Watch the demo">
 <meta property="og:description" content="Casper events, the moment they land. A three minute demo: a real subscription, a real x402 payment settled on-chain, and the proof on cspr.live.">
-<meta property="og:image" content="https://sluice.unitynodes.com/demo/demo-poster.jpg">
+<meta property="og:image" content="https://sluice.unitynodes.com/demo/demo-poster.jpg?v=2">
 <meta property="og:image:width" content="1920">
 <meta property="og:image:height" content="1080">
 <meta property="og:image:alt" content="The Sluice dashboard: a plain-English event parser, a live feed of matched swaps, and sub-second delivery latency.">
-<meta property="og:video" content="https://sluice.unitynodes.com/demo.mp4">
-<meta property="og:video:secure_url" content="https://sluice.unitynodes.com/demo.mp4">
+<meta property="og:video" content="https://sluice.unitynodes.com/demo.mp4?v=2">
+<meta property="og:video:secure_url" content="https://sluice.unitynodes.com/demo.mp4?v=2">
 <meta property="og:video:type" content="video/mp4">
 <meta property="og:video:width" content="1920">
 <meta property="og:video:height" content="1080">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Sluice · Watch the demo">
 <meta name="twitter:description" content="Casper events, the moment they land. A real subscription, a real x402 payment settled on-chain, and the proof on cspr.live.">
-<meta name="twitter:image" content="https://sluice.unitynodes.com/demo/demo-poster.jpg">
+<meta name="twitter:image" content="https://sluice.unitynodes.com/demo/demo-poster.jpg?v=2">
 <meta name="twitter:image:alt" content="The Sluice dashboard: a plain-English event parser and a live feed of matched Casper swaps.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns%3D%22http%3A//www.w3.org/2000/svg%22 viewBox%3D%220 0 24 24%22%3E%3Crect width%3D%2224%22 height%3D%2224%22 fill%3D%22%23000%22/%3E%3Cpolygon points%3D%2210%2C7 17%2C12 10%2C17%22 fill%3D%22%23bcfc07%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -130,16 +130,16 @@
     <div class="stage" style="margin-top:40px">
       <div>
         <div class="player">
-          <video id="v" playsinline preload="metadata" poster="/demo/demo-poster.jpg">
-            <source src="/demo.mp4" type="video/mp4">
-            Your browser does not support the video tag. <a href="/demo.mp4" style="color:#bcfc07">Download the mp4</a> instead.
+          <video id="v" playsinline preload="metadata" poster="/demo/demo-poster.jpg?v=2">
+            <source src="/demo.mp4?v=2" type="video/mp4">
+            Your browser does not support the video tag. <a href="/demo.mp4?v=2" style="color:#bcfc07">Download the mp4</a> instead.
           </video>
           <button id="playBtn" class="play-btn" aria-label="Play the Sluice demo video">
             <svg width="30" height="34" viewBox="0 0 30 34" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0L30 17L0 34V0Z" fill="#000"/></svg>
           </button>
         </div>
         <div style="margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-          <a class="btn btn-lime" href="/demo.mp4" download="sluice-demo.mp4" aria-label="Download the demo video">
+          <a class="btn btn-lime" href="/demo.mp4?v=2" download="sluice-demo.mp4" aria-label="Download the demo video">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
             Download mp4
           </a>
@@ -209,14 +209,15 @@
   var list = document.getElementById('chapterList');
 
   var chapters = [
-    { t: 0,   title: 'The polling problem',        note: 'Alchemy on Ethereum, Helius on Solana. On Casper you polled or ran your own indexer.' },
-    { t: 18,  title: 'The missing primitive: react', note: 'Read, act, and pay already existed. React was the gap. Sluice fills it, as a hosted MCP.' },
-    { t: 36,  title: 'Describe it in plain English', note: 'Type what you care about; the parser turns it into a JSON predicate and dry-runs it.' },
-    { t: 60,  title: 'Real Casper contracts',       note: 'Live subscriptions on real testnet contracts other teams deployed, a stablecoin and an RWA fund.' },
-    { t: 72,  title: 'Pay per event with x402',     note: 'This subscription is billed by x402, not escrow. One click pays and pulls a matched event.' },
-    { t: 112, title: 'Real tokens moved, on-chain', note: 'The official Casper facilitator settles it. Real tokens move, proven on cspr.live.' },
-    { t: 126, title: 'Any agent, one MCP URL',      note: 'Claude, Cursor, Windsurf. It subscribes, and matched events arrive as tool calls.' },
-    { t: 144, title: 'Verifiable, and honest',      note: 'Every delivery is an on-chain receipt. Signed, retried, and honest about what is not in v0.1.' }
+    { t: 0,   title: 'Casper had no webhooks',        note: 'Ethereum has Alchemy, Solana has Helius. On Casper you polled or ran your own indexer — Sluice fills the gap.' },
+    { t: 8,   title: 'How Sluice works',              note: 'Write a JSON rule, prepay CSPR into an on-chain escrow, and every match is pushed to your webhook — median ~150 ms on testnet.' },
+    { t: 32,  title: 'The honest dashboard',          note: 'Six lanes active, one escrow-backed with 30 real CSPR; the other five are clearly marked DEMO and never counted as locked funds.' },
+    { t: 68,  title: 'Describe it in plain English',  note: 'Type the rule in plain English; the parser writes the JSON predicate and dry-runs it against a sample event — it matches.' },
+    { t: 80,  title: 'Deliver from the browser',      note: 'No CLI, no wallet. The sandbox fires real HMAC-signed webhook POSTs at your endpoint — 200s in tens of milliseconds.' },
+    { t: 104, title: 'Real on-chain swaps, live',     note: 'These feed rows are real on-chain DemoDex swaps the production matcher caught and delivered, landing on their own.' },
+    { t: 116, title: 'On-chain receipts and x402',    note: 'Every escrow-backed delivery is a deploy on cspr.live. This lane is paid per event over x402 — a real 0.1 WCSPR micropayment via the Casper facilitator.' },
+    { t: 140, title: 'One MCP URL for any agent',     note: 'Read, act and pay already existed; react was the gap. Sluice ships as one hosted MCP — matched events arrive as tool calls.' },
+    { t: 164, title: 'Honest, and live on testnet',   note: 'One contract, one hosted MCP, honest on-chain numbers. Sluice — the react primitive for Casper.' }
   ];
 
   function mmss(s) {
